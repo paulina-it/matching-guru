@@ -28,22 +28,22 @@ const config: Config = {
     },
     colors: {
       ...colors,
-	  light: "#E8E8E8",
+	  light: "#fefaf9",
 	  dark: "#1A1A1A",
 	  primary: {
-		DEFAULT: "#2C3E50",
-		hover: "#243746",
-		dark: "#1B2732",
+		DEFAULT: "#9fcada",
+		hover: "#549ab4",
+		dark: "#25505f",
 	  },
 	  secondary: {
-		DEFAULT: "#5A8DA0",
-		hover: "#4A7687",
-		dark: "#3A5F6B",
+		DEFAULT: "#62a8d7",
+		hover: "#2c7cb1",
+		dark: "#296f9e",
 	  },
 	  accent: {
-		DEFAULT: "#4F6B66",
-		hover: "#3F5652",
-		dark: "#2E413D",
+		DEFAULT: "#ba5648",
+		hover: "#9a3325",
+		dark: "#b55245",
 	  },
 	  highlight: {
 		DEFAULT: "#B89A5E",

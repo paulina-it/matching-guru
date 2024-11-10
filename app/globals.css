@@ -12,13 +12,17 @@
   body {
     @apply font-primary bg-light dark:bg-dark dark:text-light;
     scroll-behavior: smooth;
+    /* scrollbar-gutter: stable; */
   }
   html,
   body {
-    width: 100%;
+    width: 100vw;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    ::-webkit-scrollbar { 
+      display: none; 
+      }
   }
   section {
     @apply container mb-[1em] md:mb-[4em] p-4 md:p-0;
