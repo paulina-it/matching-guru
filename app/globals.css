@@ -10,7 +10,7 @@
 
 @layer base {
   body {
-    @apply font-primary bg-light dark:bg-dark dark:text-light;
+    @apply font-primary bg-primary text-dark dark:bg-dark dark:text-light;
     scroll-behavior: smooth;
     /* scrollbar-gutter: stable; */
   }
@@ -24,9 +24,9 @@
       display: none; 
       }
   }
-  section {
+  /* section {
     @apply container mb-[1em] md:mb-[4em] p-4 md:p-0;
-  }
+  } */
 
   .h1 {
     @apply text-[48px] xl:text-[80px] leading-[1.1] font-semibold font-accent text-center sm:text-start;

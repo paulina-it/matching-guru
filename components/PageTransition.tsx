@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const pageVariants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, x: 10 },
   visible: {
     opacity: 1,
-    y: 0,
+    x: 0,
     transition: { duration: 0.5, ease: "easeOut" },
   },
 };
