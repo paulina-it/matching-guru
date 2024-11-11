@@ -1,9 +1,12 @@
-import React from 'react'
+import DashboardNav from "@/components/DashboardNav";
+import React from "react";
 
 const CoordinatorDashboard = () => {
   return (
-    <div>CoordinatorDashboard</div>
-  )
-}
+    <section className="min-h-screen grid grid-cols-[1fr_4fr]">
+      <DashboardNav type="coordinator" />
+    </section>
+  );
+};
 
-export default CoordinatorDashboard
+export default CoordinatorDashboard;
