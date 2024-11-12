@@ -1,9 +1,10 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, redirect } from "next/navigation";
 import PageTransition from "@/components/PageTransition";
-import { useAuth } from "@/app/api/AuthContext";
-import { ReactNode, useEffect } from "react";
+import { useAuth } from "@/app/context/AuthContext";
+import { ReactNode, useEffect, Suspense } from "react";
+import { PulseLoader } from "react-spinners";
 
 interface ProtectedLayoutProps {
   children: ReactNode;
@@ -15,18 +16,23 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const pathname = usePathname();
 
   const isAuthPage = pathname.startsWith("/auth");
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
-    if (!loading && !isAuthenticated && !isAuthPage) {
-      router.push("/auth/login"); 
+    if (!loading && !isAuthenticated && !isAuthPage && !isHomePage) {
+      redirect("/");
     }
-  }, [isAuthenticated, loading, isAuthPage, router]);
+  }, [isAuthenticated, loading, isAuthPage, isHomePage, router]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center w-full h-screen">
+        <PulseLoader color="#ba5648" size={15} />
+      </div>
+    );
 
   return (
-    <main className="flex min-h-screen">
-      {isAuthenticated}
+    <main className="flex min-h-screen bg-light">
       <div className="flex-1">
         <PageTransition>{children}</PageTransition>
       </div>

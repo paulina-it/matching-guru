@@ -12,21 +12,24 @@ import { UserRole, UserCreateDto } from "@/app/types/auth";
 import { registerUser } from "@/app/api/auth";
 import InputField from "@/components/InputField";
 import Header from "@/components/Header";
+import { useAuth } from "@/app/context/AuthContext";
 
 const Signup: React.FC = () => {
   const [role, setRole] = useState<UserRole | "">("");
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<UserCreateDto>({
     firstName: "",
     lastName: "",
     email: "",
     role: UserRole.USER,
     password: "",
-    joinCode: "",
+    // joinCode: "",
   });
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const router = useRouter();
+
+  const { register, loading, error, user } = useAuth();
 
   const goToNextStep = () => {
     if (swiperInstance) swiperInstance.slideNext();
@@ -58,22 +61,18 @@ const Signup: React.FC = () => {
     e.preventDefault();
 
     if (formData.password !== confirmPassword) {
-      setError("Passwords do not match.");
+      alert("Passwords do not match.");
       return;
     }
 
-    setError(null);
-    try {
-      const response = await registerUser(formData);
-      localStorage.setItem("token", response.token);
-      console.log("Logged in successfully", response.user);
+    const response = await register(formData); 
+
+    if (response) {
       if (formData.role === UserRole.USER) {
         router.push("/participant");
       } else if (formData.role === UserRole.ADMIN) {
         router.push("/coordinator");
       }
-    } catch (err) {
-      setError((err as Error).message);
     }
   };
 

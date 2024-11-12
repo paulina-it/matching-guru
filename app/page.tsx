@@ -1,20 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
+import { useAuth } from "./context/AuthContext";
 import { UserRole } from "./types/auth";
-
-const getToken = (): string | null => {
-  return localStorage.getItem("authToken");
-};
+import { PulseLoader } from "react-spinners"; // Import a spinner component
 
 export default function Home() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const { user, isAuthenticated, loading } = useAuth();
 
   const handleLoginRedirect = () => {
     router.push("/auth/login");
@@ -24,19 +21,36 @@ export default function Home() {
     router.push("/auth/signup");
   };
 
+  const handleDashboardRedirect = () => {
+    if (user?.role === UserRole.ADMIN) {
+      router.push("/coordinator");
+    } else if (user?.role === UserRole.USER) {
+      router.push("/participant");
+    }
+  };
+
   useEffect(() => {
-    const token = getToken();
-    if (token) {
-      setIsAuthenticated(true);
+    if (user?.id != null) {
+      console.log(user);
+      console.log(isAuthenticated);
     }
   }, [router]);
+
+  if (loading) {
+    // Display loading spinner while authentication check is in progress
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <PulseLoader color="#3498db" size={15} />
+      </div>
+    );
+  }
 
   return (
     <div className="container flex mx-auto gap-14">
       <Header />
       <section className="mt-[7em] relative">
         <h2 className="font-semibold text-xl uppercase">Welcome to</h2>
-        <h1 className="text-5xl font-accent font-semibold">Matching Guru</h1>
+        <h1 className="h1">Matching Guru</h1>
         <p className="my-4">
           Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ducimus
           numquam ratione molestiae, illo omnis rerum aspernatur tempora laborum
@@ -69,21 +83,14 @@ export default function Home() {
             <Button
               variant="default"
               size="xl"
-              // onClick={handleDashboardRedirect} // Redirects based on role
+              onClick={handleDashboardRedirect} // Redirects based on role
             >
               Go to Dashboard
             </Button>
           )}
         </div>
       </section>
-      <div className="">
-        {/* <Image
-          src="/assets/ui/shape.png"
-          width={2000}
-          height={4000}
-          alt=""
-          className="absolute object-contain overflow-visible z-10"
-        /> */}
+      <div>
         <Image
           src="/assets/ui/MeditatingDoodle.svg"
           priority

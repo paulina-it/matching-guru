@@ -33,6 +33,6 @@ export interface UserResponseDto {
     uniEmail?: string,
     studentNumber?: number,
     role: UserRole,
-    organisationId: number,
-    organisationName: string
+    organisationId?: number,
+    organisationName?: string
 }

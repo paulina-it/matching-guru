@@ -2,6 +2,31 @@ import { UserLoginDto, UserCreateDto, LoginResponse, UserResponseDto } from '../
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+
+export async function registerUser(request: UserCreateDto): Promise<LoginResponse> {
+    const response = await fetch(`${API_URL}/auth/signup`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+        const errorMessage = await response.text();
+        console.error("Backend error response:", errorMessage); // Add error logging here
+        
+        try {
+            const errorData = JSON.parse(errorMessage);
+            throw new Error(errorData.message || 'Failed to register');
+        } catch (e) {
+            throw new Error(errorMessage || 'Failed to register');
+        }
+    }
+
+    return response.json();
+}
+
 export async function loginUser(request: UserLoginDto): Promise<LoginResponse> {
     const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -18,28 +43,3 @@ export async function loginUser(request: UserLoginDto): Promise<LoginResponse> {
 
     return response.json();
 }
-
-export async function registerUser(request: UserCreateDto): Promise<LoginResponse> {
-    const response = await fetch(`${API_URL}/auth/signup`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-        const errorMessage = await response.text();
-        
-        try {
-            const errorData = JSON.parse(errorMessage);
-            throw new Error(errorData.message || 'Failed to register');
-        } catch (e) {
-            throw new Error(errorMessage || 'Failed to register');
-        }
-    }
-
-    return response.json();
-}
-
-

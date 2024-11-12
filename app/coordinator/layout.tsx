@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Mulish } from "next/font/google";
-import "./globals.css";
-import ProtectedLayout from "@/app/ProtectedLayout"; 
+import "../globals.css";
 import { AuthProvider } from "@/app/context/AuthContext";
 import { ReactNode } from "react";
+import DashboardLayout from "./DashboardLayout";
 
 const mulish = Mulish({
   subsets: ["latin"],
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className={`${mulish.variable} ${playfairDisplay.variable}`}>
         <AuthProvider>
-          <ProtectedLayout>{children}</ProtectedLayout>
+          <DashboardLayout>{children}</DashboardLayout>
         </AuthProvider>
       </body>
     </html>
