@@ -12,10 +12,8 @@ import {
   UserCreateDto,
   LoginResponse,
   UserResponseDto,
-  UserRole,
 } from "../types/auth";
 import { loginUser, registerUser } from "@/app/api/auth";
-import { redirect } from "next/dist/server/api-utils";
 
 interface AuthContextType {
   user: UserResponseDto | null;
@@ -25,59 +23,17 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
-  updateUserOrganisation: (organisationId: string) => void;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserResponseDto | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true); // Set to `true` initially
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      fetchUserData(token);
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchUserData = async (token: string) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/status`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch user data");
-
-      const userData: UserResponseDto = await response.json();
-      console.log(userData);
-      setUser(userData);
-    } catch (error) {
-      console.error(error);
-      localStorage.removeItem("token");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateUserOrganisation = (organisationId: string) => {
-    if (user) {
-      const updatedUser = {
-        ...user,
-        organisationId:
-          typeof organisationId === "string"
-            ? parseInt(organisationId, 10)
-            : organisationId,
-      };
-      setUser(updatedUser);
-    }
-  };
+  const clearError = () => setError(null);
 
   const login = async (
     credentials: UserLoginDto
@@ -89,8 +45,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("token", token);
       setUser(user);
       return { token, user };
-    } catch (error) {
-      setError((error as Error).message);
+    } catch (err) {
+      setError((err as Error).message);
       return null;
     } finally {
       setLoading(false);
@@ -100,16 +56,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (
     userData: UserCreateDto
   ): Promise<LoginResponse | null> => {
-    try { 
-        console.log(userData);
+    try {
       setLoading(true);
       setError(null);
       const { token, user } = await registerUser(userData);
       localStorage.setItem("token", token);
       setUser(user);
       return { token, user };
-    } catch (error) {
-      setError((error as Error).message);
+    } catch (err) {
+      setError((err as Error).message);
       return null;
     } finally {
       setLoading(false);
@@ -123,11 +78,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isAuthenticated = !!user;
 
+  // Load user data on initial load
+  useEffect(() => {
+    const loadUser = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          setLoading(true);
+          // Fetch user data from the backend using the token
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/status`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const userData: UserResponseDto = await response.json();
+            setUser(userData);
+          } else {
+            logout(); 
+          }
+        } catch (err) {
+          console.error("Failed to load user:", err);
+          logout();
+        }
+      }
+      setLoading(false);
+    };
+
+    loadUser();
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, error, isAuthenticated, updateUserOrganisation }}>
-        {children}
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        loading,
+        error,
+        isAuthenticated,
+        clearError,
+      }}
+    >
+      {children}
     </AuthContext.Provider>
-);
+  );
 };
 
 export const useAuth = () => {

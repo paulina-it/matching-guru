@@ -1,9 +1,10 @@
+// app/layout.tsx (RootLayout)
 import type { Metadata } from "next";
 import { Playfair_Display, Mulish } from "next/font/google";
-import "./globals.css";
-import ProtectedLayout from "@/app/ProtectedLayout"; 
+import "./globals.css"; // Adjust path if needed
 import { AuthProvider } from "@/app/context/AuthContext";
 import { ReactNode } from "react";
+import { Toaster } from "react-hot-toast";
 
 const mulish = Mulish({
   subsets: ["latin"],
@@ -25,9 +26,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${mulish.variable} ${playfairDisplay.variable}`}>
+      <body className={`${mulish.variable} ${playfairDisplay.variable} bg-light`}>
         <AuthProvider>
-          <ProtectedLayout>{children}</ProtectedLayout>
+          <Toaster position="top-right" />
+          {children}
         </AuthProvider>
       </body>
     </html>

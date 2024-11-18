@@ -10,15 +10,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
+import { Toaster, toast } from "react-hot-toast";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, error, loading } = useAuth();
+  const { login, error, loading, clearError } = useAuth();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors = [];
+
+    if (!email) errors.push("Please enter a valid email.");
+    if (!password) errors.push("Please enter your password.");
+
+    if (errors.length > 0) {
+      errors.forEach((error) => toast.error(error));
+      return;
+    }
     const response = await login({ email, password });
     if (response) {
       const userRole = response.user.role;
@@ -27,13 +38,16 @@ const Login: React.FC = () => {
       } else if (userRole === "USER") {
         router.push("/participant");
       }
+    } else if (error) {
+      toast.error(error);
     }
   };
 
   return (
     <div>
       <Header />
-      <div className="flex justify-center items-center min-h-screen bg-secondary">
+      <div className="flex justify-center items-center min-h-screen bg-primary">
+        <Toaster position="top-right" />
         <Card className="w-full max-w-md p-4 shadow-md">
           <CardHeader>
             <CardTitle className="text-center font-accent text-2xl font-bold">
@@ -41,7 +55,7 @@ const Login: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4" noValidate>
               <div>
                 <label htmlFor="email" className="block mb-1 text-gray-700">
                   Email
@@ -70,11 +84,7 @@ const Login: React.FC = () => {
               </div>
               <Button type="submit" className="w-full">
                 {loading ? "Logging in..." : "Login"}
-              </Button>{" "}
-              {/* Display error if login fails */}
-              {error && (
-                <p className="text-red-500 text-center mt-2">{error}</p>
-              )}
+              </Button>
             </form>
             <Link href={"/auth/signup"}>
               <p className="mt-5 text-dark/60 hover:underline hover:text-dark transition-all duration-200 text-center">

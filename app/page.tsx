@@ -37,7 +37,6 @@ export default function Home() {
   }, [router]);
 
   if (loading) {
-    // Display loading spinner while authentication check is in progress
     return (
       <div className="flex justify-center items-center h-screen">
         <PulseLoader color="#3498db" size={15} />

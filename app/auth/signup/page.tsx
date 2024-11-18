@@ -9,27 +9,24 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BsArrowLeft } from "react-icons/bs";
 import { UserRole, UserCreateDto } from "@/app/types/auth";
-import { registerUser } from "@/app/api/auth";
 import InputField from "@/components/InputField";
 import Header from "@/components/Header";
 import { useAuth } from "@/app/context/AuthContext";
+import { Toaster, toast } from "react-hot-toast";
 
 const Signup: React.FC = () => {
   const [role, setRole] = useState<UserRole | "">("");
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
-  // const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<UserCreateDto>({
     firstName: "",
     lastName: "",
     email: "",
     role: UserRole.USER,
     password: "",
-    // joinCode: "",
   });
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const router = useRouter();
-
-  const { register, loading, error, user } = useAuth();
+  const { register, loading, error, clearError } = useAuth();
 
   const goToNextStep = () => {
     if (swiperInstance) swiperInstance.slideNext();
@@ -60,12 +57,33 @@ const Signup: React.FC = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const errors = [];
     if (formData.password !== confirmPassword) {
-      alert("Passwords do not match.");
-      return;
+      errors.push("Passwords do not match.");
     }
 
-    const response = await register(formData); 
+    if (!formData.firstName.trim()) {
+      errors.push("First Name is required.");
+    }
+    if (!formData.lastName.trim()) {
+      errors.push("Last Name is required.");
+    }
+    if (!formData.email.trim()) {
+      errors.push("Email is required.");
+    }
+    if (!formData.password.trim()) {
+      errors.push("Password is required.");
+    }
+    if (formData.password !== confirmPassword) {
+      errors.push("Passwords do not match.");
+    }
+
+
+    if (errors.length > 0) {
+      errors.forEach((error) => toast.error(error));
+      return;
+    }
+    const response = await register(formData);
 
     if (response) {
       if (formData.role === UserRole.USER) {
@@ -73,13 +91,16 @@ const Signup: React.FC = () => {
       } else if (formData.role === UserRole.ADMIN) {
         router.push("/coordinator");
       }
+    } else if (error) {
+      toast.error(error);
     }
   };
 
   return (
     <div>
       <Header />
-      <div className="flex justify-center items-center min-h-screen bg-secondary">
+      <div className="flex justify-center items-center min-h-screen bg-primary">
+      <Toaster position="top-right" />
         <Card className="relative w-full max-w-[50vw] p-4 shadow-md">
           <CardHeader />
           <CardContent>
@@ -156,7 +177,11 @@ const ParticipantForm: React.FC<FormProps> = ({
   onSubmit,
   confirmPassword,
 }) => (
-  <form className="grid md:grid-cols-2 gap-4 gap-y-8" onSubmit={onSubmit}>
+  <form
+    className="grid md:grid-cols-2 gap-4 gap-y-8"
+    onSubmit={onSubmit}
+    noValidate
+  >
     <h2 className="col-span-2 text-xl font-bold text-center mb-4">
       Participant Signup
     </h2>
@@ -253,14 +278,18 @@ const CoordinatorForm: React.FC<FormProps> = ({
     e.preventDefault();
 
     if (formData.email !== confirmEmail) {
-      alert("Emails do not match.");
+      toast.error("Emails do not match.");
       return;
     }
 
     onSubmit(e);
   };
   return (
-    <form className="grid md:grid-cols-2 gap-4 gap-y-8" onSubmit={handleSubmit}>
+    <form
+      className="grid md:grid-cols-2 gap-4 gap-y-8"
+      onSubmit={handleSubmit}
+      noValidate
+    >
       <h2 className="col-span-2 text-xl font-bold text-center mb-4">
         Coordinator Signup
       </h2>

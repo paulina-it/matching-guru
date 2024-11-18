@@ -34,7 +34,7 @@ const coordinatorLinks = [
     content: "",
   },
   {
-    route: "/coordinator/programmes",
+    route: "/coordinator/organisation/programmes",
     name: "Programmes",
     icon: <RiProjectorLine />,
     content: "",
