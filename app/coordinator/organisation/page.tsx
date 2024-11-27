@@ -113,10 +113,10 @@ const OrganisationPage = () => {
   }
 
   return (
-    <div className="w-full max-w-[80%] m-auto h-full bg-primary flex items-center justify-center">
+    <div className="w-full max-w-[80%] m-auto h-full flex items-center justify-center">
       <Toaster position="top-right" /> {/* Toast container */}
       {organisation ? (
-        <div className="bg-light p-12 rounded-[10px]">
+        <div className="bg-light mt-[10vh] p-12 rounded-[10px]">
           <div className="flex justify-between gap-[3em]">
             <div>
               <h1 className="h1 mb-4">{organisation.name}</h1>
