@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { token, user } = await loginUser(credentials);
       localStorage.setItem("token", token);
       setUser(user);
+      
       return { token, user };
     } catch (err) {
       setError((err as Error).message);
@@ -95,6 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (response.ok) {
             const userData: UserResponseDto = await response.json();
             setUser(userData);
+            console.log(userData.organisationName);
           } else {
             logout(); 
           }

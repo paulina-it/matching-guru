@@ -10,7 +10,10 @@ import {
 } from "@/app/api/organisation";
 import { useAuth } from "@/app/context/AuthContext";
 import { PulseLoader } from "react-spinners";
-import { toast, Toaster } from "react-hot-toast"; // Import toast
+import { toast, Toaster } from "react-hot-toast";
+import Image from "next/image";
+import { redirect } from "next/navigation";
+import { fetchCourseGroupsByOrganisationId } from "@/app/api/courses";
 
 type OrganisationData = {
   id: number;
@@ -18,38 +21,63 @@ type OrganisationData = {
   description: string;
   joinCode: string;
 };
+interface Course {
+  id: number;
+  name: string;
+}
+
+interface CourseGroup {
+  id: number;
+  name: string;
+  courses: Course[];
+}
+
 
 const OrganisationPage = () => {
-  const [organisation, setOrganisation] = useState<OrganisationData | null>(null);
+  const [organisation, setOrganisation] = useState<OrganisationData | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const [courseGroups, setCourseGroups] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const data = await fetchAdminOrganisation();
         setOrganisation(data);
+
+        if (data?.id) {
+          // Fetch course groups if organisation is found
+          const courseGroupsData = await fetchCourseGroupsByOrganisationId(
+            data.id
+          );
+          setCourseGroups(courseGroupsData);
+        }
       } catch (err) {
-        toast.error("Failed to fetch organisation data.");
-        console.error("Error fetching organisation data:", err);
+        toast.error("Failed to fetch data.");
+        console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
   const handleCopy = () => {
     if (organisation?.joinCode) {
-      navigator.clipboard.writeText(organisation.joinCode)
+      navigator.clipboard
+        .writeText(organisation.joinCode)
         .then(() => {
-          toast.success("Join code copied to clipboard!"); 
+          toast.success("Join code copied to clipboard!");
         })
         .catch((err) => {
-          toast.error("Failed to copy join code."); 
+          toast.error("Failed to copy join code.");
           console.error("Failed to copy text: ", err);
         });
     }
@@ -76,23 +104,78 @@ const OrganisationPage = () => {
     }
   };
 
+  const handleRedirect = () => {
+    redirect("organisation/courses/create");
+  };
+
   if (loading) {
     return <PulseLoader color="#ba5648" size={15} />;
   }
 
   return (
-    <div className="w-full h-full bg-primary flex items-center justify-center">
+    <div className="w-full max-w-[80%] m-auto h-full bg-primary flex items-center justify-center">
       <Toaster position="top-right" /> {/* Toast container */}
       {organisation ? (
         <div className="bg-light p-12 rounded-[10px]">
-          <h1 className="h1 mb-4">{organisation.name}</h1>
-          <p className="mb-5">{organisation.description}</p>
-          <h2 className="h3 bg-secondary text-white p-4 rounded flex items-center justify-between">
-            Join Code: <span className="font-bold">{organisation.joinCode}</span>
-            <Button onClick={handleCopy} className="ml-4 text-sm">
-              Copy
-            </Button>
-          </h2>
+          <div className="flex justify-between gap-[3em]">
+            <div>
+              <h1 className="h1 mb-4">{organisation.name}</h1>
+              <p className="mb-5">{organisation.description}</p>
+              <h2 className="h3 bg-secondary text-white p-4 rounded flex items-center justify-between">
+                Join Code:{" "}
+                <span className="font-bold">{organisation.joinCode}</span>
+                <Button onClick={handleCopy} className="ml-4 text-sm">
+                  Copy
+                </Button>
+              </h2>
+            </div>
+            <Image
+              src="/assets/ui/logo(yy).png"
+              width={200}
+              height={200}
+              alt="Logo"
+              className="m-auto"
+            />
+          </div>
+          <div className="mt-10 relative">
+            <h2 className="h2 text-4xl">Courses at {organisation?.name}</h2>
+                <Button
+                  variant="outline"
+                  className="absolute top-2 right-0"
+                  onClick={handleRedirect}
+                >
+                  Add Courses
+                </Button>
+            {courseGroups.length > 0 ? (
+              <div className="mt-5">
+                {courseGroups.map((group) => (
+                  <div
+                    key={group.id}
+                    className="mb-8 p-4 bg-light rounded shadow"
+                  >
+                    <h3 className="h3 text-xl font-bold mb-2">{group.name}</h3>
+                    {group.courses.length > 0 ? (
+                      <ul className="list-disc pl-6">
+                        {group.courses.map((course: Course) => (
+                          <li key={course.id} className="text-gray-700">
+                            {course.name}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 italic">
+                        No courses available in this group.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-5">
+                <p>No courses found</p>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <OrganisationForm

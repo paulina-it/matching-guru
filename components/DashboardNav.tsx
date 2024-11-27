@@ -67,7 +67,7 @@ const DashboardNav = ({ type }: Props) => {
   }
 
   return (
-    <div className="container h-[150%] w-[10vw] pt-20 left-0 top-0 bg-light md:w-[20em]">
+    <div className="container min-h-[100%] w-[10vw] pt-20 left-0 top-0 bg-light md:w-[20em]">
       <Image
         src="/assets/ui/logo(yy).png"
         width={70}

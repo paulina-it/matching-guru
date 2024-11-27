@@ -39,7 +39,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <aside>
         <DashboardNav type="coordinator" />
       </aside>
-      <main className="w-full h-full bg-primary flex items-center justify-center relative">
+      <main className="w-full h-full bg-primary/50 flex items-center justify-center relative">
         <Logout className=" absolute top-5 right-5 text-accent hover:text-white" />
         <PageTransition>{children}</PageTransition>
       </main>
