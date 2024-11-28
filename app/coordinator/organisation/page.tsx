@@ -115,8 +115,8 @@ const OrganisationPage = () => {
   return (
     <div className="w-full max-w-[80%] m-auto h-full flex items-center justify-center">
       <Toaster position="top-right" /> {/* Toast container */}
-      {organisation ? (
-        <div className="bg-light mt-[10vh] p-12 rounded-[10px]">
+      {organisation?.id != null ? (
+        <div className="bg-light my-[10vh] p-12 rounded-[10px]">
           <div className="flex justify-between gap-[3em]">
             <div>
               <h1 className="h1 mb-4">{organisation.name}</h1>
@@ -147,11 +147,11 @@ const OrganisationPage = () => {
                   Add Courses
                 </Button>
             {courseGroups.length > 0 ? (
-              <div className="mt-5">
+              <div className="mt-5 grid grid-cols-2 gap-6">
                 {courseGroups.map((group) => (
                   <div
                     key={group.id}
-                    className="mb-8 p-4 bg-light rounded shadow"
+                    className="mb-8 p-4 bg-secondary/10 rounded shadow"
                   >
                     <h3 className="h3 text-xl font-bold mb-2">{group.name}</h3>
                     {group.courses.length > 0 ? (

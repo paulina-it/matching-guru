@@ -31,7 +31,7 @@ const Logout: React.FC<LogoutProps> = ({ className }) => {
   return (
     <Dialog>
       <DialogTrigger 
-              className={`border-accent border-[1px] p-3 py-1 rounded hover:border-none hover:bg-accent transition-all duration-200`+className}>Logout</DialogTrigger>
+              className={`border-accent border-[1px] p-3 py-1 rounded hover:border-none hover:bg-accent transition-all duration-200 z-10`+className}>Logout</DialogTrigger>
       <DialogContent className="flex justify-center align-center rounded-[5px]">
         <DialogHeader>
           <DialogTitle>Are you sure you want to logout?</DialogTitle>
