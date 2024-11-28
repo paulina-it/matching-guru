@@ -1,24 +1,16 @@
-// api/auth.ts
 import { UserLoginDto, UserCreateDto, LoginResponse } from "../types/auth";
+import toast from "react-hot-toast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 /**
  * Handle errors from the API response.
- * Attempts to parse JSON, falling back to plain text or a generic error message.
+ * Displays error messages using toast notifications.
  */
 async function handleApiError(response: Response): Promise<never> {
-  const contentType = response.headers.get("Content-Type");
-
-  if (contentType && contentType.includes("application/json")) {
-    const errorData = await response.json();
-    console.error("Parsed error data:", errorData);
-    throw new Error(errorData.message || "An unknown error occurred");
-  } else {
-    const errorMessage = await response.text();
-    console.error("Raw error message:", errorMessage);
-    throw new Error(errorMessage || "An unknown error occurred");
-  }
+  const errorMessage = await response.text();
+  toast.error(errorMessage); // Show the error message directly
+  throw new Error(errorMessage);
 }
 
 /**

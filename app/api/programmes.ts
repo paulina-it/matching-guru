@@ -60,7 +60,7 @@ export async function fetchProgrammesByOrganisationId(
   const token = localStorage.getItem("token");
 
   const response = await fetch(
-    `${API_URL}/programmes?organisationId=${organisationId}`,
+    `${API_URL}/programmes/organisation/${organisationId}`,
     {
       method: "GET",
       headers: {
@@ -73,6 +73,24 @@ export async function fetchProgrammesByOrganisationId(
   if (!response.ok) {
     const errorMessage = await response.text();
     throw new Error(errorMessage || "Failed to fetch programmes");
+  }
+
+  return response.json();
+}
+
+export async function fetchProgrammeById(id: number): Promise<ProgrammeDto> {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_URL}/programmes/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to fetch programme details");
   }
 
   return response.json();

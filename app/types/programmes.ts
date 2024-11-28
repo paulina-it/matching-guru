@@ -17,5 +17,6 @@ export interface ProgrammeCreateDto {
     description: string;
     organisationId: number;
     courseGroupIds: number[];
+    participants: number;
   }
   
