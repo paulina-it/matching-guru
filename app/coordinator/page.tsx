@@ -13,7 +13,7 @@ const CoordinatorDashboard = () => {
   return (
     <div className="flex justify-between gap-6">
       <div className="bg-light rounded p-10">
-        <h2 className="h2">Hello, {user?.firstName}</h2>
+        <h2 className="h2">Hello, {user?.firstName} ({user?.role})</h2>
       </div>
       <div className="bg-light rounded p-10">
         {user?.organisationName ? (

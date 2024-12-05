@@ -20,3 +20,31 @@ export interface ProgrammeCreateDto {
     participants: number;
   }
   
+  export interface MatchingCriteriaDto {
+    name: string;
+    weight: number;
+  }
+  
+  export enum AlgorithmType {
+    GALE_SHAPLEY = "GALE_SHAPLEY",
+    COLLABORATIVE_FILTERING = "COLLABORATIVE_FILTERING",
+    BRACE = "BRACE",
+  }
+  
+  export interface ProgrammeYearDto {
+    id: number;
+    academicYear: string;
+    isActive: boolean;
+    preferredAlgorithm: string;
+    joinCode?: string;
+    participantsCount?: number;
+  }
+  
+  export interface ProgrammeYearCreateDto {
+    programmeId: number;
+    academicYear: string;
+    customSettings: string;
+    preferredAlgorithm: AlgorithmType;
+    matchingCriteria: MatchingCriteriaDto[];
+  }
+  

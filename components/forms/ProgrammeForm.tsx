@@ -54,13 +54,13 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
   }, [user?.organisationId]);
 
   const handleCourseGroupSelection = (groupId: number) => {
-    setSelectedCourseGroups((prev) =>
+    setSelectedCourseGroups((prev: number[]) =>
       prev.includes(groupId)
-        ? prev.filter((id) => id !== groupId)
-        : [...prev, groupId]
+        ? prev.filter((id: number) => id !== groupId) 
+        : [...prev, groupId] 
     );
   };
-
+  
   
   const handleSelectAll = () => {
     const allGroupIds = courseGroups.map((group) => group.id);
@@ -70,7 +70,7 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
   const handleDeselectAll = () => {
     setSelectedCourseGroups([]);
   };
-  
+
   return (
     <form onSubmit={onSubmit} className="bg-light rounded p-5">
       <h2 className="text-2xl font-bold mb-4">Create Programme</h2>
@@ -102,17 +102,20 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
 
       <div className="relative">
         <label className="block font-bold mb-2">Select Course Groups</label>
-        {courseGroups.length > 1 ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute right-0 top-0"
-            onClick={handleSelectAll}
-          >
-            Select All
-          </Button>
-        ) : (
-          ""
+        {courseGroups.length > 1 && (
+          <div className="flex justify-end mb-2 absolute top-0 right-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAll}
+              className="mr-2"
+            >
+              Select All
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDeselectAll}>
+              Deselect All
+            </Button>
+          </div>
         )}
         {loading ? (
           <p>Loading course groups...</p>
