@@ -11,9 +11,7 @@ import { PulseLoader } from "react-spinners";
 const Programmes = () => {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
-  const [selectedCourseGroups, setSelectedCourseGroups] = useState<number[]>(
-    []
-  );
+  const [selectedCourseGroups, setSelectedCourseGroups] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -51,7 +49,7 @@ const Programmes = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <PulseLoader color="#3498db" size={15} />
+        <PulseLoader color="#ba5648" size={15} />
       </div>
     );
   }

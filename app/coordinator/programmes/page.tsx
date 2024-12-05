@@ -50,7 +50,7 @@ const Programmes = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <PulseLoader color="#3498db" size={15} />
+        <PulseLoader color="#ba5648" size={15} />
       </div>
     );
   }

@@ -33,7 +33,7 @@ const coordinatorLinks = [
     icon: <FaBuilding />,
   },
   {
-    route: "/coordinator/organisation/programmes",
+    route: "/coordinator/programmes",
     name: "Programmes",
     icon: <RiProjectorLine />,
   },
@@ -54,6 +54,40 @@ const coordinatorLinks = [
   },
 ];
 
+const participantLinks = [
+  {
+    route: "/participant",
+    name: "Home",
+    icon: <AiFillHome />,
+  },
+  {
+    route: "/participant/organisation",
+    name: "Organisation",
+    icon: <FaBuilding />,
+  },
+  {
+    route: "/participant/programmes",
+    name: "Programmes",
+    icon: <RiProjectorLine />,
+  },
+  // {
+  //   route: "/coordinator/reports",
+  //   name: "Reports",
+  //   icon: <AiOutlineFileText />,
+  // },
+  {
+    route: "/participant/account",
+    name: "Account",
+    icon: <FiUser />,
+  },
+  {
+    route: "/participant/account/settings",
+    name: "Settings",
+    icon: <FiSettings />,
+  },
+];
+
+
 const DashboardNav = ({ type }: Props) => {
   const { user } = useAuth();
   const pathname = usePathname();
@@ -61,6 +95,17 @@ const DashboardNav = ({ type }: Props) => {
 
   if (type === "coordinator") {
     links = coordinatorLinks.map((link) => {
+      if (
+        !user?.organisationName &&
+        link.name !== "Home" &&
+        link.name !== "Organisation"
+      ) {
+        return { ...link, disabled: true };
+      }
+      return link;
+    });
+  } else {
+    links = participantLinks.map((link) => {
       if (
         !user?.organisationName &&
         link.name !== "Home" &&
