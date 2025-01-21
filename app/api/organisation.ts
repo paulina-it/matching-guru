@@ -33,6 +33,33 @@ export async function fetchAdminOrganisation(): Promise<OrganisationResponseDto 
   return response.json();
 }
 
+export async function fetchOrganisation(id: number): Promise<OrganisationResponseDto | null> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/organisations/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    } else if (response.status === 403) {
+      throw new Error("Access denied");
+    } else if (response.status === 404) {
+      return null;
+    } else {
+      throw new Error("Failed to fetch organisation");
+    }
+  }
+
+  return response.json();
+}
+
 
 export async function createOrganisationAndAssignToUser(
   organisationData: OrganisationCreateDto
