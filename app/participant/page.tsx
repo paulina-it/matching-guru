@@ -6,7 +6,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 
-const CoordinatorDashboard = () => {
+const ParticipantDashboard = () => {
   const { user } = useAuth();
   console.log(user);
 
@@ -44,4 +44,4 @@ const CoordinatorDashboard = () => {
   );
 };
 
-export default CoordinatorDashboard;
+export default ParticipantDashboard;
