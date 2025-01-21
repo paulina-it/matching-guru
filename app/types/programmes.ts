@@ -48,3 +48,26 @@ export interface ProgrammeCreateDto {
     matchingCriteria: MatchingCriteriaDto[];
   }
   
+  export enum CriterionType {
+    FIELD = "FIELD",
+    AVAILABILITY = "AVAILABILITY",
+    PERSONALITY = "PERSONALITY",
+    SKILLS = "SKILLS",
+    GENDER = "GENDER",
+    AGE = "AGE",
+    NATIONALITY = "NATIONALITY",
+  }  
+
+export interface ProgrammeMatchingCriteriaDto {
+  id: number;
+  criterionType: CriterionType;
+  weight: number;
+}
+
+export interface CourseDto {
+  id: number; 
+  name: string; 
+  type: string;
+  duration?: number; 
+  groupId: number; 
+}

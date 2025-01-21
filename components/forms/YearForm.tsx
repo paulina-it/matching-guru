@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
 import { Button } from "@/components/ui/button";
-import { AlgorithmType, MatchingCriteriaDto } from "@/app/types/programmes";
+import { AlgorithmType, CriterionType, MatchingCriteriaDto } from "@/app/types/programmes";
 import { createProgrammeYear } from "@/app/api/programmes"; 
 import toast from "react-hot-toast";
 import { PulseLoader } from "react-spinners";
+import { useRouter } from "next/navigation";
 
 interface ProgrammeYearFormProps {
   programmeId: number;
@@ -35,9 +36,21 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
     predefinedCriteria.map((name) => ({ name, weight: 0 }))
   );
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+    const router = useRouter();
 
   const totalWeight = criteria.reduce((sum, criterion) => sum + criterion.weight, 0);
+
+  const nameToCriterionTypeMap: { [key: string]: CriterionType } = {
+    "Academic Field": CriterionType.FIELD,
+    "Availability": CriterionType.AVAILABILITY,
+    "Personality Fit": CriterionType.PERSONALITY,
+    "Skills": CriterionType.SKILLS,
+    "Gender": CriterionType.GENDER,
+    "Age": CriterionType.AGE,
+    "Nationality": CriterionType.NATIONALITY,
+  };
+  
 
   const handleCriteriaChange = (
     index: number,
@@ -60,20 +73,26 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       return;
     }
 
+    const formattedCriteria = criteria.map((criterion) => ({
+      name: criterion.name,
+      criterionType: nameToCriterionTypeMap[criterion.name], 
+      weight: criterion.weight,
+    }));
+
     const formData = {
       programmeId,
       academicYear,
       customSettings: "", 
       preferredAlgorithm,
-      matchingCriteria: criteria,
+      matchingCriteria: formattedCriteria,
     };
 
     try {
       setLoading(true);
       await createProgrammeYear(formData);
       toast.success("Programme year created successfully!");
-      setAcademicYear("");
-      setCriteria(predefinedCriteria.map((name) => ({ name, weight: 0 })));
+      router.push(`/coordinator/programmes/${programmeId}`)
+
     } catch (err: any) {
       toast.error(`Error: ${err.message}`);
     } finally {

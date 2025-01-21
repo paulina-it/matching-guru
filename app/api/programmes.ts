@@ -1,6 +1,8 @@
 import {
+  CourseDto,
   ProgrammeCreateDto,
   ProgrammeDto,
+  ProgrammeMatchingCriteriaDto,
   ProgrammeUpdateDto,
   ProgrammeYearCreateDto,
   ProgrammeYearDto,
@@ -55,7 +57,6 @@ export async function updateProgramme(
   return response.json();
 }
 
-// Fetch Programmes by Organisation ID
 export async function fetchProgrammesByOrganisationId(
   organisationId: number
 ): Promise<ProgrammeDto[]> {
@@ -63,6 +64,30 @@ export async function fetchProgrammesByOrganisationId(
 
   const response = await fetch(
     `${API_URL}/programmes/organisation/${organisationId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to fetch programmes");
+  }
+
+  return response.json();
+}
+
+export async function fetchActiveProgrammesByOrganisationId(
+  organisationId: number
+): Promise<ProgrammeDto[]> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(
+    `${API_URL}/programmes/organisation/${organisationId}/active`,
     {
       method: "GET",
       headers: {
@@ -101,6 +126,8 @@ export async function fetchProgrammeById(id: number): Promise<ProgrammeDto> {
 export async function createProgrammeYear(data: ProgrammeYearCreateDto): Promise<void> {
   const token = localStorage.getItem("token"); 
 
+  console.log(data);
+
   const response = await fetch(`${API_URL}/programme-years`, {
     method: "POST",
     headers: {
@@ -134,4 +161,46 @@ export async function fetchProgrammeYears(id: number): Promise<ProgrammeYearDto[
 
   const data: ProgrammeYearDto[] = await response.json();
   return data;
+}
+
+export async function fetchMatchingCriteria(programmeYearId: number): Promise<ProgrammeMatchingCriteriaDto[]> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/programme-years/${programmeYearId}/matching-criteria`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to fetch matching criteria");
+  }
+
+  const data: ProgrammeMatchingCriteriaDto[] = await response.json();
+  return data;
+}
+
+export async function fetchEligibleCourses(programmeId: number): Promise<CourseDto[]> {
+  if (!programmeId || isNaN(programmeId)) {
+    throw new Error("Invalid programme ID");
+  }
+
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_URL}/courses/programme/${programmeId}/eligible`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to fetch eligible courses");
+  }
+
+  return response.json();
 }
