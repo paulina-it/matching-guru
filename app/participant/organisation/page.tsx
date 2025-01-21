@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import {
   fetchAdminOrganisation,
   createOrganisationAndAssignToUser,
+  fetchOrganisation,
 } from "@/app/api/organisation";
 import { useAuth } from "@/app/context/AuthContext";
 import { PulseLoader } from "react-spinners";
@@ -32,7 +33,6 @@ interface CourseGroup {
   courses: Course[];
 }
 
-
 const OrganisationPage = () => {
   const [organisation, setOrganisation] = useState<OrganisationData | null>(
     null
@@ -46,18 +46,15 @@ const OrganisationPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user?.organisationId) {
+        console.error("User organisation ID is undefined");
+        return;
+      }
+
       setLoading(true);
       try {
-        const data = await fetchAdminOrganisation();
+        const data = await fetchOrganisation(user?.organisationId);
         setOrganisation(data);
-
-        if (data?.id) {
-          // Fetch course groups if organisation is found
-          const courseGroupsData = await fetchCourseGroupsByOrganisationId(
-            data.id
-          );
-          setCourseGroups(courseGroupsData);
-        }
       } catch (err) {
         toast.error("Failed to fetch data.");
         console.error("Error fetching data:", err);
@@ -68,45 +65,6 @@ const OrganisationPage = () => {
 
     fetchData();
   }, []);
-
-  const handleCopy = () => {
-    if (organisation?.joinCode) {
-      navigator.clipboard
-        .writeText(organisation.joinCode)
-        .then(() => {
-          toast.success("Join code copied to clipboard!");
-        })
-        .catch((err) => {
-          toast.error("Failed to copy join code.");
-          console.error("Failed to copy text: ", err);
-        });
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!user) {
-      toast.error("User not logged in.");
-      return;
-    }
-
-    try {
-      const newOrganisation = await createOrganisationAndAssignToUser({
-        name,
-        description: desc,
-      });
-      setOrganisation(newOrganisation);
-    } catch (err) {
-      toast.error("Failed to create organisation.");
-      console.error("Error creating organisation:", err);
-    }
-  };
-
-  const handleRedirect = () => {
-    redirect("organisation/courses/create");
-  };
 
   if (loading) {
     return <PulseLoader color="#ba5648" size={15} />;
@@ -121,13 +79,6 @@ const OrganisationPage = () => {
             <div>
               <h1 className="h1 mb-4">{organisation.name}</h1>
               <p className="mb-5">{organisation.description}</p>
-              <h2 className="h3 bg-secondary text-white p-4 rounded flex items-center justify-between">
-                Join Code:{" "}
-                <span className="font-bold">{organisation.joinCode}</span>
-                <Button onClick={handleCopy} className="ml-4 text-sm">
-                  Copy
-                </Button>
-              </h2>
             </div>
             <Image
               src="/assets/ui/logo(yy).png"
@@ -137,110 +88,12 @@ const OrganisationPage = () => {
               className="m-auto"
             />
           </div>
-          <div className="mt-10 relative">
-            <h2 className="h2 text-4xl">Courses at {organisation?.name}</h2>
-                <Button
-                  variant="outline"
-                  className="absolute top-2 right-0"
-                  onClick={handleRedirect}
-                >
-                  Add Courses
-                </Button>
-            {courseGroups.length > 0 ? (
-              <div className="mt-5 grid grid-cols-2 gap-6">
-                {courseGroups.map((group) => (
-                  <div
-                    key={group.id}
-                    className="mb-8 p-4 bg-secondary/10 rounded shadow"
-                  >
-                    <h3 className="h3 text-xl font-bold mb-2">{group.name}</h3>
-                    {group.courses.length > 0 ? (
-                      <ul className="list-disc pl-6">
-                        {group.courses.map((course: Course) => (
-                          <li key={course.id} className="text-gray-700">
-                            {course.name}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-gray-500 italic">
-                        No courses available in this group.
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-5">
-                <p>No courses found</p>
-              </div>
-            )}
-          </div>
         </div>
       ) : (
-        <OrganisationForm
-          name={name}
-          setName={setName}
-          setDesc={setDesc}
-          desc={desc}
-          error={error}
-          onSubmit={handleSubmit}
-        />
+        ""
       )}
     </div>
   );
 };
-
-interface FormProps {
-  name: string;
-  desc: string;
-  error: string | null;
-  setName: (name: string) => void;
-  setDesc: (desc: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
-}
-
-const OrganisationForm: React.FC<FormProps> = ({
-  name,
-  desc,
-  error,
-  setName,
-  setDesc,
-  onSubmit,
-}) => (
-  <form
-    className="max-w-[40em] min-w-[30em] bg-light rounded-[5px] px-6 py-7 flex flex-col gap-5"
-    onSubmit={onSubmit}
-  >
-    <h2 className="text-xl font-bold text-center mb-4">
-      Create an Organisation
-    </h2>
-
-    <InputField
-      id="name"
-      label="Organisation Name*"
-      value={name}
-      onChange={(e) => setName(e.target.value)}
-      required
-      placeholder="Enter organisation name"
-    />
-
-    <label htmlFor="description" className="text-gray-700 mb-[-1em]">
-      Description*
-    </label>
-    <Textarea
-      id="description"
-      value={desc}
-      onChange={(e) => setDesc(e.target.value)}
-      placeholder="Enter description"
-    />
-
-    <Button type="submit" className="w-full h-12 text-xl">
-      Submit
-    </Button>
-
-    {error && <p className="text-red-500 text-center mt-2">{error}</p>}
-  </form>
-);
 
 export default OrganisationPage;
