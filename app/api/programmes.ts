@@ -204,3 +204,26 @@ export async function fetchEligibleCourses(programmeId: number): Promise<CourseD
 
   return response.json();
 }
+
+export async function fetchProgrammesByUserId(userId: number): Promise<ProgrammeDto[]> {
+  if (!userId || isNaN(userId)) {
+    throw new Error("Invalid user ID");
+  }
+
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/programmes/user/${userId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to fetch programmes for the user");
+  }
+
+  return response.json();
+}
