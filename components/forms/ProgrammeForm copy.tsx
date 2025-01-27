@@ -8,6 +8,7 @@ import InputField from "@/components/InputField";
 import { fetchCourseGroupsByOrganisationId } from "@/app/api/courses";
 import Link from "next/link";
 import { PulseLoader } from "react-spinners";
+import toast from "react-hot-toast";
 
 const predefinedCriteria = [
   { id: 1, label: "Academic field" },
@@ -106,7 +107,7 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (totalWeight !== 100) {
-      alert("The total weight of all criteria must add up to 100%");
+      toast.error("The total weight of all criteria must add up to 100%");
       return;
     }
 
