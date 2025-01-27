@@ -1,0 +1,129 @@
+import { ParticipantCreateDto, ParticipantDto } from "@/app/types/participant";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+/**
+ * Create a new participant in the system.
+ *
+ * @param data - The participant creation data.
+ * @throws An error if the request fails.
+ */
+export async function createParticipant(
+  data: ParticipantCreateDto
+): Promise<void> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/participants/create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to create participant");
+  }
+}
+
+/**
+ * Get a participant by ID.
+ *
+ * @param id - The ID of the participant.
+ * @returns The participant data.
+ */
+export async function getParticipant(
+  id: number
+): Promise<ParticipantCreateDto> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/participants/${id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to fetch participant");
+  }
+
+  return response.json();
+}
+/**
+ * Get a participant by user ID.
+ *
+ * @param id - The ID of the user.
+ * @returns The participant data.
+ */
+export async function getParticipantByUserId(
+  id: number
+): Promise<ParticipantDto> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/participants/user/${id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to fetch participant");
+  }
+
+  return response.json();
+}
+
+/**
+ * Update an existing participant.
+ *
+ * @param id - The ID of the participant.
+ * @param data - The updated participant data.
+ * @throws An error if the request fails.
+ */
+export async function updateParticipant(
+  id: number,
+  data: ParticipantCreateDto
+): Promise<void> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/participants/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to update participant");
+  }
+}
+
+/**
+ * Delete a participant by ID.
+ *
+ * @param id - The ID of the participant.
+ * @throws An error if the request fails.
+ */
+export async function deleteParticipant(id: number): Promise<void> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/participants/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to delete participant");
+  }
+}
