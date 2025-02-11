@@ -27,6 +27,19 @@ const Signup: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const router = useRouter();
   const { register, loading, error, clearError } = useAuth();
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>(
+    "/assets/placeholders/avatar.png"
+  );
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setProfileImage(file);
+      const imageUrl = URL.createObjectURL(file);
+      setPreviewUrl(imageUrl);
+    }
+  };
 
   const goToNextStep = () => {
     if (swiperInstance) swiperInstance.slideNext();
@@ -61,7 +74,6 @@ const Signup: React.FC = () => {
     if (formData.password !== confirmPassword) {
       errors.push("Passwords do not match.");
     }
-
     if (!formData.firstName.trim()) {
       errors.push("First Name is required.");
     }
@@ -74,16 +86,38 @@ const Signup: React.FC = () => {
     if (!formData.password.trim()) {
       errors.push("Password is required.");
     }
-    if (formData.password !== confirmPassword) {
-      errors.push("Passwords do not match.");
-    }
-
 
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-    const response = await register(formData);
+
+    let imageUrl = "";
+    if (profileImage) {
+      const imageData = new FormData();
+      imageData.append("file", profileImage);
+
+      try {
+        const uploadResponse = await fetch("/api/upload-profile", {
+          method: "POST",
+          body: imageData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const data = await uploadResponse.json();
+        imageUrl = data.url;
+      } catch (error) {
+        toast.error("Error uploading image");
+        return;
+      }
+    }
+
+    const userData = { ...formData, profileImage: imageUrl };
+
+    const response = await register(userData);
 
     if (response) {
       if (formData.role === UserRole.USER) {
@@ -99,66 +133,73 @@ const Signup: React.FC = () => {
   return (
     <div>
       <Header />
-      <div className="flex justify-center items-center min-h-screen bg-primary">
-      <Toaster position="top-right" />
-        <Card className="relative w-full max-w-[50vw] p-4 shadow-md">
-          <CardHeader />
-          <CardContent>
-            <Swiper onSwiper={setSwiperInstance} allowTouchMove={false}>
-              <SwiperSlide className="m-auto h-full">
-                <div className="text-center mx-auto">
-                  <h2 className="text-xl font-bold mb-4">Select Your Role</h2>
-                  <div className="flex mx-auto justify-around">
-                    <Button
-                      onClick={() => handleRoleSelection(UserRole.USER)}
-                      className="w-[40%] text-xl h-10"
-                    >
-                      Participant
-                    </Button>
-                    <Button
-                      onClick={() => handleRoleSelection(UserRole.ADMIN)}
-                      className="w-[40%] text-xl h-10"
-                    >
-                      Coordinator
-                    </Button>
+      <div className="min-h-screen bg-primary flex flex-col mt-20">
+        <Header />
+        <div className="flex justify-center items-center flex-grow py-5">
+          <Toaster position="top-right" />
+          <Card className="w-full max-w-[50vw] p-4 shadow-md">
+            <CardHeader />
+            <CardContent>
+              <Swiper onSwiper={setSwiperInstance} allowTouchMove={false}>
+                <SwiperSlide className="m-auto h-full">
+                  <div className="text-center mx-auto">
+                    <h2 className="text-xl font-bold mb-4">Select Your Role</h2>
+                    <div className="flex mx-auto justify-around">
+                      <Button
+                        onClick={() => handleRoleSelection(UserRole.USER)}
+                        className="w-[40%] text-xl h-10"
+                      >
+                        Participant
+                      </Button>
+                      <Button
+                        onClick={() => handleRoleSelection(UserRole.ADMIN)}
+                        className="w-[40%] text-xl h-10"
+                      >
+                        Coordinator
+                      </Button>
+                    </div>
+                    <Link href={"/auth/login"}>
+                      <p className="mt-5 text-dark/60 hover:underline hover:text-dark transition-all duration-200 text-center">
+                        Already have an account? Login
+                      </p>
+                    </Link>
                   </div>
-                  <Link href={"/auth/login"}>
-                    <p className="mt-5 text-dark/60 hover:underline hover:text-dark transition-all duration-200 text-center">
-                      Already have an account? Login
-                    </p>
-                  </Link>
-                </div>
-              </SwiperSlide>
+                </SwiperSlide>
 
-              <SwiperSlide>
-                <Button
-                  onClick={goToPrevSlide}
-                  className="flex items-center space-x-2"
-                  variant="outline"
-                >
-                  <BsArrowLeft className="text-xl text-gray-700 hover:text-black" />
-                </Button>
-                {role === UserRole.USER && (
-                  <ParticipantForm
-                    formData={formData}
-                    onChange={handleChange}
-                    onSubmit={handleSignup}
-                    confirmPassword={confirmPassword}
-                  />
-                )}
-                {role === UserRole.ADMIN && (
-                  <CoordinatorForm
-                    formData={formData}
-                    onChange={handleChange}
-                    onSubmit={handleSignup}
-                    confirmPassword={confirmPassword}
-                  />
-                )}
-                {error && <p className="text-red-500 mt-4">{error}</p>}
-              </SwiperSlide>
-            </Swiper>
-          </CardContent>
-        </Card>
+                <SwiperSlide>
+                  <Button
+                    onClick={goToPrevSlide}
+                    className="flex items-center space-x-2 absolute"
+                    variant="outline"
+                  >
+                    <BsArrowLeft className="text-xl text-gray-700 hover:text-black" />
+                  </Button>
+                  {role === UserRole.USER && (
+                    <ParticipantForm
+                      formData={formData}
+                      onChange={handleChange}
+                      onSubmit={handleSignup}
+                      confirmPassword={confirmPassword}
+                      handleImageChange={handleImageChange}
+                      previewUrl={previewUrl}
+                    />
+                  )}
+                  {role === UserRole.ADMIN && (
+                    <CoordinatorForm
+                      formData={formData}
+                      onChange={handleChange}
+                      onSubmit={handleSignup}
+                      confirmPassword={confirmPassword}
+                      handleImageChange={handleImageChange}
+                      previewUrl={previewUrl}
+                    />
+                  )}
+                  {error && <p className="text-red-500 mt-4">{error}</p>}
+                </SwiperSlide>
+              </Swiper>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
@@ -169,6 +210,8 @@ interface FormProps {
   confirmPassword: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
+  handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  previewUrl?: string;
 }
 
 const ParticipantForm: React.FC<FormProps> = ({
@@ -176,6 +219,8 @@ const ParticipantForm: React.FC<FormProps> = ({
   onChange,
   onSubmit,
   confirmPassword,
+  handleImageChange,
+  previewUrl,
 }) => (
   <form
     className="grid md:grid-cols-2 gap-4 gap-y-8"
@@ -185,6 +230,32 @@ const ParticipantForm: React.FC<FormProps> = ({
     <h2 className="col-span-2 text-xl font-bold text-center mb-4">
       Participant Signup
     </h2>
+
+    <div className="flex flex-col items-center gap-3 mt-4 row-span-2">
+      {/* Profile Image Preview */}
+      <img
+        src={previewUrl}
+        alt="Profile Preview"
+        className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 shadow-md"
+      />
+
+      {/* Styled File Input */}
+      <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded shadow-md hover:bg-primary/80 transition">
+        Choose Profile Picture
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+        />
+      </label>
+
+      {/* Show Selected File Name */}
+      {/* {profileImage && (
+          <p className="text-gray-600 text-sm">{profileImage.name}</p>
+        )} */}
+    </div>
+
     <InputField
       id="firstName"
       label="First Name*"
@@ -262,6 +333,8 @@ const CoordinatorForm: React.FC<FormProps> = ({
   onChange,
   onSubmit,
   confirmPassword,
+  handleImageChange,
+  previewUrl,
 }) => {
   const [orgExists, setOrgExists] = useState("yes");
   const [confirmEmail, setConfirmEmail] = useState<string>("");
@@ -293,6 +366,31 @@ const CoordinatorForm: React.FC<FormProps> = ({
       <h2 className="col-span-2 text-xl font-bold text-center mb-4">
         Coordinator Signup
       </h2>
+      <div className="flex flex-col items-center gap-3 mt-4 row-span-2">
+        {/* Profile Image Preview */}
+        <img
+          src={previewUrl}
+          alt="Profile Preview"
+          className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 shadow-md"
+        />
+
+        {/* Styled File Input */}
+        <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded-lg shadow-md hover:bg-primary/80 transition">
+          Choose Profile Picture
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+        </label>
+
+        {/* Show Selected File Name */}
+        {/* {profileImage && (
+          <p className="text-gray-600 text-sm">{profileImage.name}</p>
+        )} */}
+      </div>
+
       <InputField
         id="firstName"
         label="First Name*"

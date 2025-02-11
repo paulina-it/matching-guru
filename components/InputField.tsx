@@ -3,11 +3,12 @@ import { Input } from "@/components/ui/input";
 interface InputFieldProps {
   id: string;
   label: string;
-  value: string;
+  value?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: string;
-  required: boolean;
-  placeholder: string;
+  required?: boolean;
+  placeholder?: string;
+  accept?: string; 
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -17,7 +18,8 @@ const InputField: React.FC<InputFieldProps> = ({
   onChange,
   type = "text",
   required,
-  placeholder
+  placeholder,
+  accept
 }) => (
   <div className="col-span-2 md:col-span-1">
     <label htmlFor={id} className="block mb-1 text-gray-700">
@@ -31,6 +33,8 @@ const InputField: React.FC<InputFieldProps> = ({
       onChange={onChange}
       placeholder={placeholder}
       required={required}
+      accept={accept}
+      {...(type !== "file" && { value })}
     />
   </div>
 );

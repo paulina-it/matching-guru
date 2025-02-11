@@ -16,8 +16,10 @@ export interface UserCreateDto {
     uniEmail?: string;  //Optional
     studentNumber?: number; // Optional
     role: UserRole;    
+    course?: string,
     joinCode?: string; 
     password: string;  
+    profileImage?: string;
 }
 
 export interface LoginResponse {
@@ -33,6 +35,7 @@ export interface UserResponseDto {
     uniEmail?: string,
     studentNumber?: number,
     role: UserRole,
+    course?: string,
     organisationId?: number,
     organisationName?: string
 }
