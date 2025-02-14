@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { redirect, useParams } from "next/navigation";
 import { fetchProgrammeById, fetchProgrammeYears } from "@/app/api/programmes";
+import { matchParticipants } from "@/app/api/matching";
 import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,9 @@ const ProgrammeDetails = () => {
   const programmeId = id ? parseInt(id, 10) : null;
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
-  const [programmeYears, setProgrammeYears] = useState<ProgrammeYearDto[] | null>(null);
+  const [programmeYears, setProgrammeYears] = useState<
+    ProgrammeYearDto[] | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +35,7 @@ const ProgrammeDetails = () => {
         ]);
         setProgramme(programmeData);
         setProgrammeYears(yearsData);
+        console.table(yearsData);
       } catch (err) {
         toast.error("Error fetching programme details: " + err);
         setError("Failed to load programme details. Please try again.");
@@ -47,6 +51,14 @@ const ProgrammeDetails = () => {
     redirect(`${id}/add-year`);
   };
 
+  const handleRedirectDetails = (yearId: number) => {
+    redirect(`${id}/years/${yearId}`);
+  };
+
+  const handleMatchParticipants = (id: number, isInitial: boolean) => {
+    matchParticipants(id, isInitial);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -57,7 +69,11 @@ const ProgrammeDetails = () => {
 
   return (
     <div className="max-w-[55vw] bg-light p-6 rounded shadow relative">
-      <Button onClick={handleRedirect} variant="outline" className="absolute right-5">
+      <Button
+        onClick={handleRedirect}
+        variant="outline"
+        className="absolute right-5"
+      >
         Add Programme Cycle
       </Button>
       <h2 className="h2 font-bold mb-4">{programme?.name}</h2>
@@ -69,25 +85,57 @@ const ProgrammeDetails = () => {
           <table className="w-full mt-4 border-collapse border border-gray-300 text-sm text-left">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2">Academic Year</th>
+                <th className="border border-gray-300 px-4 py-2">
+                  Academic Year
+                </th>
                 <th className="border border-gray-300 px-4 py-2">Status</th>
-                <th className="border border-gray-300 px-4 py-2">Preferred Algorithm</th>
-                <th className="border border-gray-300 px-4 py-2">Participants</th>
+                <th className="border border-gray-300 px-4 py-2">
+                  Preferred Algorithm
+                </th>
+                <th className="border border-gray-300 px-4 py-2">
+                  Participants
+                </th>
                 <th className="border border-gray-300 px-4 py-2">Join Code</th>
+                <th className="border border-gray-300 px-4 py-2">Action</th>
+                <th className="border border-gray-300 px-4 py-2">Details</th>
               </tr>
             </thead>
             <tbody>
               {programmeYears.map((year) => (
                 <tr key={year.id} className="hover:bg-gray-50">
-                  <td className="border border-gray-300 px-4 py-2">{year.academicYear}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {year.academicYear}
+                  </td>
                   <td className="border border-gray-300 px-4 py-2">
                     {year.isActive ? "Active" : "Inactive"}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">{year.preferredAlgorithm}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {year.participantsCount || "N/A"}
+                    {year.preferredAlgorithm}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">{year.joinCode || "N/A"}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {year.participantCount || "N/A"}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {year.joinCode || "N/A"}
+                  </td>
+                  <td>
+                    <Button
+                      onClick={() => handleMatchParticipants(year.id, true)}
+                      variant="outline"
+                      className=""
+                    >
+                      Match
+                    </Button>
+                  </td>
+                  <td>
+                    <Button
+                      onClick={() => handleRedirectDetails(year.id)}
+                      variant="outline"
+                      className=""
+                    >
+                      View
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -96,6 +144,7 @@ const ProgrammeDetails = () => {
           <p>This programme has not taken place yet.</p>
         )}
       </div>
+      <div></div>
     </div>
   );
 };
