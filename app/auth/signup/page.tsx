@@ -13,6 +13,8 @@ import InputField from "@/components/InputField";
 import Header from "@/components/Header";
 import { useAuth } from "@/app/context/AuthContext";
 import { Toaster, toast } from "react-hot-toast";
+import { PulseLoader } from "react-spinners";
+import { uploadImage } from "@/app/api/auth";
 
 const Signup: React.FC = () => {
   const [role, setRole] = useState<UserRole | "">("");
@@ -26,11 +28,19 @@ const Signup: React.FC = () => {
   });
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const router = useRouter();
-  const { register, loading, error, clearError } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { register, error, clearError } = useAuth();
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>(
     "/assets/placeholders/avatar.png"
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const validatePassword = (password: string) =>
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -69,66 +79,61 @@ const Signup: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
+    // 🔍 **Form Validation**
     const errors = [];
-    if (formData.password !== confirmPassword) {
+    if (!formData.firstName.trim()) errors.push("First Name is required.");
+    if (!formData.lastName.trim()) errors.push("Last Name is required.");
+    if (!formData.email.trim()) errors.push("Email is required.");
+    if (!formData.password.trim()) errors.push("Password is required.");
+    if (formData.password !== confirmPassword)
       errors.push("Passwords do not match.");
-    }
-    if (!formData.firstName.trim()) {
-      errors.push("First Name is required.");
-    }
-    if (!formData.lastName.trim()) {
-      errors.push("Last Name is required.");
-    }
-    if (!formData.email.trim()) {
-      errors.push("Email is required.");
-    }
-    if (!formData.password.trim()) {
-      errors.push("Password is required.");
-    }
-
+  
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-
-    let imageUrl = "";
-    if (profileImage) {
-      const imageData = new FormData();
-      imageData.append("file", profileImage);
-
-      try {
-        const uploadResponse = await fetch("/api/upload-profile", {
-          method: "POST",
-          body: imageData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
+  
+    try {
+      // 🔹 **Step 1: Register User**
+      console.log("Registering user...");
+      const userResponse = await register(formData);
+      if (!userResponse) throw new Error("User registration failed");
+  
+      toast.success("Signup successful! Now uploading profile image...");
+  
+      // 🔹 **Step 2: Upload Profile Image**
+      let imageUrl = "";
+      if (profileImage) {
+        console.log("Uploading profile image...");
+        const imageData = new FormData();
+        imageData.append("file", profileImage);
+        imageData.append("email", formData.email); // Attach the registered email
+      
+        try {
+          imageUrl = await uploadImage(imageData);
+        } catch (error) {
+          console.error("Image Upload Error:", error);
+          toast.error("Image upload failed, but signup was successful.");
         }
-
-        const data = await uploadResponse.json();
-        imageUrl = data.url;
-      } catch (error) {
-        toast.error("Error uploading image");
-        return;
       }
-    }
-
-    const userData = { ...formData, profileImage: imageUrl };
-
-    const response = await register(userData);
-
-    if (response) {
-      if (formData.role === UserRole.USER) {
-        router.push("/participant");
-      } else if (formData.role === UserRole.ADMIN) {
-        router.push("/coordinator");
-      }
-    } else if (error) {
-      toast.error(error);
+  
+      // ✅ Navigate after all requests complete
+      router.push(formData.role === UserRole.USER ? "/participant" : "/coordinator");
+    } catch (error) {
+      toast.error((error as Error).message || "Signup failed. Please try again.");
+      console.error("Signup Error:", error);
     }
   };
+  
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <PulseLoader color="#3498db" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -182,6 +187,7 @@ const Signup: React.FC = () => {
                       confirmPassword={confirmPassword}
                       handleImageChange={handleImageChange}
                       previewUrl={previewUrl}
+                      isSubmitting={isSubmitting}
                     />
                   )}
                   {role === UserRole.ADMIN && (
@@ -192,6 +198,7 @@ const Signup: React.FC = () => {
                       confirmPassword={confirmPassword}
                       handleImageChange={handleImageChange}
                       previewUrl={previewUrl}
+                      isSubmitting={isSubmitting}
                     />
                   )}
                   {error && <p className="text-red-500 mt-4">{error}</p>}
@@ -212,6 +219,7 @@ interface FormProps {
   onSubmit: (e: React.FormEvent) => void;
   handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   previewUrl?: string;
+  isSubmitting: boolean;
 }
 
 const ParticipantForm: React.FC<FormProps> = ({
@@ -221,6 +229,7 @@ const ParticipantForm: React.FC<FormProps> = ({
   confirmPassword,
   handleImageChange,
   previewUrl,
+  isSubmitting,
 }) => (
   <form
     className="grid md:grid-cols-2 gap-4 gap-y-8"
@@ -323,7 +332,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       placeholder="Enter your organisation join code"
     />
     <Button type="submit" className="w-full h-12 text-xl col-span-2">
-      Signup
+      {isSubmitting ? "Signing Up..." : "Signup"}
     </Button>
   </form>
 );
@@ -335,6 +344,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
   confirmPassword,
   handleImageChange,
   previewUrl,
+  isSubmitting,
 }) => {
   const [orgExists, setOrgExists] = useState("yes");
   const [confirmEmail, setConfirmEmail] = useState<string>("");
@@ -483,7 +493,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
       )}
 
       <Button type="submit" className="w-full h-12 text-xl col-span-2">
-        Signup
+        {isSubmitting ? "Signing Up..." : "Signup"}
       </Button>
     </form>
   );

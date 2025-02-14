@@ -13,8 +13,8 @@ export interface UserCreateDto {
     firstName: string; 
     lastName: string;  
     email: string;     
-    uniEmail?: string;  //Optional
-    studentNumber?: number; // Optional
+    uniEmail?: string; 
+    studentNumber?: number; 
     role: UserRole;    
     course?: string,
     joinCode?: string; 
@@ -38,4 +38,5 @@ export interface UserResponseDto {
     course?: string,
     organisationId?: number,
     organisationName?: string
+    profileImageUrl?: string | "/assets/placeholders/avatar.png";
 }
