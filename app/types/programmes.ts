@@ -37,7 +37,7 @@ export interface ProgrammeCreateDto {
     isActive: boolean;
     preferredAlgorithm: string;
     joinCode?: string;
-    participantsCount?: number;
+    participantCount?: number;
   }
   
   export interface ProgrammeYearCreateDto {
