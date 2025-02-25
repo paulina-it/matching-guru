@@ -136,10 +136,10 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
           className="w-full border rounded px-4 py-2"
         >
           <option value={AlgorithmType.GALE_SHAPLEY}>Gale-Shapley</option>
-          <option value={AlgorithmType.COLLABORATIVE_FILTERING}>
+          <option value={AlgorithmType.COLLABORATIVE_FILTERING} disabled>
             Collaborative Filtering
           </option>
-          <option value={AlgorithmType.BRACE}>BRACE</option>
+          <option value={AlgorithmType.BRACE} disabled>BRACE</option>
         </select>
       </div>
 

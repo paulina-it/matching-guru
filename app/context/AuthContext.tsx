@@ -20,6 +20,7 @@ interface AuthContextType {
   login: (credentials: UserLoginDto) => Promise<LoginResponse | null>;
   register: (userData: UserCreateDto) => Promise<LoginResponse | null>;
   logout: () => void;
+  updateUser: (userData: Partial<UserResponseDto>) => Promise<void>;
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
@@ -30,7 +31,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserResponseDto | null>(null);
-  const [loading, setLoading] = useState(true); // Set to `true` initially
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const clearError = () => setError(null);
@@ -44,7 +45,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { token, user } = await loginUser(credentials);
       localStorage.setItem("token", token);
       setUser(user);
-      
       return { token, user };
     } catch (err) {
       setError((err as Error).message);
@@ -77,16 +77,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const updateUser = async (userData: Partial<UserResponseDto>) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/update`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isAuthenticated = !!user;
 
-  // Load user data on initial load
   useEffect(() => {
     const loadUser = async () => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
           setLoading(true);
-          // Fetch user data from the backend using the token
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/status`, {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -96,9 +118,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (response.ok) {
             const userData: UserResponseDto = await response.json();
             setUser(userData);
-            console.log(userData.organisationName);
           } else {
-            logout(); 
+            logout();
           }
         } catch (err) {
           console.error("Failed to load user:", err);
@@ -118,6 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
+        updateUser,
         loading,
         error,
         isAuthenticated,

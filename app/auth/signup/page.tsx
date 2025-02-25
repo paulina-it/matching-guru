@@ -14,7 +14,7 @@ import Header from "@/components/Header";
 import { useAuth } from "@/app/context/AuthContext";
 import { Toaster, toast } from "react-hot-toast";
 import { PulseLoader } from "react-spinners";
-import { uploadImage } from "@/app/api/auth";
+import { uploadImage } from "@/app/api/users";
 
 const Signup: React.FC = () => {
   const [role, setRole] = useState<UserRole | "">("");

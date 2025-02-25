@@ -52,7 +52,7 @@ export async function fetchMatchesByProgrammeYearId(id: number, page: number, si
   console.table(data.content);
   
   return {
-    matches: data.content || [], // Ensure it's an array
+    matches: data.content || [], 
     totalPages: data.totalPages || 1,
   };
 }

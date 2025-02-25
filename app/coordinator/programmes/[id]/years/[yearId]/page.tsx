@@ -65,20 +65,24 @@ const ProgrammeYearMatches = () => {
             ITEMS_PER_PAGE
           );
 
-        console.log("🔄 Updating Matches for Page:", currentPage, fetchedMatches);
+        console.log(
+          "🔄 Updating Matches for Page:",
+          currentPage,
+          fetchedMatches
+        );
         setMatches(fetchedMatches); // ✅ Ensure matches is correctly updated
         setTotalPages(fetchedTotalPages);
       } catch (error) {
         toast.error("Error fetching matches");
         setError("Failed to load matches.");
-        setMatches([]); 
+        setMatches([]);
       } finally {
         setLoadingMatches(false);
       }
     };
 
     fetchMatches();
-  }, [programmeYearId, currentPage]); // ✅ Dependencies now correctly update `matches`
+  }, [programmeYearId, currentPage]);
 
   if (loadingProgramme) {
     return (
@@ -88,9 +92,7 @@ const ProgrammeYearMatches = () => {
     );
   }
 
-  if (error) {
-    return <div className="text-red-600 font-semibold">{error}</div>;
-  }
+  console.log(programmeYear);
 
   return (
     <div className="max-w-[65vw] bg-light p-6 my-[5em] rounded shadow relative">
@@ -100,9 +102,13 @@ const ProgrammeYearMatches = () => {
       <p className="mt-4">Total Participants: {programme?.participants}</p>
 
       <div className="mt-6">
-        <h3 className="h3">
-          Programme Year {programmeYear?.academicYear} Matches
-        </h3>
+        <div>
+          <h3 className="h3">
+            Programme Year {programmeYear?.academicYear} Matches
+          </h3>
+          <h2>Algorithm: {programmeYear?.preferredAlgorithm}</h2>
+          <h2>Criteria: {programmeYear?.matchingCriteria?.join(",")}</h2>
+        </div>
 
         {loadingMatches ? (
           <div className="flex items-center justify-center min-h-[100px]">
@@ -119,6 +125,7 @@ const ProgrammeYearMatches = () => {
                     <th className="border p-2 text-left">Mentor Stage</th>
                     <th className="border p-2 text-left">Mentee</th>
                     <th className="border p-2 text-left">Mentee Stage</th>
+                    <th className="border p-2 text-left">Score</th>
                     <th className="border p-2 text-left">Status</th>
                     <th className="border p-2 text-left">Details</th>
                   </tr>
@@ -137,6 +144,7 @@ const ProgrammeYearMatches = () => {
                       <td className="border p-2">
                         {match.menteeAcademicStage}
                       </td>
+                      <td className="border p-2">{match.compatibilityScore}</td>
                       <td className="border p-2">{match.status}</td>
                       <td className="border p-2">
                         <Button

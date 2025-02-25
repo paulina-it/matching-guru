@@ -52,23 +52,3 @@ export async function loginUser(request: UserLoginDto): Promise<LoginResponse> {
 
   return response.json();
 }
-
-export async function uploadImage(imageData: FormData): Promise<string> {
-  try {
-    const response = await fetch(`${API_URL}/users/upload-profile-image`, {
-      method: "POST",
-      body: imageData, // ✅ FormData automatically sets the correct Content-Type
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("Upload failed:", errorData);
-      throw new Error(`Failed to upload profile image: ${errorData}`);
-    }
-
-    return await response.text(); // Expecting a string URL
-  } catch (error) {
-    console.error("Upload Image Error:", error);
-    throw error;
-  }
-}

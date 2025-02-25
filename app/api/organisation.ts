@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 export async function fetchAdminOrganisation(): Promise<OrganisationResponseDto | null> {
   const token = localStorage.getItem("token");
 
-  const response = await fetch(`${API_URL}/auth/admin/organisation-status`, {
+  const response = await fetch(`${API_URL}/organisations/admin/organisation-status`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

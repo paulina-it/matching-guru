@@ -50,6 +50,8 @@ const MatchDetails = () => {
     return <div className="text-red-600 font-semibold">{error}</div>;
   }
 
+  console.table(match);
+
   return (
     <div className="max-w-[65vw] bg-light p-6 rounded shadow relative">
       <h2 className="h2 font-bold mb-4">Match Details</h2>
@@ -70,8 +72,15 @@ const MatchDetails = () => {
           <p><strong>Email:</strong> {match?.mentor?.email || "-"}</p>
           <p><strong>Academic Stage:</strong> {match?.mentor?.academicStage || "-"}</p>
           <p><strong>Course:</strong> {match?.mentor?.course || "-"}</p>
+          <p><strong>Age Group:</strong> {match?.mentor?.ageGroup || "-"}</p>
+          <p><strong>Gender:</strong> {match?.mentor?.gender || "-"}</p>
+          <p><strong>Living Arrangement:</strong> {match?.mentor?.livingArrangement || "-"}</p>
+          <p><strong>Personality Type:</strong> {match?.mentor?.personalityType || "-"}</p>
+          <p><strong>Home Country:</strong> {match?.mentor?.homeCountry || "-"}</p>
           <p><strong>Availability:</strong> {match?.mentor?.availableDays?.join(", ") || "-"}</p>
           <p><strong>Time Preference:</strong> {match?.mentor?.timePreference || "-"}</p>
+          <p><strong>Skills:</strong> {match?.mentor?.skills?.join(", ") || "-"}</p>
+          
         </div>
 
         {/* Mentee Details */}
@@ -81,8 +90,14 @@ const MatchDetails = () => {
           <p><strong>Email:</strong> {match?.mentee?.email || "-"}</p>
           <p><strong>Academic Stage:</strong> {match?.mentee?.academicStage || "-"}</p>
           <p><strong>Course:</strong> {match?.mentee?.course || "-"}</p>
+          <p><strong>Age Group:</strong> {match?.mentee?.ageGroup || "-"}</p>
+          <p><strong>Gender:</strong> {match?.mentee?.gender || "-"}</p>
+          <p><strong>Living Arrangement:</strong> {match?.mentee?.livingArrangement || "-"}</p>
+          <p><strong>Personality Type:</strong> {match?.mentee?.personalityType || "-"}</p>
+          <p><strong>Home Country:</strong> {match?.mentee?.homeCountry || "-"}</p>
           <p><strong>Availability:</strong> {match?.mentee?.availableDays?.join(", ") || "-"}</p>
           <p><strong>Time Preference:</strong> {match?.mentee?.timePreference || "-"}</p>
+          <p><strong>Skills:</strong> {match?.mentee?.skills?.join(", ") || "-"}</p>
         </div>
       </div>
 

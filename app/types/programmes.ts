@@ -38,6 +38,7 @@ export interface ProgrammeCreateDto {
     preferredAlgorithm: string;
     joinCode?: string;
     participantCount?: number;
+    matchingCriteria?: MatchingCriteriaDto[];
   }
   
   export interface ProgrammeYearCreateDto {

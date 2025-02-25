@@ -63,15 +63,16 @@ export async function createCourse(
 export async function fetchCourseGroupsByOrganisationId(
     organisationId: number
   ): Promise<any[]> {
-    const token = localStorage.getItem("token"); // Retrieve token from localStorage
+    const token = localStorage.getItem("token"); 
   
+    console.log("Fetching")
     const response = await fetch(
       `${API_URL}/course-groups/organisation/${organisationId}`,
       {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json", // Ensure correct content type
+          "Content-Type": "application/json", 
         },
       }
     );
@@ -82,6 +83,8 @@ export async function fetchCourseGroupsByOrganisationId(
     }
   
     const data = await response.json();
+
+    console.table(data);
   
     // Map data to ensure a consistent structure
     return data.map((courseGroup: any) => ({
