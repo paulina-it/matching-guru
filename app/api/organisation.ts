@@ -84,3 +84,22 @@ export async function createOrganisationAndAssignToUser(
   window.location.reload();
   return createdOrganisation;
 }
+
+export async function joinOrganisation(joinCode: string): Promise<any> {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Authentication token not found");
+
+  const response = await fetch(`${API_URL}/organisations/join?joinCode=${encodeURIComponent(joinCode)}`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to join organisation");
+  }
+
+  return await response.json();
+}
