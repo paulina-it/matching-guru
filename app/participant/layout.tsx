@@ -1,12 +1,11 @@
-// app/coordinator/layout.tsx (DashboardLayout)
 "use client";
 
 import DashboardNav from "@/components/DashboardNav";
 import PageTransition from "@/components/PageTransition";
 import { useAuth } from "@/app/context/AuthContext";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { PulseLoader } from "react-spinners"; // Replace with your spinner
+import { PulseLoader } from "react-spinners";
 import Logout from "@/components/Logout";
 import BackButton from "@/components/BackButton";
 
@@ -18,7 +17,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-
+  const [collapsed, setCollapsed] = useState(false);
+  
   const isAuthPage = pathname.startsWith("/auth");
 
   useEffect(() => {
@@ -36,11 +36,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-[1fr_4fr]">
-      <aside>
-        <DashboardNav type="participant" />
+    <div className="min-h-screen flex">
+      <aside className=" bg-primary/50">
+        <DashboardNav type="participant"  onCollapse={setCollapsed} />
       </aside>
-      <main className="w-full h-full bg-primary/50 flex items-center justify-center relative">
+      <main className={`w-full min-h-screen bg-primary/50 flex items-center justify-center relative ${collapsed ? "ml-[4rem]" : "ml-[15rem]"}`}>
         <Logout className=" absolute top-5 right-5 text-accent hover:text-white" />
         {/* <BackButton className="absolute top-5 left-10 z-10"/> */}
         <PageTransition>{children}</PageTransition>
