@@ -34,7 +34,7 @@ const ParticipantProgrammeDetails = () => {
       try {
         const [programmeData, participantData] = await Promise.all([
           fetchProgrammeById(programmeId),
-          getParticipantByUserId(user.id),
+          getParticipantByUserId(user!.id),
         ]);
         setProgramme(programmeData);
         setParticipant(participantData);
@@ -62,14 +62,18 @@ const ParticipantProgrammeDetails = () => {
     return <p className="text-red-500 text-center">{error}</p>;
   }
 
+  console.log(participant);
+  
   return (
     <div className="max-w-[55vw] bg-light p-6 rounded shadow relative">
       <h2 className="h2 font-bold mb-4">{programme?.name}</h2>
       <p className="text-gray-700">{programme?.description}</p>
       <p>Contact details: mentoring@aston.ac.uk</p>
-      <div className="mt-6">
-        <p>Status: {participant?.isMatched ? "Match Found" : "Unmatched"}</p>
+      <div className="mt-6 relative">
+        <h3 className="h3">Your Profile</h3>
+        <p className="bg-accent text-white rounded p-2 w-fit absolute top-[-0.2em] right-1">Status: {participant?.isMatched ? "Match Found" : "Unmatched"}</p>
         {participant?.isMatched ? <div>Your have been paired with:</div> : ""}
+
       </div>
     </div>
   );

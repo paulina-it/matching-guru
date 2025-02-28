@@ -77,7 +77,7 @@ const Programmes = () => {
               </Link>
             ))
           ) : (
-            <p className="text-gray-500 italic">
+            <p className="text-gray-500 italic mb-6">
               You are not participating in any programmes, take a look at the
               available options below.
             </p>

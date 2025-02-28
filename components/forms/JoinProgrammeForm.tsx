@@ -15,6 +15,8 @@ import {
 import { CourseDto } from "@/app/types/programmes";
 import { ParticipantCreateDto } from "@/app/types/participant";
 import { useAuth } from "@/app/context/AuthContext";
+import { redirect } from "next/dist/server/api-utils";
+import { useRouter } from "next/navigation";
 
 interface MatchingCriterion {
   id: number;
@@ -23,20 +25,38 @@ interface MatchingCriterion {
 }
 
 const predefinedAcademicStages = [
+  "Foundation Year",
   "First Year Undergraduate",
   "Second Year Undergraduate",
   "Placement Year",
   "Final Year Undergraduate",
+  "Graduate",
   "Postgraduate",
 ];
 
 const predefinedSkills = [
+  "Communication",
   "Leadership",
+  "Problem Solving",
   "Time Management",
   "Teamwork",
-  "Communication",
-  "Problem Solving",
-  "Technical Skills",
+  "Critical Thinking",
+  "Adaptability",
+  "Networking",
+  "Programming",
+  "Analytical Skills",
+  "Project Management",
+  "Financial Literacy",
+  "Writing and Research",
+  "Marketing",
+  "Design",
+  "Foreign Languages",
+  "Statistics",
+  "Engineering",
+  "Exam Preparation",
+  "Note Taking",
+  "Entrepreneurship",
+  "Laboratory Techniques",
 ];
 
 const predefinedNationalities = [
@@ -45,6 +65,25 @@ const predefinedNationalities = [
   "Indian",
   "German",
   "French",
+];
+
+const predefinedPersonalityTypes = [
+  { value: "ARCHITECT_INTJ", label: "Architect (INTJ)" },
+  { value: "LOGICIAN_INTP", label: "Logician (INTP)" },
+  { value: "COMMANDER_ENTJ", label: "Commander (ENTJ)" },
+  { value: "DEBATER_ENTP", label: "Debater (ENTP)" },
+  { value: "ADVOCATE_INFJ", label: "Advocate (INFJ)" },
+  { value: "MEDIATOR_INFP", label: "Mediator (INFP)" },
+  { value: "PROTAGONIST_ENFJ", label: "Protagonist (ENFJ)" },
+  { value: "CAMPAIGNER_ENFP", label: "Campaigner (ENFP)" },
+  { value: "LOGISTICIAN_ISTJ", label: "Logistician (ISTJ)" },
+  { value: "DEFENDER_ISFJ", label: "Defender (ISFJ)" },
+  { value: "EXECUTIVE_ESTJ", label: "Executive (ESTJ)" },
+  { value: "CONSUL_ESFJ", label: "Consul (ESFJ)" },
+  { value: "VIRTUOSO_ISTP", label: "Virtuoso (ISTP)" },
+  { value: "ADVENTURER_ISFP", label: "Adventurer (ISFP)" },
+  { value: "ENTREPRENEUR_ESTP", label: "Entrepreneur (ESTP)" },
+  { value: "ENTERTAINER_ESFP", label: "Entertainer (ESFP)" },
 ];
 
 const daysOfWeek = [
@@ -57,7 +96,11 @@ const daysOfWeek = [
   "Sunday",
 ];
 
+const predefinedAgeGroups = ["18-20", "21-24", "25-29", "30+"];
+
 const timeRanges = ["Morning", "Afternoon", "Evening", "Anytime", "Varies"];
+const personalityTestLink =
+  "https://www.16personalities.com/free-personality-test";
 
 const JoinProgrammeForm: React.FC<{
   programmeYearId: number;
@@ -65,27 +108,100 @@ const JoinProgrammeForm: React.FC<{
   userProp: { organisationId: number; course?: string };
 }> = ({ programmeYearId, programmeId, userProp }) => {
   const { user } = useAuth();
+  const router = useRouter();
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
+  const [matchingCriteria, setMatchingCriteria] = useState<MatchingCriterion[]>(
+    []
+  );
+  const [loading, setLoading] = useState(true);
+
+  // Form Data
   const [role, setRole] = useState<string>("mentee");
   const [menteeLimit, setMenteeLimit] = useState<number | null>(null);
   const [academicStage, setAcademicStage] = useState<string>(
     "First Year Undergraduate"
   );
+  const [courseId, setCourseId] = useState<number | null>();
   const [hadPlacement, setHadPlacement] = useState<boolean>(false);
   const [placementDescription, setPlacementDescription] = useState<string>("");
   const [placementInterest, setPlacementInterest] = useState<boolean>(false);
-
-  const [matchingCriteria, setMatchingCriteria] = useState<MatchingCriterion[]>(
-    []
-  );
   const [eligibleCourses, setEligibleCourses] = useState<CourseDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const [personalityType, setPersonalityType] = useState<string>("");
+  const [ageGroup, setAgeGroup] = useState<string>("");
   const [meetingFrequency, setMeetingFrequency] = useState<string>("");
   const [availableDays, setAvailableDays] = useState<string[]>([]);
   const [availableTime, setAvailableTime] = useState<string>("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [gender, setGender] = useState<string>("");
 
+  const toggleSkillSelection = (skill: string) => {
+    setSkills((prevSkills) =>
+      prevSkills.includes(skill)
+        ? prevSkills.filter((s) => s !== skill)
+        : [...prevSkills, skill]
+    );
+  };
+  // DEBUGGINGG
+  useEffect(() => {
+    console.log("🔄 Role changed:", role);
+  }, [role]);
+
+  useEffect(() => {
+    console.log("🔄 Mentee limit changed:", menteeLimit);
+  }, [menteeLimit]);
+
+  useEffect(() => {
+    console.log("🔄 Academic stage changed:", academicStage);
+  }, [academicStage]);
+
+  useEffect(() => {
+    console.log("🔄 Course ID changed:", courseId);
+  }, [courseId]);
+
+  useEffect(() => {
+    console.log("🔄 Had placement changed:", hadPlacement);
+  }, [hadPlacement]);
+
+  useEffect(() => {
+    console.log("🔄 Placement description changed:", placementDescription);
+  }, [placementDescription]);
+
+  useEffect(() => {
+    console.log("🔄 Placement interest changed:", placementInterest);
+  }, [placementInterest]);
+
+  useEffect(() => {
+    console.log("🔄 Meeting frequency changed:", meetingFrequency);
+  }, [meetingFrequency]);
+
+  useEffect(() => {
+    console.log("🔄 Available days changed:", availableDays);
+  }, [availableDays]);
+
+  useEffect(() => {
+    console.log("🔄 Available time changed:", availableTime);
+  }, [availableTime]);
+
+  useEffect(() => {
+    console.log("🔄 Skills changed:", skills);
+  }, [skills]);
+
+  useEffect(() => {
+    console.log("🔄 Personality type changed:", personalityType);
+  }, [personalityType]);
+
+  useEffect(() => {
+    console.log("🔄 Age group changed:", ageGroup);
+  }, [ageGroup]);
+
+  useEffect(() => {
+    console.log("🔄 Gender changed:", gender);
+  }, [gender]);
+
+  useEffect(() => {
+    console.log("🔄 Eligible courses updated:", eligibleCourses);
+  }, [eligibleCourses]);
+  //
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -102,7 +218,6 @@ const JoinProgrammeForm: React.FC<{
         );
       } catch (err: any) {
         toast.error("Error fetching data: " + err.message);
-        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -121,35 +236,47 @@ const JoinProgrammeForm: React.FC<{
 
   const handleSubmit = async () => {
     const participantData: ParticipantCreateDto = {
-      userId: user.id,
+      userId: user!.id,
       programmeYearId: programmeYearId,
-      role: role === "mentor" ? "MENTOR" : "MENTEE",
-      menteesNumber: role === "mentor" ? menteeLimit : null,
-      academicStage: academicStage,
+      role: role.toUpperCase() as "MENTOR" | "MENTEE",
+      menteesNumber: role === "MENTOR" ? menteeLimit ?? null : null,
+      academicStage: academicStage ?? null,
       hadPlacement:
         academicStage === "Placement Year" || hadPlacement ? true : null,
-      placementDescription: hadPlacement ? placementDescription : null,
+      placementDescription: hadPlacement ? placementDescription || null : null,
       placementInterest:
         academicStage === "Second Year Undergraduate"
-          ? placementInterest
+          ? placementInterest ?? null
           : null,
       meetingFrequency: meetingFrequency || null,
-      availableDays: availableDays.length > 0 ? availableDays : null,
-      availableTime: availableTime || null,
-      course: userProp.course || null,
-      personality: null,
-      skills: null,
-      genderPreference: null,
-      age: null,
-      nationality: null,
+      availableDays:
+        availableDays.length > 0
+          ? availableDays.map((day) => day.toUpperCase())
+          : null,
+      timeRange: availableTime ? availableTime.toUpperCase() : null,
+      personalityType: personalityType || null,
+      skills: skills.length > 0 ? skills : null,
+      ageGroup: ageGroup || null,
+      gender: gender || null,
     };
 
+    if (!userProp.course) {
+      participantData.courseId = courseId ?? null;
+    }
+
+    console.log("Submitting participant data:", participantData);
+
     try {
+      setLoading(true);
       await createParticipant(participantData);
       toast.success("Successfully joined the programme!");
+      router.push("/participant");
     } catch (err) {
       const error = err as Error;
       toast.error(`An error occurred: ${error.message}`);
+      console.error("API Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -195,11 +322,14 @@ const JoinProgrammeForm: React.FC<{
                 id={`criterion-${criterion.id}`}
                 name={criterion.criterionType}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                onChange={(e) =>
+                  setCourseId(e.target.value ? Number(e.target.value) : null)
+                }
                 required
               >
                 <option value="">Select a course</option>
                 {filteredCourses.map((course) => (
-                  <option key={course.id} value={course.name}>
+                  <option key={course.id} value={course.id}>
                     {course.name}
                   </option>
                 ))}
@@ -284,18 +414,31 @@ const JoinProgrammeForm: React.FC<{
               Personality Type (Weight: {criterion.weight}%)
             </label>
             <p className="text-sm text-black/70">
-              What best describes your personality?
+              What best describes your personality? If unsure, you can take the
+              test{" "}
+              <a
+                href={personalityTestLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline"
+              >
+                here
+              </a>
+              .
             </p>
             <select
-              id={`criterion-${criterion.id}`}
-              name={criterion.criterionType}
+              id="personalityType"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
+              value={personalityType}
+              onChange={(e) => setPersonalityType(e.target.value)}
             >
               <option value="">Select personality type</option>
-              <option value="Introvert">Introvert</option>
-              <option value="Extrovert">Extrovert</option>
-              <option value="Ambivert">Ambivert</option>
+              {predefinedPersonalityTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
             </select>
           </div>
         );
@@ -310,21 +453,25 @@ const JoinProgrammeForm: React.FC<{
               Skills (Weight: {criterion.weight}%)
             </label>
             <p className="text-sm text-black/70">
-              Select skills you would like to develop.
+              Select multiple skills that best describe your strengths and
+              interests.
             </p>
-            <select
-              id={`criterion-${criterion.id}`}
-              name={criterion.criterionType}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              multiple
-              required
-            >
-              {predefinedSkills.map((skill, index) => (
-                <option key={index} value={skill}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+              {predefinedSkills.map((skill) => (
+                <button
+                  key={skill}
+                  type="button"
+                  className={`px-3 py-2 border rounded text-sm transition duration-300 ease-in-out ${
+                    skills.includes(skill)
+                      ? "bg-accent text-white shadow-lg"
+                      : "bg-gray-200 text-black hover:bg-gray-300"
+                  }`}
+                  onClick={() => toggleSkillSelection(skill)}
+                >
                   {skill}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
         );
 
@@ -344,6 +491,7 @@ const JoinProgrammeForm: React.FC<{
               id={`criterion-${criterion.id}`}
               name={criterion.criterionType}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              onChange={(e) => setGender(e.target.value)}
               required
             >
               <option value="">Select gender</option>
@@ -362,17 +510,23 @@ const JoinProgrammeForm: React.FC<{
               htmlFor={`criterion-${criterion.id}`}
               className="block text-md font-bold"
             >
-              Age (Weight: {criterion.weight}%)
+              Age Group (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70">Enter your age.</p>
-            <input
+            <p className="text-sm text-black/70">Select your age group.</p>
+            <select
               id={`criterion-${criterion.id}`}
-              name={criterion.criterionType}
-              type="number"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Enter your age"
               required
-            />
+              value={ageGroup}
+              onChange={(e) => setAgeGroup(e.target.value)}
+            >
+              <option value="">Select age group</option>
+              {predefinedAgeGroups.map((group) => (
+                <option key={group} value={group}>
+                  {group}
+                </option>
+              ))}
+            </select>
           </div>
         );
 
@@ -408,7 +562,7 @@ const JoinProgrammeForm: React.FC<{
   };
 
   return (
-    <div className="max-w-lg mx-auto bg-white p-6 shadow rounded">
+    <div className="max-w-lg mx-auto ">
       {loading ? (
         <div className="flex justify-center items-center w-full h-screen">
           <PulseLoader color="#3498db" size={15} />
@@ -422,7 +576,7 @@ const JoinProgrammeForm: React.FC<{
           className="h-full"
         >
           {/* Slide 1: Role and Academic Stage */}
-          <SwiperSlide>
+          <SwiperSlide className="bg-light p-6 shadow rounded">
             <h2 className="text-xl font-bold mb-4">Step 1</h2>
             <div className="mb-4">
               <label className="block text-md font-bold">Select Role</label>
@@ -456,8 +610,14 @@ const JoinProgrammeForm: React.FC<{
                 <input
                   type="number"
                   min="1"
+                  max="3"
                   value={menteeLimit || ""}
-                  onChange={(e) => setMenteeLimit(Number(e.target.value))}
+                  onChange={(e) => {
+                    let value = Number(e.target.value);
+                    if (value > 3) value = 3;
+                    if (value < 1) value = 1;
+                    setMenteeLimit(value);
+                  }}
                   className="w-full border rounded px-4 py-2 mt-1"
                   placeholder="Enter number of mentees"
                 />
@@ -486,9 +646,10 @@ const JoinProgrammeForm: React.FC<{
           </SwiperSlide>
 
           {/* Slide 2: Placement Information */}
-          {(academicStage === "Second Year Undergraduate" ||
+          {(academicStage === "Second Year Undergraduate" &&
+                role.toUpperCase() == "MENTEE"  ||
             academicStage === "Final Year Undergraduate") && (
-            <SwiperSlide>
+            <SwiperSlide className="bg-light p-6 shadow rounded">
               <h2 className="text-xl font-bold mb-4">Placement Information</h2>
               {academicStage === "Final Year Undergraduate" && (
                 <div className="mb-4">
@@ -520,58 +681,61 @@ const JoinProgrammeForm: React.FC<{
                 </div>
               )}
               {academicStage === "Second Year Undergraduate" && (
-                <div>
-                  <h2 className="text-xl font-bold mb-4">Placement Interest</h2>
+                  <div>
+                    <h2 className="text-xl font-bold mb-4">
+                      Placement Interest
+                    </h2>
 
-                  {/* Do you want a placement? */}
-                  <div className="mb-4">
-                    <label className="block text-md font-bold">
-                      Are you interested in a placement?
-                    </label>
-                    <div className="flex gap-4 mt-2">
-                      <button
-                        type="button"
-                        onClick={() => setPlacementInterest(true)}
-                        className={`px-4 py-2 border rounded ${
-                          placementInterest
-                            ? "bg-blue-500 text-white"
-                            : "bg-white"
-                        }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPlacementInterest(false)}
-                        className={`px-4 py-2 border rounded ${
-                          placementInterest === false
-                            ? "bg-blue-500 text-white"
-                            : "bg-white"
-                        }`}
-                      >
-                        No
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Desired Placement Description */}
-                  {placementInterest && (
+                    {/* Do you want a placement? */}
                     <div className="mb-4">
                       <label className="block text-md font-bold">
-                        What industry or type of placement are you looking for?
+                        Are you interested in a placement?
                       </label>
-                      <textarea
-                        className="w-full border rounded px-4 py-2 mt-1"
-                        placeholder="Describe your desired placement (e.g., Tech industry, Software Development)"
-                        value={placementDescription}
-                        onChange={(e) =>
-                          setPlacementDescription(e.target.value)
-                        }
-                      />
+                      <div className="flex gap-4 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setPlacementInterest(true)}
+                          className={`px-4 py-2 border rounded ${
+                            placementInterest
+                              ? "bg-blue-500 text-white"
+                              : "bg-white"
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPlacementInterest(false)}
+                          className={`px-4 py-2 border rounded ${
+                            placementInterest === false
+                              ? "bg-accent rounded text-white"
+                              : "bg-white"
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </div>
-              )}
+
+                    {/* Desired Placement Description */}
+                    {placementInterest && (
+                      <div className="mb-4">
+                        <label className="block text-md font-bold">
+                          What industry or type of placement are you looking
+                          for?
+                        </label>
+                        <textarea
+                          className="w-full border rounded px-4 py-2 mt-1"
+                          placeholder="Describe your desired placement (e.g., Tech industry, Software Development)"
+                          value={placementDescription}
+                          onChange={(e) =>
+                            setPlacementDescription(e.target.value)
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
 
               {academicStage === "Final Year Undergraduate" && hadPlacement && (
                 <div className="mb-4">
@@ -605,7 +769,7 @@ const JoinProgrammeForm: React.FC<{
           )}
 
           {/* Slide 3: Criteria Based */}
-          <SwiperSlide>
+          <SwiperSlide className="bg-light p-6 shadow rounded">
             <h2 className="text-xl font-bold mb-4">Step 2</h2>
             {matchingCriteria
               .filter((criterion) => criterion.weight > 0)
