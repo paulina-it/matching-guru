@@ -2,53 +2,71 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { fetchProgrammeById, fetchProgrammeYears } from "@/app/api/programmes";
-import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
+import { fetchProgrammeById } from "@/app/api/programmes";
+import { ProgrammeDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import { ParticipantDto } from "@/app/types/participant";
-import { getParticipantByUserId } from "@/app/api/participant";
+import { getParticipantInfoByUserId } from "@/app/api/participant";
 import { useAuth } from "@/app/context/AuthContext";
 
 const ParticipantProgrammeDetails = () => {
   const { id } = useParams<{ id: string }>() || {};
   const programmeId = id ? parseInt(id, 10) : null;
   const { user } = useAuth();
-
   const router = useRouter();
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
-  const [participant, setParticipant] = useState<ParticipantDto | null>(null);
+  const [matchDetails, setMatchDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMentor, setIsMentor] = useState<boolean | null>(null);
+  const [participant, setParticipant] = useState<any>(null);
 
   useEffect(() => {
-    if (!programmeId) {
-      setError("Invalid programme ID");
+    if (!programmeId || !user) {
+      setError("Invalid programme ID or user not authenticated");
       setLoading(false);
       return;
     }
 
     const fetchData = async () => {
       try {
-        const [programmeData, participantData] = await Promise.all([
+        const [programmeData, participantInfo] = await Promise.all([
           fetchProgrammeById(programmeId),
-          getParticipantByUserId(user!.id),
+          getParticipantInfoByUserId(user.id),
         ]);
+
         setProgramme(programmeData);
-        setParticipant(participantData);
+
+        if (participantInfo?.mentor && participantInfo?.mentee) {
+          const isUserMentor = participantInfo.mentor.email === user.email;
+          setIsMentor(isUserMentor);
+          if (isUserMentor) setParticipant(participantInfo.mentor);
+          else setParticipant(participantInfo.mentee);
+          setMatchDetails(participantInfo);
+        } else {
+          setParticipant(participantInfo);
+        }
       } catch (err) {
-        console.error("Error fetching programme details:", err);
-        toast.error("Error fetching programme details.");
-        setError("Failed to load programme details. Please try again.");
+        console.error("Error fetching data:", err);
+        toast.error("Error fetching data.");
+        setError("Failed to load data. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [programmeId]);
+  }, [programmeId, user]);
+
+  const capitalize = (text: string) => {
+    if (!text) return "";
+    return text
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   if (loading) {
     return (
@@ -58,22 +76,106 @@ const ParticipantProgrammeDetails = () => {
     );
   }
 
-  if (error) {
-    return <p className="text-red-500 text-center">{error}</p>;
-  }
-
-  console.log(participant);
-  
   return (
     <div className="max-w-[55vw] bg-light p-6 rounded shadow relative">
-      <h2 className="h2 font-bold mb-4">{programme?.name}</h2>
-      <p className="text-gray-700">{programme?.description}</p>
+      <h2 className="h2 font-bold mb-4">{programme?.name ?? "N/A"}</h2>
+      <p className="text-gray-700">
+        {programme?.description ?? "No description available"}
+      </p>
       <p>Contact details: mentoring@aston.ac.uk</p>
-      <div className="mt-6 relative">
-        <h3 className="h3">Your Profile</h3>
-        <p className="bg-accent text-white rounded p-2 w-fit absolute top-[-0.2em] right-1">Status: {participant?.isMatched ? "Match Found" : "Unmatched"}</p>
-        {participant?.isMatched ? <div>Your have been paired with:</div> : ""}
 
+      <div className="mt-6">
+        <p className="bg-secondary text-white rounded p-2 w-fit absolute top-6 right-6">
+          Status:{" "}
+          {matchDetails
+            ? matchDetails.status === "CONFIRMED"
+              ? "✅ Match Confirmed"
+              : "⏳ Match Pending"
+            : "❌ Unmatched"}
+        </p>
+
+        {/* Display user participation info (when no confirmed match exists) */}
+        {(!matchDetails || matchDetails.status !== "CONFIRMED") && (
+          <div className="mt-6 border p-4 rounded bg-gray-100">
+            <h3 className="h3">Your Participation</h3>
+            <p>
+              <strong>Name:</strong> {participant?.firstName}{" "}
+              {participant?.lastName}
+            </p>
+            <p>
+              <strong>Email:</strong> {participant?.email}
+            </p>
+            <p>
+              <strong>Course:</strong> {participant?.course}
+            </p>
+            <p>
+              <strong>Academic Stage: </strong>
+              {capitalize(participant?.academicStage)}
+            </p>
+            <p>
+              <strong>Skills: </strong>
+              {participant?.skills?.length
+                ? participant.skills.map(capitalize).join(", ")
+                : "None listed"}
+            </p>
+
+            <p className="mt-3 text-yellow-600">
+              A match has been found for you, but coordinator approval is
+              pending.
+            </p>
+          </div>
+        )}
+
+        {/* Display match details ONLY when status is CONFIRMED */}
+        {matchDetails?.status === "PENDING" && (
+          <div className="mt-6 border p-4 rounded bg-gray-100">
+            <h4 className="h4 text-lg italic">You have been paired with:</h4>
+            <p>
+              <strong>Name:</strong>{" "}
+              {isMentor
+                ? matchDetails.mentee?.firstName
+                : matchDetails.mentor?.firstName}{" "}
+              {isMentor
+                ? matchDetails.mentee?.lastName
+                : matchDetails.mentor?.lastName}
+            </p>
+            <p>
+              <strong>Email:</strong>{" "}
+              {isMentor
+                ? matchDetails.mentee?.email
+                : matchDetails.mentor?.email}
+            </p>
+            <p>
+              <strong>Course:</strong>{" "}
+              {isMentor
+                ? matchDetails.mentee?.course
+                : matchDetails.mentor?.course}
+            </p>
+            <p>
+              <strong>Academic Stage:</strong>{" "}
+              {isMentor
+                ? capitalize(matchDetails.mentee?.academicStage)
+                : capitalize(matchDetails.mentor?.academicStage)}
+            </p>
+            <p>
+              <strong>Skills: </strong>
+              {isMentor
+                ? matchDetails.mentee?.skills?.length
+                  ? matchDetails.mentee.skills.map(capitalize).join(", ")
+                  : "None listed"
+                : matchDetails.mentor?.skills?.length
+                ? matchDetails.mentor.skills.map(capitalize).join(", ")
+                : "None listed"}
+            </p>
+            <h3 className="h3">
+              Compatibility Score: {matchDetails.compatibilityScore}%
+            </h3>
+
+            <Button className="mt-3 bg-blue-500 text-white hover:bg-blue-600">
+              Contact Your Match
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

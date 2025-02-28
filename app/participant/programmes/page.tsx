@@ -72,7 +72,7 @@ const Programmes = () => {
                 <div className="mb-4 p-4 bg-white rounded shadow">
                   <h3 className="text-lg font-semibold">{programme.name}</h3>
                   <p className="text-gray-700">{programme.description}</p>
-                  <p className="mt-5 font-bold">Status: Unmatched</p>
+                  {/* <p className="mt-5 font-bold">Status: Unmatched</p> */}
                 </div>
               </Link>
             ))

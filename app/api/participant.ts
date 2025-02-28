@@ -53,6 +53,37 @@ export async function getParticipant(
   return response.json();
 }
 /**
+ * Get participant info, returning either a match or just the participant.
+ *
+ * @param id - The participant's user ID.
+ * @returns The participant's data or match info.
+ */
+export async function getParticipantInfoByUserId(id: number): Promise<any> {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/participants/info/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(errorMessage || `Failed to fetch participant (ID: ${id})`);
+    }
+
+    const data = await response.json();
+    console.log("Fetched:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching participant:", error);
+    throw error;
+  }
+}
+
+/**
  * Get a participant by user ID.
  *
  * @param id - The ID of the user.
