@@ -123,8 +123,10 @@ export async function fetchProgrammeById(id: number): Promise<ProgrammeDto> {
   return response.json();
 }
 
-export async function createProgrammeYear(data: ProgrammeYearCreateDto): Promise<void> {
-  const token = localStorage.getItem("token"); 
+export async function createProgrammeYear(
+  data: ProgrammeYearCreateDto
+): Promise<void> {
+  const token = localStorage.getItem("token");
 
   console.log(data);
 
@@ -143,7 +145,9 @@ export async function createProgrammeYear(data: ProgrammeYearCreateDto): Promise
   }
 }
 
-export async function fetchProgrammeYears(id: number): Promise<ProgrammeYearDto[]> {
+export async function fetchProgrammeYears(
+  id: number
+): Promise<ProgrammeYearDto[]> {
   const token = localStorage.getItem("token");
 
   const response = await fetch(`${API_URL}/programme-years/programme/${id}`, {
@@ -163,16 +167,44 @@ export async function fetchProgrammeYears(id: number): Promise<ProgrammeYearDto[
   return data;
 }
 
-export async function fetchMatchingCriteria(programmeYearId: number): Promise<ProgrammeMatchingCriteriaDto[]> {
+export async function fetchProgrammeYear(
+  id: number
+): Promise<ProgrammeYearDto> {
   const token = localStorage.getItem("token");
 
-  const response = await fetch(`${API_URL}/programme-years/${programmeYearId}/matching-criteria`, {
+  const response = await fetch(`${API_URL}/programme-years/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
   });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to fetch programme year with ID: " + id);
+  }
+
+  const data: ProgrammeYearDto = await response.json();
+
+  return data;
+}
+
+export async function fetchMatchingCriteria(
+  programmeYearId: number
+): Promise<ProgrammeMatchingCriteriaDto[]> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(
+    `${API_URL}/programme-years/${programmeYearId}/matching-criteria`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     const error = await response.text();
@@ -183,19 +215,24 @@ export async function fetchMatchingCriteria(programmeYearId: number): Promise<Pr
   return data;
 }
 
-export async function fetchEligibleCourses(programmeId: number): Promise<CourseDto[]> {
+export async function fetchEligibleCourses(
+  programmeId: number
+): Promise<CourseDto[]> {
   if (!programmeId || isNaN(programmeId)) {
     throw new Error("Invalid programme ID");
   }
 
   const token = localStorage.getItem("token");
-  const response = await fetch(`${API_URL}/courses/programme/${programmeId}/eligible`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await fetch(
+    `${API_URL}/courses/programme/${programmeId}/eligible`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     const errorMessage = await response.text();
@@ -205,7 +242,9 @@ export async function fetchEligibleCourses(programmeId: number): Promise<CourseD
   return response.json();
 }
 
-export async function fetchProgrammesByUserId(userId: number): Promise<ProgrammeDto[]> {
+export async function fetchProgrammesByUserId(
+  userId: number
+): Promise<ProgrammeDto[]> {
   if (!userId || isNaN(userId)) {
     throw new Error("Invalid user ID");
   }

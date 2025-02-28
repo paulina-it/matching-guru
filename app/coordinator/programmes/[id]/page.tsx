@@ -96,7 +96,7 @@ const ProgrammeDetails = () => {
                   Participants
                 </th>
                 <th className="border border-gray-300 px-4 py-2">Join Code</th>
-                <th className="border border-gray-300 px-4 py-2">Action</th>
+                {/* <th className="border border-gray-300 px-4 py-2">Action</th> */}
                 <th className="border border-gray-300 px-4 py-2">Details</th>
               </tr>
             </thead>
@@ -113,12 +113,12 @@ const ProgrammeDetails = () => {
                     {year.preferredAlgorithm}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {year.participantCount || "N/A"}
+                    {year.participantCount}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
                     {year.joinCode || "N/A"}
                   </td>
-                  <td>
+                  {/* <td>
                     <Button
                       onClick={() => handleMatchParticipants(year.id, true)}
                       variant="outline"
@@ -126,7 +126,7 @@ const ProgrammeDetails = () => {
                     >
                       Match
                     </Button>
-                  </td>
+                  </td> */}
                   <td>
                     <Button
                       onClick={() => handleRedirectDetails(year.id)}
