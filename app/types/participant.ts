@@ -1,22 +1,31 @@
 export interface ParticipantCreateDto {
-    userId: number;
-    programmeYearId: number;
-    role: "MENTOR" | "MENTEE";
-    menteesNumber?: number | null;
-    academicStage: string;
-    hadPlacement?: boolean | null;
-    placementDescription?: string | null;
-    placementInterest?: boolean | null;
-    meetingFrequency?: string | null;
-    availableDays?: string[] | null;
-    availableTime?: string | null;
-    course?: string | null;
-    personality?: string | null;
-    skills?: string[] | null;
-    genderPreference?: string | null;
-    age?: number | null;
-    nationality?: string | null;
-  }
+  userId: number;
+  programmeYearId: number;
+  role: "MENTOR" | "MENTEE";
+  menteesNumber?: number | null;
+  isMatched?: boolean | null;
+  academicStage: string;
+  hadPlacement?: boolean | null;
+  placementDescription?: string | null;
+  placementInterest?: boolean | null;
+  motivation?: string | null;
+  isReturningParticipant?: boolean | null;
+  availableDays?: string[] | null; 
+  timeRange?: string | null; 
+  meetingFrequency?: string | null;
+  skills?: string[] | null;
+  gender?: string | null;
+  age?: number | null;
+  nationality?: string | null;
+  homeCountry?: string | null;
+  personalityType?: string | null;
+  courseId?: number | null;
+  livingArrangement?: string | null;
+  disability?: string | null;
+  dbsCertificate?: boolean | null;
+  ageGroup?: string | null;
+}
+
   
   export type AcademicStage =
   | "FOUNDATION"

@@ -23,6 +23,7 @@ export interface ProgrammeCreateDto {
   export interface MatchingCriteriaDto {
     name: string;
     weight: number;
+    criterionType?: string;
   }
   
   export enum AlgorithmType {
@@ -39,6 +40,7 @@ export interface ProgrammeCreateDto {
     joinCode?: string;
     participantCount?: number;
     matchingCriteria?: MatchingCriteriaDto[];
+    initialMatchingIsDone?: boolean;
   }
   
   export interface ProgrammeYearCreateDto {
