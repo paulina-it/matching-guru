@@ -7,7 +7,6 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { PulseLoader } from "react-spinners";
 import Logout from "@/components/Logout";
-import BackButton from "@/components/BackButton";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -26,6 +25,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       router.push("/auth/login");
     }
   }, [isAuthenticated, loading, isAuthPage, router]);
+
+  const sidebarWidth = collapsed ? "ml-[4rem]" : "ml-[15rem]";
 
   if (loading) {
     return (
