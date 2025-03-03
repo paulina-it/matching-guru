@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import { fetchProgrammeById, fetchProgrammeYear } from "@/app/api/programmes";
 import { matchParticipants } from "@/app/api/matching";
 import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 const ProgrammeYearPage = () => {
   const params = useParams<{ id: string; yearId: string }>();
   const router = useRouter();
+  const pathname = usePathname(); 
 
   const programmeId = parseInt(params.id, 10);
   const programmeYearId = parseInt(params.yearId, 10) ;
@@ -133,7 +134,7 @@ const ProgrammeYearPage = () => {
               <Button>
                 Perform Secondary Matching
               </Button>
-              <Button variant="outline">View Previous Matches</Button>
+              <Button variant="outline" onClick={() => router.push(`${pathname}/matches`)}>View Matches</Button>
             </>
           ) : (
             <Button

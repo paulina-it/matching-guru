@@ -49,7 +49,7 @@ export async function fetchMatchesByProgrammeYearId(id: number, page: number, si
   }
 
   const data = await response.json();
-  console.table(data.content);
+  // console.table(data.content);
   
   return {
     matches: data.content || [], 
@@ -100,4 +100,30 @@ export async function fetchDetailedMatchByParticipantId(id: number): Promise<any
   }
 
   return await response.json();
+}
+
+export async function updateMatchStatus(matchIds: number[], status: "APPROVED" | "DECLINED"): Promise<void> {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Authentication token is missing.");
+  // console.log(token);
+  console.log("Updating matches with:", JSON.stringify({ matchIds, status }));
+
+  const url = `${API_URL}/api/matches/update-status`;
+
+  const response = await fetch(url.toString(), {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      matchIds,
+      status,
+    }),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update match status: ${response.statusText}`);
+  }
 }
