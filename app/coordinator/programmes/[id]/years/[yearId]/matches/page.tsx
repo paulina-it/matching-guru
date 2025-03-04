@@ -1,58 +1,38 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter, usePathname } from "next/navigation";
-import { fetchProgrammeById } from "@/app/api/programmes";
-import { fetchMatchesByProgrammeYearId, updateMatchStatus } from "@/app/api/matching";
-import { ProgrammeDto } from "@/app/types/programmes";
+import { useParams, usePathname } from "next/navigation";
+import {
+  fetchMatchesByProgrammeYearId,
+  updateMatchStatus,
+} from "@/app/api/matching";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import { formatText } from "@/app/utils/text";
 import Link from "next/link";
 
 const ITEMS_PER_PAGE = 20;
 
 const ProgrammeYearMatches = () => {
   const params = useParams<{ id: string; yearId: string }>();
-  const router = useRouter();
   const pathname = usePathname();
 
-  const programmeId = params.id ? parseInt(params.id, 10) : null;
   const programmeYearId = params.yearId ? parseInt(params.yearId, 10) : null;
 
-  const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
   const [matches, setMatches] = useState<any[]>([]);
-  const [selectedMatches, setSelectedMatches] = useState<Set<number>>(new Set());
-  const [loading, setLoading] = useState(true);
+  const [selectedMatches, setSelectedMatches] = useState<Set<number>>(
+    new Set()
+  );
   const [loadingMatches, setLoadingMatches] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [processing, setProcessing] = useState(false); 
 
-  useEffect(() => {
-    if (!programmeId || !programmeYearId) {
-      setError("Invalid programme or programme year ID");
-      setLoading(false);
-      setLoadingMatches(false);
-      return;
-    }
-
-    const fetchProgramme = async () => {
-      try {
-        const programmeData = await fetchProgrammeById(programmeId);
-        setProgramme(programmeData);
-      } catch (err) {
-        toast.error("Error fetching programme details");
-        setError("Failed to load programme details.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProgramme();
-  }, [programmeId]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("updatedAt");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
 
   useEffect(() => {
     if (!programmeYearId) return;
@@ -61,13 +41,20 @@ const ProgrammeYearMatches = () => {
       try {
         setLoadingMatches(true);
         const { matches: fetchedMatches, totalPages: fetchedTotalPages } =
-          await fetchMatchesByProgrammeYearId(programmeYearId, currentPage - 1, ITEMS_PER_PAGE);
+          await fetchMatchesByProgrammeYearId(
+            programmeYearId,
+            currentPage - 1,
+            ITEMS_PER_PAGE,
+            submittedSearch,
+            sortBy,
+            sortOrder,
+            statusFilter
+          );
 
         setMatches(fetchedMatches);
         setTotalPages(fetchedTotalPages);
       } catch (error) {
         toast.error("Error fetching matches");
-        setError("Failed to load matches.");
         setMatches([]);
       } finally {
         setLoadingMatches(false);
@@ -75,7 +62,25 @@ const ProgrammeYearMatches = () => {
     };
 
     fetchMatches();
-  }, [programmeYearId, currentPage]);
+  }, [
+    programmeYearId,
+    currentPage,
+    submittedSearch,
+    sortBy,
+    sortOrder,
+    statusFilter,
+  ]);
+
+  const handleSearchSubmit = () => {
+    setSubmittedSearch(searchQuery);
+    setCurrentPage(1);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleSearchSubmit();
+    }
+  };
 
   const toggleSelectMatch = (matchId: number) => {
     setSelectedMatches((prevSelected) => {
@@ -102,108 +107,186 @@ const ProgrammeYearMatches = () => {
 
     setProcessing(true);
     try {
+      setLoadingMatches(true);
       await updateMatchStatus(Array.from(selectedMatches), status);
-      toast.success(`Successfully updated ${selectedMatches.size} match(es) to ${status}.`);
+
+      // Update local state immediately for better UI/UX
+      setMatches((prevMatches) =>
+        prevMatches.map((match) =>
+          selectedMatches.has(match.id) ? { ...match, status } : match
+        )
+      );
+
+      toast.success(
+        `Successfully updated ${selectedMatches.size} match(es) to ${status}.`
+      );
       setSelectedMatches(new Set());
-      setCurrentPage(1);
+
+      const { matches: updatedMatches, totalPages: updatedTotalPages } =
+        await fetchMatchesByProgrammeYearId(
+          programmeYearId!,
+          currentPage - 1,
+          ITEMS_PER_PAGE,
+          submittedSearch,
+          sortBy,
+          sortOrder,
+          statusFilter
+        );
+
+      setMatches(updatedMatches);
+      setTotalPages(updatedTotalPages);
     } catch (error) {
       toast.error("Failed to update match status.");
     } finally {
       setProcessing(false);
-      const { matches: fetchedMatches, totalPages: fetchedTotalPages } =
-        await fetchMatchesByProgrammeYearId(programmeYearId!, currentPage - 1, ITEMS_PER_PAGE);
-      setMatches(fetchedMatches);
-      setTotalPages(fetchedTotalPages);
+      setLoadingMatches(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <PulseLoader color="#3498db" />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-[65vw] bg-light p-6 my-[5em] rounded shadow relative">
-      <Button className="absolute top-5 right-5">Download CSV</Button>
-      <h2 className="h2 font-bold mb-4">{programme?.name}</h2>
-      <p className="text-gray-700">{programme?.description}</p>
-      <p className="mt-4">Total Participants: {programme?.participants}</p>
+      <h2 className="h2 font-bold mb-4">Programme Year Matches</h2>
 
-      <div className="mt-6">
-        <h3 className="h3">Programme Year Matches</h3>
+      {/* 🎛 Search, Sort, and Filter Controls */}
+      <div className="flex gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Search by mentor/mentee..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="border p-2 rounded w-1/4"
+        />
+        <Button onClick={handleSearchSubmit}>Search</Button>{" "}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="updatedAt">Updated At</option>
+          <option value="mentorName">Mentor Name</option>
+          <option value="menteeName">Mentee Name</option>
+          <option value="compatibilityScore">Compatibility Score</option>
+        </select>
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="">All</option>
+          <option value="APPROVED">Approved</option>
+          <option value="PENDING">Pending</option>
+          <option value="DECLINED">Declined</option>
+        </select>
+      </div>
 
+      {/* Approve & Decline Buttons */}
+      <div className="flex gap-4 mb-4 absolute top-5 right-5">
+        <Button
+          onClick={() => handleUpdateMatchStatus("APPROVED")}
+          disabled={selectedMatches.size === 0 || processing}
+        >
+          Approve
+        </Button>
+        <Button
+          onClick={() => handleUpdateMatchStatus("DECLINED")}
+          variant="secondary"
+          disabled={selectedMatches.size === 0 || processing}
+        >
+          Decline
+        </Button>
+      </div>
+
+      {/* Matches Table */}
+      <div className="mt-6 relative">
         {loadingMatches ? (
           <div className="flex flex-col items-center justify-center min-h-[100px]">
             <PulseLoader color="#3498db" />
-            <p className="italic text-black/50 text-sm mt-4">Loading matches might take up to 1 minute...</p>
+            {/* <p className="italic text-black/50 text-sm mt-4">Loading matches...</p> */}
           </div>
         ) : matches.length > 0 ? (
-          <>
-            <div className="overflow-x-auto mt-4">
-              {/* Approve & Decline Buttons */}
-              <div className="flex gap-4 mb-4">
-                <Button
-                  onClick={() => handleUpdateMatchStatus("APPROVED")}
-                  disabled={selectedMatches.size === 0 || processing}
-                >
-                  Approve
-                </Button>
-                <Button
-                  onClick={() => handleUpdateMatchStatus("DECLINED")}
-                  variant="secondary"
-                  disabled={selectedMatches.size === 0 || processing}
-                >
-                  Decline
-                </Button>
-              </div>
-
-              <table className="min-w-full bg-white border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border p-2">
+          <div>
+            <table className="min-w-full bg-white border border-gray-300">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 m-auto">
+                    <input
+                      type="checkbox"
+                      checked={selectedMatches.size === matches.length}
+                      onChange={toggleSelectAll}
+                      className="mt-2 w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white 
+  checked:bg-accent checked:border-none checked:ring-2 checked:ring-accent-hover
+  focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all cursor-pointer
+  relative checked:before:content-['✔'] checked:before:absolute 
+  checked:before:top-1/2 checked:before:left-1/2 checked:before:-translate-x-1/2 
+  checked:before:-translate-y-1/2 checked:before:text-white checked:before:text-md"
+                    />
+                  </th>
+                  <th className="border p-2 text-left">Mentor</th>
+                  <th className="border p-2 text-left">Mentee</th>
+                  <th className="border p-2 text-left">Score</th>
+                  <th className="border p-2 text-left">Status</th>
+                  <th className="border p-2 text-left">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {matches.map((match) => (
+                  <tr key={match.id} className="border-t">
+                    <td className=" py-4 flex justify-center h-full">
                       <input
                         type="checkbox"
-                        checked={selectedMatches.size === matches.length}
-                        onChange={toggleSelectAll}
+                        checked={selectedMatches.has(match.id)}
+                        onChange={() => toggleSelectMatch(match.id)}
+                        className="w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white 
+    checked:bg-accent checked:border-none checked:ring-2 checked:ring-accent-hover
+    focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all cursor-pointer
+    relative checked:before:content-['✔'] checked:before:absolute 
+    checked:before:top-1/2 checked:before:left-1/2 checked:before:-translate-x-1/2 
+    checked:before:-translate-y-1/2 checked:before:text-white checked:before:text-md"
                       />
-                    </th>
-                    <th className="border p-2 text-left">№</th>
-                    <th className="border p-2 text-left">Mentor</th>
-                    <th className="border p-2 text-left">Mentee</th>
-                    <th className="border p-2 text-left">Score</th>
-                    <th className="border p-2 text-left">Status</th>
-                    <th className="border p-2 text-left">Details</th>
+                    </td>
+                    <td className="border p-2">{match.mentorName}</td>
+                    <td className="border p-2">{match.menteeName}</td>
+                    <td className="border p-2">{match.compatibilityScore}</td>
+                    <td className="border p-2">{match.status}</td>
+                    <td className="border p-2">
+                      <Link href={`${pathname}/${match.id}`}>View</Link>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {matches.map((match, index) => (
-                    <tr key={match.id} className="border-t">
-                      <td className="border p-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedMatches.has(match.id)}
-                          onChange={() => toggleSelectMatch(match.id)}
-                        />
-                      </td>
-                      <td className="border p-2">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
-                      <td className="border p-2">{match.mentorName}</td>
-                      <td className="border p-2">{match.menteeName}</td>
-                      <td className="border p-2">{match.compatibilityScore}</td>
-                      <td className="border p-2">{match.status}</td>
-                      <td className="border p-2">
-                        <Link href={(`${pathname}/${match.id}`)}>
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center gap-4 mt-4">
+              <Button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+
+              <span className="text-lg font-semibold">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <Button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
             </div>
-          </>
+          </div>
         ) : (
           <p className="text-gray-500 mt-2">No matches found.</p>
         )}

@@ -27,13 +27,28 @@ export async function matchParticipants(id: number, isInitial: boolean): Promise
   console.log("✅ Matching process started successfully.");
 }
 
-export async function fetchMatchesByProgrammeYearId(id: number, page: number, size: number): Promise<{ matches: any[]; totalPages: number }> {
+export async function fetchMatchesByProgrammeYearId(
+  id: number,
+  page: number,
+  size: number,
+  query: string = "",   
+  sortBy: string = "updatedAt", 
+  sortOrder: string = "desc",  
+  status: string = "" 
+): Promise<{ matches: any[]; totalPages: number }> {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Authentication token is missing.");
 
-  const url = new URL(`${API_URL}/api/matching/${id}`);
+  const url = new URL(`${API_URL}/api/matches/search`);
+  url.searchParams.append("programmeYearId", id.toString());
   url.searchParams.append("page", page.toString());
   url.searchParams.append("size", size.toString());
+  if (query) url.searchParams.append("query", query);
+  if (sortBy) url.searchParams.append("sortBy", sortBy);
+  if (sortOrder) url.searchParams.append("sortOrder", sortOrder);
+  if (status) url.searchParams.append("status", status);
+
+  console.log(url.searchParams);
 
   const response = await fetch(url.toString(), {
     method: "GET",
@@ -49,10 +64,9 @@ export async function fetchMatchesByProgrammeYearId(id: number, page: number, si
   }
 
   const data = await response.json();
-  // console.table(data.content);
   
   return {
-    matches: data.content || [], 
+    matches: data.content || [],
     totalPages: data.totalPages || 1,
   };
 }
