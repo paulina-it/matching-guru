@@ -88,14 +88,14 @@ const ParticipantProgrammeDetails = () => {
         <p className="bg-secondary text-white rounded p-2 w-fit absolute top-6 right-6">
           Status:{" "}
           {matchDetails
-            ? matchDetails.status === "CONFIRMED"
+            ? matchDetails.status === "APPROVED"
               ? "✅ Match Confirmed"
               : "⏳ Match Pending"
             : "❌ Unmatched"}
         </p>
 
         {/* Display user participation info (when no confirmed match exists) */}
-        {(!matchDetails || matchDetails.status !== "CONFIRMED") && (
+        {(!matchDetails || matchDetails.status !== "APPROVED") && (
           <div className="mt-6 border p-4 rounded bg-gray-100">
             <h3 className="h3">Your Participation</h3>
             <p>
@@ -127,7 +127,7 @@ const ParticipantProgrammeDetails = () => {
         )}
 
         {/* Display match details ONLY when status is CONFIRMED */}
-        {matchDetails?.status === "PENDING" && (
+        {matchDetails?.status === "APPROVED" && (
           <div className="mt-6 border p-4 rounded bg-gray-100">
             <h4 className="h4 text-lg italic">You have been paired with:</h4>
             <p>
@@ -171,7 +171,7 @@ const ParticipantProgrammeDetails = () => {
               Compatibility Score: {matchDetails.compatibilityScore}%
             </h3>
 
-            <Button className="mt-3 bg-blue-500 text-white hover:bg-blue-600">
+            <Button variant="outline" className="mt-4">
               Contact Your Match
             </Button>
           </div>
