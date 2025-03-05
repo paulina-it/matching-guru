@@ -58,6 +58,7 @@ const Account = () => {
   const [preview, setPreview] = useState<string | undefined>(
     formData.profileImageUrl
   );
+  const [isUpdating, setIsUpdating] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -111,6 +112,8 @@ const Account = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setIsUpdating(true);
+
     try {
       let updatedProfileImageUrl = formData.profileImageUrl;
   
@@ -138,7 +141,8 @@ const Account = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile.");
-    }
+    } finally {
+      setIsUpdating(false);}
   };
   
 
@@ -196,143 +200,9 @@ const Account = () => {
           value={formData.uniEmail || ""}
           onChange={handleChange}
         />
-        {user?.role == UserRole.USER ? (
-          <div>
-            <InputField
-              id="studentNumber"
-              label="Student Number"
-              value={formData.studentNumber?.toString() || ""}
-              onChange={handleChange}
-            />
-            <div>
-              <SelectInputLabel htmlFor="personalityType">
-                Personality Type
-              </SelectInputLabel>
-              <Select
-                name="personalityType"
-                value={formData.personalityType}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    personalityType: value as PersonalityType,
-                  })
-                }
-              >
-                <SelectTrigger id="personalityType">
-                  <SelectValue placeholder="Select Personality Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(PersonalityType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <SelectInputLabel htmlFor="gender">Gender</SelectInputLabel>
-              <Select
-                name="gender"
-                value={formData.gender}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, gender: value as Gender })
-                }
-              >
-                <SelectTrigger id="gender">
-                  <SelectValue placeholder="Select Gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(Gender).map((gender) => (
-                    <SelectItem key={gender} value={gender}>
-                      {gender}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <SelectInputLabel htmlFor="livingArrangement">
-                Living Arrangement
-              </SelectInputLabel>
-              <Select
-                name="livingArrangement"
-                value={formData.livingArrangement}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    livingArrangement: value as LivingArrangement,
-                  })
-                }
-              >
-                <SelectTrigger id="livingArrangement">
-                  <SelectValue placeholder="Select Living Arrangement" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(LivingArrangement).map((arrangement) => (
-                    <SelectItem key={arrangement} value={arrangement}>
-                      {arrangement}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <SelectInputLabel htmlFor="ageGroup">Age Group</SelectInputLabel>
-              <Select
-                name="ageGroup"
-                value={formData.ageGroup}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, ageGroup: value as AgeGroup })
-                }
-              >
-                <SelectTrigger id="ageGroup">
-                  <SelectValue placeholder="Select Age Group" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(AgeGroup).map((group) => (
-                    <SelectItem key={group} value={group}>
-                      {group}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <InputField
-              id="ethnicity"
-              label="Ethnicity"
-              value={formData.ethnicity}
-              onChange={handleChange}
-            />
-            <InputField
-              id="nationality"
-              label="Nationality"
-              value={formData.nationality}
-              onChange={handleChange}
-            />
-            <InputField
-              id="homeCountry"
-              label="Home Country"
-              value={formData.homeCountry}
-              onChange={handleChange}
-            />
-            <InputField
-              id="disability"
-              label="Disability"
-              value={formData.disability}
-              onChange={handleChange}
-            />
-          </div>
-        ) : (
-          <></>
-        )}
-
-        <Button type="submit" className="col-span-2">
-          Update Profile
+       
+       <Button type="submit" className="col-span-2">
+          {isUpdating ? "Updating..." : "Update Profile"}
         </Button>
       </form>
     </div>
