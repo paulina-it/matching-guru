@@ -54,7 +54,7 @@ export interface UserUpdateDto {
   lastName: string;
   email: string;
   uniEmail?: string;
-  studentNumber?: number;
+  studentNumber?: number | string;
   role: UserRole;
   organisationId?: number;
   personalityType?: PersonalityType;
