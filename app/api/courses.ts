@@ -1,24 +1,7 @@
+import { CourseCreateDto, CourseGroupCreateDto } from "../types/courses";
 import { authenticatedFetch } from "../utils/token";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
-/**
- * Data structure for creating a Course Group.
- */
-export interface CourseGroupCreateDto {
-  name: string;
-  organisationId: number;
-}
-
-/**
- * Data structure for creating a Course.
- */
-export interface CourseCreateDto {
-  name: string;
-  type: string;
-  duration: number;
-  groupId: number;
-}
 
 /**
  * Create a new course group.
@@ -56,6 +39,72 @@ export async function createCourse(
   }
 
   return response.json();
+}
+
+/**
+ * Update an existing course by ID.
+ */
+export async function updateCourse(courseId: number, updatedCourse: Partial<CourseCreateDto>): Promise<any> {
+  const response = await authenticatedFetch(`${API_URL}/courses/update/${courseId}`, {
+    method: "PUT",
+    body: JSON.stringify(updatedCourse),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to update course");
+  }
+
+  return response.json();
+}
+
+
+/**
+ * Delete a course by ID.
+ */
+export async function deleteCourse(courseId: number): Promise<void> {
+  const response = await authenticatedFetch(`${API_URL}/courses/${courseId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    if (error.includes("violates foreign key constraint")) {
+      throw new Error("Cannot delete course – it is assigned to one or more users.");
+    }
+    throw new Error(error || "Failed to delete course");
+  }
+}
+
+/**
+ * Update an existing course group by ID.
+ */
+export async function updateCourseGroup(courseGroupId: number, updatedGroup: { name: string }): Promise<any> {
+  const response = await authenticatedFetch(`${API_URL}/course-groups/update/${courseGroupId}`, {
+    method: "PUT",
+    body: JSON.stringify(updatedGroup),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to update course group");
+  }
+
+  return response.json();
+}
+
+/**
+ * Delete a course group by ID.
+ */
+export async function deleteCourseGroup(courseGroupId: number): Promise<void> {
+  const response = await authenticatedFetch(`${API_URL}/course-groups/${courseGroupId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to delete course group");
+  }
 }
 
 /**
