@@ -8,11 +8,10 @@ import { redirect } from "next/navigation";
 
 const CoordinatorDashboard = () => {
   const { user } = useAuth();
-  console.log(user);
 
   return (
-    <div className="flex justify-between gap-6">
-      <div className="bg-light rounded p-10 flex justify-center items-center gap-6">
+    <div className="flex flex-col items-center lg:flex-row lg:justify-between gap-6 min-h-screen w-[80%] m-auto my-20 lg:my-auto">
+      <div className="bg-light rounded p-10 flex justify-center items-center gap-6 w-full">
         {/* Profile Image */}
         <img
           src={user?.profileImageUrl || "/assets/placeholders/avatar.png"}
@@ -24,7 +23,7 @@ const CoordinatorDashboard = () => {
           <h3 className="h3 mt-5">({user?.role})</h3>
         </div>
       </div>
-      <div className="bg-light rounded p-10 h-min">
+      <div className="bg-light rounded p-10 h-min w-full">
         {user?.organisationName ? (
           <h3 className="h3">
             Organisation:{" "}
