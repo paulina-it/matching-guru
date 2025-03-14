@@ -26,9 +26,9 @@ const ParticipantDashboard = () => {
   };
 
   return (
-    <div className="flex justify-between gap-6">
+    <div className="grid grid-cols-2 gap-6">
+      {/* Profile Overview */}
       <div className="bg-light rounded p-10 flex justify-center items-center gap-6">
-        {/* Profile Image */}
         <img
           src={user?.profileImageUrl || "/assets/placeholders/avatar.png"}
           alt="Profile Preview"
@@ -36,16 +36,16 @@ const ParticipantDashboard = () => {
         />
         <div>
           <h2 className="h2">Hello, {user?.firstName}</h2>
-          <h3 className="h3 mt-5">({user?.role})</h3>
+          <h3 className="h3 mt-3">({user?.role})</h3>
+          {user?.personalityType && <p className="text-gray-600 mt-2">Personality: {user.personalityType}</p>}
         </div>
       </div>
-      <div className="bg-light rounded p-10 h-min">
+
+      {/* Organisation & Programme Status */}
+      <div className="bg-light rounded p-10">
         {user?.organisationName ? (
           <h3 className="h3">
-            Organisation: {" "}
-            <span className="font-bold">{user.organisationName}</span>
-            <br />
-            Student
+            Organisation: <span className="font-bold">{user.organisationName}</span>
           </h3>
         ) : (
           <div className="flex flex-col justify-center items-center">
@@ -55,6 +55,68 @@ const ParticipantDashboard = () => {
             </Button>
           </div>
         )}
+      </div>
+
+      {/* Mentorship Status */}
+      <div className="bg-light rounded p-10">
+        <h3 className="h3 mb-4">Recent Participations</h3>
+        {/* {user?.participations?.length > 0 ? (
+          user.participations.map((participation, index) => (
+            <div key={index} className="border-b border-gray-300 pb-4 mb-4">
+              <h4 className="font-bold">{participation.programmeName}</h4>
+              <p className="text-gray-700">
+                {participation.isMentor && <span>🌟 Mentor</span>}
+                {participation.isMentee && <span> 📚 Mentee</span>}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-700">You are not currently participating in any mentorships.</p>
+        )} */}
+      </div>
+
+      {/* Meetings & Calendar */}
+      <div className="bg-light rounded p-10">
+        <h3 className="h3 mb-4">Upcoming Meetings</h3>
+        {/* {user?.meetings?.length > 0 ? (
+          user.meetings.map((meeting, index) => (
+            <div key={index} className="border-b border-gray-300 pb-4 mb-4">
+              <h4 className="font-bold">{meeting.title}</h4>
+              <p className="text-gray-700">{meeting.date} at {meeting.time}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-700">No scheduled meetings.</p>
+        )} */}
+      </div>
+
+      {/* Notifications & Updates */}
+      {/* <div className="bg-light rounded p-10">
+        <h3 className="h3 mb-4">Notifications</h3>
+        {user?.notifications?.length > 0 ? (
+          user.notifications.map((notification, index) => (
+            <div key={index} className="border-b border-gray-300 pb-4 mb-4">
+              <p className="text-gray-700">{notification.message}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-700">No new notifications.</p>
+        )}
+      </div> */}
+
+      {/* Feedback & Review */}
+      <div className="bg-light rounded p-10">
+        <h3 className="h3 mb-4">Feedback & Reviews</h3>
+        {/* {user?.feedback?.length > 0 ? (
+          user.feedback.map((review, index) => (
+            <div key={index} className="border-b border-gray-300 pb-4 mb-4">
+              <h4 className="font-bold">{review.mentorName || "Anonymous"}</h4>
+              <p className="text-gray-700">"{review.comment}"</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-700">No feedback available.</p>
+        )} */}
       </div>
 
       {/* Join Organisation Popup */}
