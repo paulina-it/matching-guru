@@ -110,7 +110,6 @@ const ProgrammeYearMatches = () => {
       setLoadingMatches(true);
       await updateMatchStatus(Array.from(selectedMatches), status);
 
-      // Update local state immediately for better UI/UX
       setMatches((prevMatches) =>
         prevMatches.map((match) =>
           selectedMatches.has(match.id) ? { ...match, status } : match
@@ -253,8 +252,8 @@ const ProgrammeYearMatches = () => {
     checked:before:-translate-y-1/2 checked:before:text-white checked:before:text-md"
                       />
                     </td>
-                    <td className="border p-2">{match.mentorName}</td>
-                    <td className="border p-2">{match.menteeName}</td>
+                    <td className="border p-2">{match.mentorName} ({match.mentorId})</td>
+                    <td className="border p-2">{match.menteeName} ({match.menteeId})</td>
                     <td className="border p-2">{match.compatibilityScore}</td>
                     <td className="border p-2">{match.status}</td>
                     <td className="border p-2">

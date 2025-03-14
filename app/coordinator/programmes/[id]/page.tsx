@@ -55,10 +55,6 @@ const ProgrammeDetails = () => {
     redirect(`${id}/years/${yearId}`);
   };
 
-  const handleMatchParticipants = (id: number, isInitial: boolean) => {
-    matchParticipants(id, isInitial);
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -118,15 +114,6 @@ const ProgrammeDetails = () => {
                   <td className="border border-gray-300 px-4 py-2">
                     {year.joinCode || "N/A"}
                   </td>
-                  {/* <td>
-                    <Button
-                      onClick={() => handleMatchParticipants(year.id, true)}
-                      variant="outline"
-                      className=""
-                    >
-                      Match
-                    </Button>
-                  </td> */}
                   <td>
                     <Button
                       onClick={() => handleRedirectDetails(year.id)}
