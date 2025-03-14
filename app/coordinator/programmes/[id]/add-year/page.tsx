@@ -15,7 +15,6 @@ const page = (props: Props) => {
     <div>
       <ProgrammeYearForm
         programmeId={Number(programmeId)}
-        // onSubmit={handleSubmit}
         error={null}
       />
     </div>

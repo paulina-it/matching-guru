@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import InputField from "@/components/InputField";
 import { Button } from "@/components/ui/button";
-import { AlgorithmType, CriterionType, MatchingCriteriaDto } from "@/app/types/programmes";
-import { createProgrammeYear } from "@/app/api/programmes"; 
+import { AlgorithmType, CriterionType, MatchingCriteriaDto, ProgrammeYearDto } from "@/app/types/programmes";
+import { createProgrammeYear, updateProgrammeYear, fetchProgrammeYear } from "@/app/api/programmes"; 
 import toast from "react-hot-toast";
 import { PulseLoader } from "react-spinners";
 import { useRouter } from "next/navigation";
 
 interface ProgrammeYearFormProps {
   programmeId: number;
+  programmeYearId?: number;
   error: string | null;
+  editMode?: boolean;
 }
 
 const predefinedCriteria: string[] = [
@@ -22,11 +24,14 @@ const predefinedCriteria: string[] = [
   "Gender",
   "Age",
   "Nationality",
+  "Living Arrangement",
 ];
 
 const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   programmeId,
+  programmeYearId,
   error,
+  editMode = false,
 }) => {
   const [academicYear, setAcademicYear] = useState("");
   const [preferredAlgorithm, setPreferredAlgorithm] = useState<AlgorithmType>(
@@ -35,9 +40,10 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   const [criteria, setCriteria] = useState<MatchingCriteriaDto[]>(
     predefinedCriteria.map((name) => ({ name, weight: 0 }))
   );
-
+  const [approvalType, setApprovalType] = useState<"MANUAL" | "THRESHOLD" | "AUTO">("MANUAL");
+  const [approvalThreshold, setApprovalThreshold] = useState<number>(70);
   const [loading, setLoading] = useState(false);
-    const router = useRouter();
+  const router = useRouter();
 
   const totalWeight = criteria.reduce((sum, criterion) => sum + criterion.weight, 0);
 
@@ -49,8 +55,31 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
     "Gender": CriterionType.GENDER,
     "Age": CriterionType.AGE,
     "Nationality": CriterionType.NATIONALITY,
+    "Living Arrangement": CriterionType.LIVING_ARRANGEMENT,
   };
-  
+
+  useEffect(() => {
+    if (editMode && programmeYearId) {
+      setLoading(true);
+      fetchProgrammeYear(programmeYearId)
+        .then((data: ProgrammeYearDto) => {
+          setAcademicYear(data.academicYear);
+          setPreferredAlgorithm(data.preferredAlgorithm as AlgorithmType);
+          setCriteria(
+            data.matchingCriteria!.map((criterion) => ({
+              name: predefinedCriteria.find((c) => nameToCriterionTypeMap[c] === criterion.criterionType) || criterion.name,
+              weight: criterion.weight,
+            }))
+          );
+          setApprovalType(data.matchApprovalSettings?.approvalType || "MANUAL");
+          setApprovalThreshold(data.matchApprovalSettings?.approvalThreshold || 70);
+        })
+        .catch(() => {
+          toast.error("Failed to load programme year details.");
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [editMode, programmeYearId]);
 
   const handleCriteriaChange = (
     index: number,
@@ -75,31 +104,38 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
 
     const formattedCriteria = criteria.map((criterion) => ({
       name: criterion.name,
-      criterionType: nameToCriterionTypeMap[criterion.name], 
+      criterionType: nameToCriterionTypeMap[criterion.name],
       weight: criterion.weight,
     }));
 
     const formData = {
       programmeId,
       academicYear,
-      customSettings: "", 
+      customSettings: "",
       preferredAlgorithm,
       matchingCriteria: formattedCriteria,
+      matchApprovalSettings: {
+        approvalType,
+        approvalThreshold: approvalType === "THRESHOLD" ? approvalThreshold : null,
+      },
     };
 
     try {
       setLoading(true);
-      await createProgrammeYear(formData);
-      toast.success("Programme year created successfully!");
-      router.push(`/coordinator/programmes/${programmeId}`)
-
+      if (editMode && programmeYearId) {
+        await updateProgrammeYear(programmeYearId, formData);
+        toast.success("Programme year updated successfully!");
+      } else {
+        await createProgrammeYear(formData);
+        toast.success("Programme year created successfully!");
+      }
+      router.push(`/coordinator/programmes/${programmeId}`);
     } catch (err: any) {
       toast.error(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
-
 
   if (loading || !programmeId) {
     return (
@@ -109,10 +145,8 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
     );
   }
 
-
   return (
-    <form onSubmit={handleSubmit} className="max-w-[50vw] my-10 bg-light rounded p-5">
-      <h2 className="text-2xl font-bold mb-4">Create Programme Year</h2>
+    <form onSubmit={handleSubmit} className="max-w-[50vw] my-10 bg-light rounded p-5"> <h2 className="text-2xl font-bold mb-4">{editMode ? "Edit Programme Year" : "Create Programme Year"}</h2>
       {error && <p className="text-red-500">{error}</p>}
 
       <InputField
@@ -136,12 +170,44 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
           className="w-full border rounded px-4 py-2"
         >
           <option value={AlgorithmType.GALE_SHAPLEY}>Gale-Shapley</option>
-          <option value={AlgorithmType.COLLABORATIVE_FILTERING} disabled>
+          <option value={AlgorithmType.COLLABORATIVE_FILTERING}>
             Collaborative Filtering
           </option>
-          <option value={AlgorithmType.BRACE} disabled>BRACE</option>
+          <option value={AlgorithmType.BRACE}>BRACE</option>
         </select>
       </div>
+
+      {/* Match Approval Settings */}
+      <div className="mb-4">
+        <label className="block font-medium text-gray-700 my-2">
+          Match Approval Type
+        </label>
+        <select
+          value={approvalType}
+          onChange={(e) => setApprovalType(e.target.value as "MANUAL" | "THRESHOLD" | "AUTO")}
+          className="w-full border rounded px-4 py-2"
+        >
+          <option value="MANUAL">Manually approve all matches</option>
+          <option value="THRESHOLD">Automatically approve matches above a threshold</option>
+          <option value="AUTO">Automatically approve all matches</option>
+        </select>
+      </div>
+
+      {approvalType === "THRESHOLD" && (
+        <div className="mb-4">
+          <label className="block font-medium text-gray-700 my-2">
+            Compatibility Score Threshold (%)
+          </label>
+          <input
+            type="number"
+            min="0"
+            max="100"
+            value={approvalThreshold}
+            onChange={(e) => setApprovalThreshold(Number(e.target.value))}
+            className="w-full border rounded px-4 py-2"
+          />
+        </div>
+      )}
 
       <div className="mb-4">
         <label className="block font-medium text-gray-700 my-2">
@@ -177,7 +243,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       </div>
 
       <Button type="submit" className="mt-4">
-        Create Programme Year
+        {editMode ? "Update Programme Year" : "Create Programme Year"}
       </Button>
     </form>
   );
