@@ -8,25 +8,25 @@ import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
+import { Progress } from "@/components/ui/progress"; 
+import { formatText } from "@/app/utils/text";
 
 const ProgrammeYearPage = () => {
   const params = useParams<{ id: string; yearId: string }>();
   const router = useRouter();
-  const pathname = usePathname(); 
+  const pathname = usePathname();
 
   const programmeId = parseInt(params.id, 10);
-  const programmeYearId = parseInt(params.yearId, 10) ;
+  const programmeYearId = parseInt(params.yearId, 10);
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
   const [programmeYear, setProgrammeYear] = useState<ProgrammeYearDto | null>(
     null
   );
   const [loadingProgramme, setLoadingProgramme] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!programmeId || !programmeYearId) {
-      setError("Invalid programme or programme year ID");
       setLoadingProgramme(false);
       return;
     }
@@ -39,7 +39,6 @@ const ProgrammeYearPage = () => {
         setProgrammeYear(yearData);
       } catch (err) {
         toast.error("Error fetching programme details");
-        setError("Failed to load programme details.");
       } finally {
         setLoadingProgramme(false);
       }
@@ -48,10 +47,45 @@ const ProgrammeYearPage = () => {
     fetchProgramme();
   }, [programmeId, programmeYearId]);
 
-  const handleMatchParticipants = (id: number, isInitial: boolean) => {
-    matchParticipants(id, isInitial);
-    toast.success("Matching started!")
+  const algorithmMap = {
+    GALE_SHAPLEY: "gale-shapley",
+    COLLABORATIVE_FILTERING: "collaborative-filtering",
+    BRACE: "brace",
+  } as const;
+
+  type AlgorithmKey = keyof typeof algorithmMap;
+
+  const handleMatchParticipants = async (
+    id: number,
+    isInitial: boolean,
+    algorithm?: string
+  ) => {
+    if (!algorithm) {
+      toast.error("Matching algorithm is not specified.");
+      return;
+    }
+  
+    const mappedAlgorithm = algorithmMap[algorithm as AlgorithmKey];
+  
+    if (!mappedAlgorithm) {
+      toast.error("Invalid matching algorithm.");
+      return;
+    }
+  
+    toast.loading("Matching in progress...");
+  
+    const result = await matchParticipants(id, isInitial, mappedAlgorithm);
+  
+    toast.dismiss(); 
+    if (result.success) {
+      toast.success(result.message);
+      router.refresh();
+      window.location.reload();
+    } else {
+      toast.error(result.message);
+    }
   };
+  
 
   if (loadingProgramme) {
     return (
@@ -61,16 +95,34 @@ const ProgrammeYearPage = () => {
     );
   }
 
+  const totalParticipants = programmeYear?.participantCount || 0;
+  const unmatchedParticipants = programmeYear?.unmatchedCount || 0;
+  const matchedParticipants = totalParticipants - unmatchedParticipants;
+  const matchedPercentage = totalParticipants
+    ? Math.round((matchedParticipants / totalParticipants) * 100)
+    : 0;
+
   return (
     <div className="max-w-[65vw] bg-light p-6 my-[5em] rounded shadow relative">
-      {/* <Button className="absolute top-5 right-5">Download CSV</Button> */}
+      <div className="absolute top-5 right-5 flex gap-5">
+        <Button variant="outline" onClick={() => {router.push(`${pathname}/edit`)}}>Edit Cycle</Button>
+      </div>
       <h2 className="h2 font-bold mb-4">{programme?.name ?? "N/A"}</h2>
       <p className="text-gray-700">
         {programme?.description ?? "No description available."}
       </p>
-      <p className="mt-4">
-        Total Participants: {programme?.participants ?? "Unknown"}
-      </p>
+      <div className="flex justify-between">
+        <p className="mt-4">Total Participants: {totalParticipants}</p>
+        <p className="mt-4">Unmatched Participants: {unmatchedParticipants}</p>
+      </div>
+      {/* Progress Bar for Matched Percentage */}
+      <div className="mt-6">
+        <h3 className="h3">Matching Progress</h3>
+        <p className="mt-2 text-lg font-semibold">
+          {matchedPercentage}% Matched
+        </p>
+        <Progress value={matchedPercentage} className="w-full h-4 bg-accent" />
+      </div>
 
       <div className="mt-6">
         <h3 className="h3">
@@ -95,9 +147,7 @@ const ProgrammeYearPage = () => {
                 criterion.weight > 0 ? (
                   <tr key={index} className="border border-gray-300">
                     <td className="px-4 py-2">
-                      {criterion.criterionType
-                        ?.toLowerCase()
-                        .replace(/\b\w/g, (char) => char.toUpperCase()) ??
+                      {formatText(criterion.criterionType) ??
                         "N/A"}
                     </td>
                     <td className="px-4 py-2">{criterion.weight ?? 0}%</td>
@@ -131,16 +181,34 @@ const ProgrammeYearPage = () => {
         <div className="mt-4 flex gap-4">
           {programmeYear?.initialMatchingIsDone ? (
             <>
-              <Button>
+              <Button
+                onClick={() =>
+                  handleMatchParticipants(
+                    programmeYearId,
+                    !programmeYear?.initialMatchingIsDone,
+                    programmeYear.preferredAlgorithm
+                  )
+                }
+              >
                 Perform Secondary Matching
               </Button>
-              <Button variant="outline" onClick={() => router.push(`${pathname}/matches`)}>View Matches</Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push(`${pathname}/matches`)}
+              >
+                View Matches
+              </Button>
             </>
           ) : (
             <Button
-              onClick={() => handleMatchParticipants(programmeYearId, !programmeYear?.initialMatchingIsDone)}
+              onClick={() =>
+                handleMatchParticipants(
+                  programmeYearId,
+                  !programmeYear?.initialMatchingIsDone,
+                  programmeYear!.preferredAlgorithm
+                )
+              }
               variant="outline"
-              className=""
             >
               Match
             </Button>
