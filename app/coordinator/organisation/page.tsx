@@ -32,7 +32,6 @@ interface CourseGroup {
   courses: Course[];
 }
 
-
 const OrganisationPage = () => {
   const [organisation, setOrganisation] = useState<OrganisationData | null>(
     null
@@ -113,11 +112,11 @@ const OrganisationPage = () => {
   }
 
   return (
-    <div className="w-full max-w-[80%] m-auto h-full flex items-center justify-center">
+    <div className="w-full lg:max-w-[80%] max-w-[90%] m-auto h-full flex items-center justify-center">
       <Toaster position="top-right" /> {/* Toast container */}
       {organisation?.id != null ? (
-        <div className="bg-light my-[10vh] p-12 rounded-[10px]">
-          <div className="flex justify-between gap-[3em]">
+        <div className="bg-light my-[10vh] p-5 lg:p-12 rounded-[10px]">
+          <div className="flex lg:flex-row flex-col-reverse justify-between gap-[3em]">
             <div>
               <h1 className="h1 mb-4">{organisation.name}</h1>
               <p className="mb-5">{organisation.description}</p>
@@ -134,24 +133,27 @@ const OrganisationPage = () => {
               width={200}
               height={200}
               alt="Logo"
-              className="m-auto"
+              className="m-auto lg:mb-0 mb-[-2em]"
             />
           </div>
           <div className="mt-10 relative">
-            <h2 className="h2 text-4xl">Courses at {organisation?.name}</h2>
-                <Button
-                  variant="outline"
-                  className="absolute top-2 right-0"
-                  onClick={handleRedirect}
-                >
-                  Add Courses
-                </Button>
+            <h2 className="h2 text-4xl lg:text-center text-start">
+              Courses
+              <span className="lg:block hidden"> at {organisation?.name}</span>
+            </h2>
+            <Button
+              variant="outline"
+              className="absolute lg:top-2 top-0 right-0"
+              onClick={handleRedirect}
+            >
+              Add Courses
+            </Button>
             {courseGroups.length > 0 ? (
-              <div className="mt-5 grid grid-cols-2 gap-6">
+              <div className="mt-5 grid lg:grid-cols-2 gap-0 lg:gap-6">
                 {courseGroups.map((group) => (
                   <div
                     key={group.id}
-                    className="mb-8 p-4 bg-secondary/10 rounded shadow"
+                    className="lg:mb-8 mb-4 p-4 bg-secondary/10 rounded shadow"
                   >
                     <h3 className="h3 text-xl font-bold mb-2">{group.name}</h3>
                     {group.courses.length > 0 ? (
