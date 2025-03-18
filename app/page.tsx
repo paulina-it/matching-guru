@@ -47,57 +47,59 @@ export default function Home() {
   return (
     <div className="container flex mx-auto gap-14">
       <Header />
-      <section className="mt-[7em] relative">
-        <h2 className="font-semibold text-xl uppercase">Welcome to</h2>
-        <h1 className="h1">Matching Guru</h1>
-        <p className="my-4">
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ducimus
-          numquam ratione molestiae, illo omnis rerum aspernatur tempora laborum
-          recusandae iusto tenetur alias, debitis ea commodi accusamus aliquid
-          suscipit a rem!Lorem ipsum dolor sit, amet consectetur adipisicing
-          elit. Ducimus numquam ratione molestiae, illo omnis rerum aspernatur
-          tempora laborum recusandae iusto tenetur alias, debitis ea commodi
-          accusamus aliquid suscipit a rem!
-        </p>
-        <div className="flex">
-          {!isAuthenticated ? (
-            <>
+      <div>
+        <section className="mt-[7em] relative">
+          <h2 className="font-semibold text-xl uppercase lg:text-start text-center">Welcome to</h2>
+          <h1 className="h1">Matching Guru</h1>
+          <p className="my-4 text-center lg:text-start">
+            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ducimus
+            numquam ratione molestiae, illo omnis rerum aspernatur tempora
+            laborum recusandae iusto tenetur alias, debitis ea commodi accusamus
+            aliquid suscipit a rem!Lorem ipsum dolor sit, amet consectetur
+            adipisicing elit. Ducimus numquam ratione molestiae, illo omnis
+            rerum aspernatur tempora laborum recusandae iusto tenetur alias,
+            debitis ea commodi accusamus aliquid suscipit a rem!
+          </p>
+          <div className="flex justify-center">
+            {!isAuthenticated ? (
+              <>
+                <Button
+                  variant="default"
+                  size="xl"
+                  className="mr-5"
+                  onClick={handleLoginRedirect}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="outline"
+                  size="xl"
+                  onClick={handleSignupRedirect}
+                >
+                  Signup
+                </Button>
+              </>
+            ) : (
               <Button
                 variant="default"
                 size="xl"
-                className="mr-5"
-                onClick={handleLoginRedirect}
+                onClick={handleDashboardRedirect} // Redirects based on role
               >
-                Login
+                Go to Dashboard
               </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                onClick={handleSignupRedirect}
-              >
-                Signup
-              </Button>
-            </>
-          ) : (
-            <Button
-              variant="default"
-              size="xl"
-              onClick={handleDashboardRedirect} // Redirects based on role
-            >
-              Go to Dashboard
-            </Button>
-          )}
+            )}
+          </div>
+        </section>
+        <div>
+          <Image
+            src="/assets/ui/MeditatingDoodle.svg"
+            priority
+            width={1500}
+            height={1500}
+            alt=""
+            className="relative object-contain z-10 m-auto lg:mt-[7em] mt-6"
+          />
         </div>
-      </section>
-      <div>
-        <Image
-          src="/assets/ui/MeditatingDoodle.svg"
-          priority
-          width={1500}
-          height={1500}
-          alt=""
-          className="relative object-contain z-10 m-auto mt-[7em]"
-        />
       </div>
     </div>
   );
