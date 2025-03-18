@@ -64,13 +64,20 @@ const ProgrammeDetails = () => {
   }
 
   return (
-    <div className="max-w-[55vw] bg-light p-6 rounded shadow relative">
+    <div className="max-w-[90vw] lg:max-w-[55vw] bg-light p-6 rounded shadow relative">
+    <Button
+      onClick={handleRedirect}
+      variant="outline"
+      className="lg:absolute hidden right-5"
+    >
+      Add Programme Cycle
+    </Button>
       <Button
         onClick={handleRedirect}
         variant="outline"
-        className="absolute right-5"
+        className="lg:hidden absolute right-5"
       >
-        Add Programme Cycle
+        +
       </Button>
       <h2 className="h2 font-bold mb-4">{programme?.name}</h2>
       <p className="text-gray-700">{programme?.description}</p>
@@ -85,13 +92,13 @@ const ProgrammeDetails = () => {
                   Academic Year
                 </th>
                 <th className="border border-gray-300 px-4 py-2">Status</th>
-                <th className="border border-gray-300 px-4 py-2">
+                <th className="border border-gray-300 px-4 py-2 lg:block hidden">
                   Preferred Algorithm
                 </th>
-                <th className="border border-gray-300 px-4 py-2">
+                <th className="border border-gray-300 px-4 py-2 lg:block hidden">
                   Participants
                 </th>
-                <th className="border border-gray-300 px-4 py-2">Join Code</th>
+                <th className="border border-gray-300 px-4 py-2 lg:block hidden">Join Code</th>
                 {/* <th className="border border-gray-300 px-4 py-2">Action</th> */}
                 <th className="border border-gray-300 px-4 py-2">Details</th>
               </tr>
@@ -105,20 +112,20 @@ const ProgrammeDetails = () => {
                   <td className="border border-gray-300 px-4 py-2">
                     {year.isActive ? "Active" : "Inactive"}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">
+                  <td className="border border-gray-300 px-4 py-2 lg:block hidden">
                     {year.preferredAlgorithm}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">
+                  <td className="border border-gray-300 px-4 py-2 lg:block hidden">
                     {year.participantCount}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">
+                  <td className="border border-gray-300 px-4 py-2 lg:block hidden">
                     {year.joinCode || "N/A"}
                   </td>
                   <td>
                     <Button
                       onClick={() => handleRedirectDetails(year.id)}
                       variant="outline"
-                      className=""
+                      className="w-full"
                     >
                       View
                     </Button>

@@ -146,7 +146,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-[50vw] my-10 bg-light rounded p-5"> <h2 className="text-2xl font-bold mb-4">{editMode ? "Edit Programme Year" : "Create Programme Year"}</h2>
+    <form onSubmit={handleSubmit} className="max-w-[90vw] lg:max-w-[50vw] my-[5em] lg:my-10 bg-light rounded p-5"> <h2 className="text-2xl font-bold mb-4">{editMode ? "Edit Programme Year" : "Create Programme Year"}</h2>
       {error && <p className="text-red-500">{error}</p>}
 
       <InputField
@@ -242,7 +242,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
         </div>
       </div>
 
-      <Button type="submit" className="mt-4">
+      <Button type="submit" className="mt-4 w-full" >
         {editMode ? "Update Programme Year" : "Create Programme Year"}
       </Button>
     </form>

@@ -104,7 +104,7 @@ const CourseGroupsPage = () => {
   }
 
   return (
-    <div className="max-w-[40em] min-w-[30em] mx-auto rounded p-6">
+    <div className="lg:max-w-[40em] max-w-[95vw] mx-auto rounded p-6">
       <Swiper
         onSwiper={setSwiperInstance}
         spaceBetween={50}

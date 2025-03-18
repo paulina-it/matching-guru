@@ -51,7 +51,6 @@ const OrganisationPage = () => {
         setOrganisation(data);
 
         if (data?.id) {
-          // Fetch course groups if organisation is found
           const courseGroupsData = await fetchCourseGroupsByOrganisationId(
             data.id
           );
@@ -113,7 +112,7 @@ const OrganisationPage = () => {
 
   return (
     <div className="w-full lg:max-w-[80%] max-w-[90%] m-auto h-full flex items-center justify-center">
-      <Toaster position="top-right" /> {/* Toast container */}
+      <Toaster position="top-right" /> 
       {organisation?.id != null ? (
         <div className="bg-light my-[10vh] p-5 lg:p-12 rounded-[10px]">
           <div className="flex lg:flex-row flex-col-reverse justify-between gap-[3em]">

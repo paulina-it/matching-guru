@@ -73,28 +73,8 @@ const MatchDetails = () => {
   console.table(match);
 
   return (
-    <div className="max-w-[65vw] bg-light p-6 rounded shadow relative">
+    <div className="lg:max-w-[65vw] max-w-[95vw] m-5 mt-[5em] bg-light p-6 rounded shadow relative">
       <h2 className="h2 font-bold mb-4">Match Details</h2>
-      <div className="absolute top-6 right-6 flex gap-3">
-        <Button
-          onClick={() => handleStatusUpdate("APPROVED")}
-          disabled={updating || match?.status === "APPROVED"}
-          className={`bg-secondary text-white hover:bg-secondary-hover
-          }`}
-        >
-          {updating ? "Processing..." : "Approve"}
-        </Button>
-
-        <Button
-          onClick={() => handleStatusUpdate("DECLINED")}
-          disabled={updating || match?.status === "DECLINED"}
-          className={`bg-accent text-white hover:bg-accent-hover ${
-            updating ? "opacity-50" : ""
-          }`}
-        >
-          {updating ? "Processing..." : "Decline"}
-        </Button>
-      </div>
 
       <div className="mt-4">
         <h3 className="h3">Match Information</h3>
@@ -112,40 +92,129 @@ const MatchDetails = () => {
         <p>
           <strong>Compatibility Score:</strong> {match?.compatibilityScore}
         </p>
+
+        <div className="lg:absolute top-6 right-6 flex justify-center gap-3 mt-4">
+          <Button
+            onClick={() => handleStatusUpdate("APPROVED")}
+            disabled={updating || match?.status === "APPROVED"}
+            className={`bg-secondary text-white hover:bg-secondary-hover
+          }`}
+          >
+            {updating ? "Processing..." : "Approve"}
+          </Button>
+
+          <Button
+            onClick={() => handleStatusUpdate("DECLINED")}
+            disabled={updating || match?.status === "DECLINED"}
+            className={`bg-accent text-white hover:bg-accent-hover ${
+              updating ? "opacity-50" : ""
+            }`}
+          >
+            {updating ? "Processing..." : "Decline"}
+          </Button>
+        </div>
       </div>
-      <div className="mt-6 grid grid-cols-2 gap-6">
+      <div className="mt-6 grid lg:grid-cols-2 grid-cols-1 gap-6">
         {/* Mentor Details */}
         <div className="border p-4 rounded">
-          <h3 className="h3 font-bold">Mentor Details (ID: {match.mentor.participantId})</h3>
-          <p><strong>Name:</strong> {match?.mentor?.firstName} {match?.mentor?.lastName}</p>
-          <p><strong>Email:</strong> {match?.mentor?.email}</p>
-          <p><strong>Academic Stage:</strong> {formatText(match?.mentor?.academicStage)}</p>
-          <p><strong>Course:</strong> {match?.mentor?.course}</p>
-          <p><strong>Age Group:</strong> {match?.mentor?.ageGroup?.replace("AGE_", "").replace(/_/g, "-")}</p>
-          <p><strong>Gender:</strong> {formatText(match?.mentor?.gender)}</p>
-          <p><strong>Living Arrangement:</strong> {formatText(match?.mentor?.livingArrangement)}</p>
-          <p><strong>Personality Type:</strong> {formatText(match?.mentor?.personalityType)}</p>
-          <p><strong>Home Country:</strong> {match?.mentor?.homeCountry}</p>
-          <p><strong>Availability:</strong> {match?.mentor?.availableDays?.map(formatText).join(", ") || "-"}</p>
-          <p><strong>Time Preference:</strong> {formatText(match?.mentor?.timePreference)}</p>
-          <p><strong>Skills:</strong> {match?.mentor?.skills?.map(formatText).join(", ") || "-"}</p>
+          <h3 className="h3 font-bold">
+            Mentor Details (ID: {match.mentor.participantId})
+          </h3>
+          <p>
+            <strong>Name:</strong> {match?.mentor?.firstName}{" "}
+            {match?.mentor?.lastName}
+          </p>
+          <p>
+            <strong>Email:</strong> {match?.mentor?.email}
+          </p>
+          <p>
+            <strong>Academic Stage:</strong>{" "}
+            {formatText(match?.mentor?.academicStage)}
+          </p>
+          <p>
+            <strong>Course:</strong> {match?.mentor?.course}
+          </p>
+          <p>
+            <strong>Age Group:</strong>{" "}
+            {match?.mentor?.ageGroup?.replace("AGE_", "").replace(/_/g, "-")}
+          </p>
+          <p>
+            <strong>Gender:</strong> {formatText(match?.mentor?.gender)}
+          </p>
+          <p>
+            <strong>Living Arrangement:</strong>{" "}
+            {formatText(match?.mentor?.livingArrangement)}
+          </p>
+          <p>
+            <strong>Personality Type:</strong>{" "}
+            {formatText(match?.mentor?.personalityType)}
+          </p>
+          <p>
+            <strong>Home Country:</strong> {match?.mentor?.homeCountry}
+          </p>
+          <p>
+            <strong>Availability:</strong>{" "}
+            {match?.mentor?.availableDays?.map(formatText).join(", ") || "-"}
+          </p>
+          <p>
+            <strong>Time Preference:</strong>{" "}
+            {formatText(match?.mentor?.timePreference)}
+          </p>
+          <p>
+            <strong>Skills:</strong>{" "}
+            {match?.mentor?.skills?.map(formatText).join(", ") || "-"}
+          </p>
         </div>
 
         {/* Mentee Details */}
         <div className="border p-4 rounded">
-          <h3 className="h3 font-bold">Mentee Details (ID: {match.mentee.participantId})</h3>
-          <p><strong>Name:</strong> {match?.mentee?.firstName} {match?.mentee?.lastName}</p>
-          <p><strong>Email:</strong> {match?.mentee?.email}</p>
-          <p><strong>Academic Stage:</strong> {formatText(match?.mentee?.academicStage)}</p>
-          <p><strong>Course:</strong> {match?.mentee?.course}</p>
-          <p><strong>Age Group:</strong> {match?.mentee?.ageGroup?.replace("AGE_", "").replace(/_/g, "-")}</p>
-          <p><strong>Gender:</strong> {formatText(match?.mentee?.gender)}</p>
-          <p><strong>Living Arrangement:</strong> {formatText(match?.mentee?.livingArrangement)}</p>
-          <p><strong>Personality Type:</strong> {formatText(match?.mentee?.personalityType)}</p>
-          <p><strong>Home Country:</strong> {match?.mentee?.homeCountry}</p>
-          <p><strong>Availability:</strong> {match?.mentee?.availableDays?.map(formatText).join(", ") || "-"}</p>
-          <p><strong>Time Preference:</strong> {formatText(match?.mentee?.timePreference)}</p>
-          <p><strong>Skills:</strong> {match?.mentee?.skills?.map(formatText).join(", ") || "-"}</p>
+          <h3 className="h3 font-bold">
+            Mentee Details (ID: {match.mentee.participantId})
+          </h3>
+          <p>
+            <strong>Name:</strong> {match?.mentee?.firstName}{" "}
+            {match?.mentee?.lastName}
+          </p>
+          <p>
+            <strong>Email:</strong> {match?.mentee?.email}
+          </p>
+          <p>
+            <strong>Academic Stage:</strong>{" "}
+            {formatText(match?.mentee?.academicStage)}
+          </p>
+          <p>
+            <strong>Course:</strong> {match?.mentee?.course}
+          </p>
+          <p>
+            <strong>Age Group:</strong>{" "}
+            {match?.mentee?.ageGroup?.replace("AGE_", "").replace(/_/g, "-")}
+          </p>
+          <p>
+            <strong>Gender:</strong> {formatText(match?.mentee?.gender)}
+          </p>
+          <p>
+            <strong>Living Arrangement:</strong>{" "}
+            {formatText(match?.mentee?.livingArrangement)}
+          </p>
+          <p>
+            <strong>Personality Type:</strong>{" "}
+            {formatText(match?.mentee?.personalityType)}
+          </p>
+          <p>
+            <strong>Home Country:</strong> {match?.mentee?.homeCountry}
+          </p>
+          <p>
+            <strong>Availability:</strong>{" "}
+            {match?.mentee?.availableDays?.map(formatText).join(", ") || "-"}
+          </p>
+          <p>
+            <strong>Time Preference:</strong>{" "}
+            {formatText(match?.mentee?.timePreference)}
+          </p>
+          <p>
+            <strong>Skills:</strong>{" "}
+            {match?.mentee?.skills?.map(formatText).join(", ") || "-"}
+          </p>
         </div>
       </div>
 

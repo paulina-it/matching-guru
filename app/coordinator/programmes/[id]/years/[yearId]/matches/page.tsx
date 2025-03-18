@@ -160,16 +160,19 @@ const ProgrammeYearMatches = () => {
   };
 
   return (
-    <div className="w-[70vw] bg-light p-6 my-[5em] rounded shadow relative">
-      <div className="flex gap-6">
+    <div className="lg:w-[70vw] w-[95vw] bg-light p-6 my-[5em] rounded shadow relative">
+      <div className="flex lg:flex-row flex-col gap-6">
         <h2 className="h2 font-bold mb-4">Programme Year Matches</h2>
+        <p className="lg:hidden text-center">
+          For full view, please open this page on a desktop.
+        </p>
         <Button variant="outline" onClick={handleDownloadCSV}>
           Download All in CSV
         </Button>
       </div>
 
       {/* Approve & Decline Buttons */}
-      <div className="flex gap-4 mb-4 absolute top-5 right-5">
+      <div className="lg:flex hidden gap-4 mb-4 absolute top-5 right-5">
         <Button
           onClick={() => handleUpdateMatchStatus("APPROVED")}
           disabled={selectedMatches.size === 0 || processing}
@@ -185,7 +188,7 @@ const ProgrammeYearMatches = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-[1fr_4fr] gap-6">
+      <div className="hidden lg:grid grid-cols-[1fr_4fr] gap-6">
         {/* 🎛 Search, Sort, and Filter Controls */}
         <div className="flex flex-col gap-4 mb-4">
           <input
@@ -232,7 +235,6 @@ const ProgrammeYearMatches = () => {
           {loadingMatches ? (
             <div className="flex flex-col items-center justify-center min-h-[100px]">
               <PulseLoader color="#3498db" />
-              {/* <p className="italic text-black/50 text-sm mt-4">Loading matches...</p> */}
             </div>
           ) : matches.length > 0 ? (
             <div>

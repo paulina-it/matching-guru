@@ -56,15 +56,23 @@ const Programmes = () => {
   }
 
   return (
-    <div className="bg-light p-4 rounded w-[50vw] relative">
+    <div className="bg-light p-4 rounded lg:w-[50vw] relative m-5">
       <h2 className="h2 mb-4">Programmes</h2>
       <Button
         onClick={handleRedirect}
         variant="outline"
         disabled={active}
-        className="text-accent hover:text-white absolute top-5 right-5"
+        className="text-accent hover:text-white hidden top-5 right-5 lg:absolute"
       >
         Create a Programme
+      </Button>
+      <Button
+        onClick={handleRedirect}
+        variant="outline"
+        disabled={active}
+        className="text-accent text-2xl hover:text-white absolute top-5 right-5 lg:hidden"
+      >
+        +
       </Button>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <div>

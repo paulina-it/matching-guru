@@ -55,7 +55,7 @@ const Programmes = () => {
   }
 
   return (
-    <div className="max-w-[50vw] min-w-[30vw] mx-auto mt-10">
+    <div className="w-[90vw] lg:w-auto lg:max-w-[50vw] lg:min-w-[30vw] mx-auto mt-10">
       <ProgrammeForm
         user={user}
         name={name}

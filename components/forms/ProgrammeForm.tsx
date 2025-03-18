@@ -72,7 +72,7 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
   };
 
   return (
-    <form onSubmit={onSubmit} className="bg-light rounded p-5">
+    <form onSubmit={onSubmit} className="w-full bg-light rounded p-5">
       <h2 className="text-2xl font-bold mb-4">Create Programme</h2>
       {error && <p className="text-red-500">{error}</p>}
 

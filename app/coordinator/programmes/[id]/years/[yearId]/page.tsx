@@ -8,8 +8,9 @@ import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import { Progress } from "@/components/ui/progress"; 
+import { Progress } from "@/components/ui/progress";
 import { formatText } from "@/app/utils/text";
+import { Pencil } from "lucide-react";
 
 const ProgrammeYearPage = () => {
   const params = useParams<{ id: string; yearId: string }>();
@@ -24,6 +25,7 @@ const ProgrammeYearPage = () => {
     null
   );
   const [loadingProgramme, setLoadingProgramme] = useState(true);
+  const [matchable, setMatchable] = useState(false);
 
   useEffect(() => {
     if (!programmeId || !programmeYearId) {
@@ -37,6 +39,8 @@ const ProgrammeYearPage = () => {
         const yearData = await fetchProgrammeYear(programmeYearId);
         setProgramme(programmeData);
         setProgrammeYear(yearData);
+        const participantCount = yearData.participantCount || 0;
+        setMatchable(participantCount < 2);
       } catch (err) {
         toast.error("Error fetching programme details");
       } finally {
@@ -64,19 +68,19 @@ const ProgrammeYearPage = () => {
       toast.error("Matching algorithm is not specified.");
       return;
     }
-  
+
     const mappedAlgorithm = algorithmMap[algorithm as AlgorithmKey];
-  
+
     if (!mappedAlgorithm) {
       toast.error("Invalid matching algorithm.");
       return;
     }
-  
+
     toast.loading("Matching in progress...");
-  
+
     const result = await matchParticipants(id, isInitial, mappedAlgorithm);
-  
-    toast.dismiss(); 
+
+    toast.dismiss();
     if (result.success) {
       toast.success(result.message);
       router.refresh();
@@ -85,7 +89,6 @@ const ProgrammeYearPage = () => {
       toast.error(result.message);
     }
   };
-  
 
   if (loadingProgramme) {
     return (
@@ -103,9 +106,26 @@ const ProgrammeYearPage = () => {
     : 0;
 
   return (
-    <div className="max-w-[65vw] bg-light p-6 my-[5em] rounded shadow relative">
+    <div className="max-w-[90vw] lg:max-w-[65vw] bg-light p-6 my-[5em] rounded shadow relative">
       <div className="absolute top-5 right-5 flex gap-5">
-        <Button variant="outline" onClick={() => {router.push(`${pathname}/edit`)}}>Edit Cycle</Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            router.push(`${pathname}/edit`);
+          }}
+          className="lg:block hidden"
+        >
+          Edit Cycle
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            router.push(`${pathname}/edit`);
+          }}
+          className="lg:hidden block"
+        >
+          <Pencil></Pencil>
+        </Button>
       </div>
       <h2 className="h2 font-bold mb-4">{programme?.name ?? "N/A"}</h2>
       <p className="text-gray-700">
@@ -147,8 +167,7 @@ const ProgrammeYearPage = () => {
                 criterion.weight > 0 ? (
                   <tr key={index} className="border border-gray-300">
                     <td className="px-4 py-2">
-                      {formatText(criterion.criterionType) ??
-                        "N/A"}
+                      {formatText(criterion.criterionType) ?? "N/A"}
                     </td>
                     <td className="px-4 py-2">{criterion.weight ?? 0}%</td>
                   </tr>
@@ -178,7 +197,7 @@ const ProgrammeYearPage = () => {
         </p>
 
         {/* Buttons for Matching Actions */}
-        <div className="mt-4 flex gap-4">
+        <div className="mt-4 flex gap-4 justify-center lg:justify-start">
           {programmeYear?.initialMatchingIsDone ? (
             <>
               <Button
@@ -190,7 +209,7 @@ const ProgrammeYearPage = () => {
                   )
                 }
               >
-                Perform Secondary Matching
+                Match Others
               </Button>
               <Button
                 variant="outline"
@@ -209,6 +228,7 @@ const ProgrammeYearPage = () => {
                 )
               }
               variant="outline"
+              disabled={matchable}
             >
               Match
             </Button>
