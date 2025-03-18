@@ -60,7 +60,7 @@ const MobileNav = ({ type }: Props) => {
         <CiMenuFries className="text-white text-[32px]" />
       </SheetTrigger>
 
-      <SheetContent className="flex flex-col items-center text-center bg-light">
+      <SheetContent className="flex flex-col items-center text-center bg-light" side="left">
         {/* Logo & Theme Toggle */}
         <div className="mt-5 mb-10 flex flex-col items-center">
           <Image
