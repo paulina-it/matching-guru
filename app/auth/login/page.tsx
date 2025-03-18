@@ -48,7 +48,7 @@ const Login: React.FC = () => {
       <Header />
       <div className="flex justify-center items-center min-h-screen bg-primary">
         <Toaster position="top-right" />
-        <Card className="w-full max-w-md p-4 shadow-md">
+        <Card className="lg:w-full w-[95vw] max-w-md p-4 shadow-md">
           <CardHeader>
             <CardTitle className="text-center font-accent text-2xl font-bold">
               Login

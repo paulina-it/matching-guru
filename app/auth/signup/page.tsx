@@ -79,7 +79,7 @@ const Signup: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     // 🔍 **Form Validation**
     const errors = [];
     if (!formData.firstName.trim()) errors.push("First Name is required.");
@@ -88,28 +88,25 @@ const Signup: React.FC = () => {
     if (!formData.password.trim()) errors.push("Password is required.");
     if (formData.password !== confirmPassword)
       errors.push("Passwords do not match.");
-  
+
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-  
+
     try {
-      // 🔹 **Step 1: Register User**
       console.log("Registering user...");
       const userResponse = await register(formData);
       if (!userResponse) throw new Error("User registration failed");
-  
+
       toast.success("Signup successful! Now uploading profile image...");
-  
-      // 🔹 **Step 2: Upload Profile Image**
+
       let imageUrl = "";
       if (profileImage) {
         console.log("Uploading profile image...");
         const imageData = new FormData();
         imageData.append("file", profileImage);
-        imageData.append("email", formData.email); // Attach the registered email
-      
+        imageData.append("email", formData.email);
         try {
           imageUrl = await uploadImage(imageData);
         } catch (error) {
@@ -117,15 +114,17 @@ const Signup: React.FC = () => {
           toast.error("Image upload failed, but signup was successful.");
         }
       }
-  
-      // ✅ Navigate after all requests complete
-      router.push(formData.role === UserRole.USER ? "/participant" : "/coordinator");
+
+      router.push(
+        formData.role === UserRole.USER ? "/participant" : "/coordinator"
+      );
     } catch (error) {
-      toast.error((error as Error).message || "Signup failed. Please try again.");
+      toast.error(
+        (error as Error).message || "Signup failed. Please try again."
+      );
       console.error("Signup Error:", error);
     }
   };
-  
 
   if (loading) {
     return (
@@ -139,12 +138,11 @@ const Signup: React.FC = () => {
     <div>
       <Header />
       <div className="min-h-screen bg-primary flex flex-col mt-20">
-        <Header />
         <div className="flex justify-center items-center flex-grow py-5">
           <Toaster position="top-right" />
-          <Card className="w-full max-w-[50vw] p-4 shadow-md">
+          <Card className="lg:w-full w-[95vw] lg:max-w-[50vw] p-4 shadow-md">
             <CardHeader />
-            <CardContent>
+            <CardContent className="">
               <Swiper onSwiper={setSwiperInstance} allowTouchMove={false}>
                 <SwiperSlide className="m-auto h-full">
                   <div className="text-center mx-auto">
@@ -232,7 +230,7 @@ const ParticipantForm: React.FC<FormProps> = ({
   isSubmitting,
 }) => (
   <form
-    className="grid md:grid-cols-2 gap-4 gap-y-8"
+    className="grid grid-cols-1 md:grid-cols-2 gap-4 gap-y-8"
     onSubmit={onSubmit}
     noValidate
   >
@@ -241,14 +239,12 @@ const ParticipantForm: React.FC<FormProps> = ({
     </h2>
 
     <div className="flex flex-col items-center gap-3 mt-4 row-span-2">
-      {/* Profile Image Preview */}
       <img
         src={previewUrl}
         alt="Profile Preview"
         className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 shadow-md"
       />
 
-      {/* Styled File Input */}
       <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded shadow-md hover:bg-primary/80 transition">
         Choose Profile Picture
         <input
@@ -258,11 +254,6 @@ const ParticipantForm: React.FC<FormProps> = ({
           className="hidden"
         />
       </label>
-
-      {/* Show Selected File Name */}
-      {/* {profileImage && (
-          <p className="text-gray-600 text-sm">{profileImage.name}</p>
-        )} */}
     </div>
 
     <InputField
@@ -369,7 +360,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
   };
   return (
     <form
-      className="grid md:grid-cols-2 gap-4 gap-y-8"
+      className="grid grid-cols-1  md:grid-cols-2 gap-4 gap-y-8"
       onSubmit={handleSubmit}
       noValidate
     >
@@ -377,14 +368,12 @@ const CoordinatorForm: React.FC<FormProps> = ({
         Coordinator Signup
       </h2>
       <div className="flex flex-col items-center gap-3 mt-4 row-span-2">
-        {/* Profile Image Preview */}
         <img
           src={previewUrl}
           alt="Profile Preview"
           className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 shadow-md"
         />
 
-        {/* Styled File Input */}
         <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded-lg shadow-md hover:bg-primary/80 transition">
           Choose Profile Picture
           <input
@@ -394,11 +383,6 @@ const CoordinatorForm: React.FC<FormProps> = ({
             className="hidden"
           />
         </label>
-
-        {/* Show Selected File Name */}
-        {/* {profileImage && (
-          <p className="text-gray-600 text-sm">{profileImage.name}</p>
-        )} */}
       </div>
 
       <InputField
