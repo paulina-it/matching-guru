@@ -15,6 +15,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { Toaster, toast } from "react-hot-toast";
 import { PulseLoader } from "react-spinners";
 import { uploadImage } from "@/app/api/users";
+import { loginUser } from "@/app/api/auth";
 
 const Signup: React.FC = () => {
   const [role, setRole] = useState<UserRole | "">("");
@@ -45,6 +46,13 @@ const Signup: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
+
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error("File size exceeds the 10MB limit.");
+        return;
+      }
+
       setProfileImage(file);
       const imageUrl = URL.createObjectURL(file);
       setPreviewUrl(imageUrl);
@@ -101,6 +109,10 @@ const Signup: React.FC = () => {
 
       toast.success("Signup successful! Now uploading profile image...");
 
+      const loginResponse = await loginUser({
+        email: formData.email,
+        password: formData.password,
+      });
       let imageUrl = "";
       if (profileImage) {
         console.log("Uploading profile image...");

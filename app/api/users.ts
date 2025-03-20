@@ -40,13 +40,9 @@ export async function updateUser(formData: UserUpdateDto): Promise<UserResponseD
 
 
 export async function uploadImage(imageData: FormData): Promise<string> {
-    const token = localStorage.getItem("token");
   try {
-    const response = await fetch(`${API_URL}/users/upload-profile-image`, {
+    const response = await fetch(`${API_URL}/auth/upload-profile-image`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`, 
-      },
       body: imageData, 
     });
 
