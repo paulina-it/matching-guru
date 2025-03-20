@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <div className="container flex mx-auto gap-14">
       <Header />
-      <div>
+      <div className="flex flex-col lg:flex-row">
         <section className="mt-[7em] relative">
           <h2 className="font-semibold text-xl uppercase lg:text-start text-center">Welcome to</h2>
           <h1 className="h1">Matching Guru</h1>
@@ -60,7 +60,7 @@ export default function Home() {
             rerum aspernatur tempora laborum recusandae iusto tenetur alias,
             debitis ea commodi accusamus aliquid suscipit a rem!
           </p>
-          <div className="flex justify-center">
+          <div className="flex justify-center lg:justify-start">
             {!isAuthenticated ? (
               <>
                 <Button
