@@ -1,6 +1,7 @@
 export interface OrganisationCreateDto {
     name: string;
     description: string;
+    logoUrl: string;
 }
 
 export interface OrganisationResponseDto {

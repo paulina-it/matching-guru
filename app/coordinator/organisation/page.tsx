@@ -3,6 +3,7 @@
 import InputField from "@/components/InputField";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import ProgrammeCard from "@/components/ProgrammeCard";
 import { useState, useEffect } from "react";
 import {
   fetchAdminOrganisation,
@@ -42,10 +43,20 @@ const OrganisationPage = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const [courseGroups, setCourseGroups] = useState<any[]>([]);
+  const [organisationImage, setOrganisationImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>(
+    "/assets/ui/logo(yy).png"
+  );
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+
+      if (!user || !user.organisationId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const data = await fetchAdminOrganisation();
         setOrganisation(data);
@@ -81,6 +92,22 @@ const OrganisationPage = () => {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error("File size exceeds the 10MB limit.");
+        return;
+      }
+
+      setOrganisationImage(file);
+      const imageUrl = URL.createObjectURL(file);
+      setPreviewUrl(imageUrl);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -94,6 +121,7 @@ const OrganisationPage = () => {
       const newOrganisation = await createOrganisationAndAssignToUser({
         name,
         description: desc,
+        logoUrl: previewUrl,
       });
       setOrganisation(newOrganisation);
     } catch (err) {
@@ -112,7 +140,7 @@ const OrganisationPage = () => {
 
   return (
     <div className="w-full lg:max-w-[80%] max-w-[90%] m-auto h-full flex items-center justify-center">
-      <Toaster position="top-right" /> 
+      <Toaster position="top-right" />
       {organisation?.id != null ? (
         <div className="bg-light my-[10vh] p-5 lg:p-12 rounded-[10px]">
           <div className="flex lg:flex-row flex-col-reverse justify-between gap-[3em]">
@@ -186,6 +214,8 @@ const OrganisationPage = () => {
           desc={desc}
           error={error}
           onSubmit={handleSubmit}
+          handleImageChange={handleImageChange}
+          previewUrl={previewUrl}
         />
       )}
     </div>
@@ -196,6 +226,8 @@ interface FormProps {
   name: string;
   desc: string;
   error: string | null;
+  previewUrl?: string;
+  handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   setName: (name: string) => void;
   setDesc: (desc: string) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -205,6 +237,8 @@ const OrganisationForm: React.FC<FormProps> = ({
   name,
   desc,
   error,
+  previewUrl = "/assets/placeholders/avatar.png",
+  handleImageChange,
   setName,
   setDesc,
   onSubmit,
@@ -217,6 +251,23 @@ const OrganisationForm: React.FC<FormProps> = ({
       Create an Organisation
     </h2>
 
+    <div className="flex flex-col items-center gap-3 mt-4 row-span-2">
+      <img
+        src={previewUrl}
+        alt="Profile Preview"
+        className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 shadow-md"
+      />
+
+      <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded shadow-md hover:bg-primary/80 transition">
+        Add Organisation Logo
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+        />
+      </label>
+    </div>
     <InputField
       id="name"
       label="Organisation Name*"
