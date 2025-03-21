@@ -15,13 +15,8 @@ import { toast, Toaster } from "react-hot-toast";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { fetchCourseGroupsByOrganisationId } from "@/app/api/courses";
+import { OrganisationResponseDto } from "@/app/types/organisation";
 
-type OrganisationData = {
-  id: number;
-  name: string;
-  description: string;
-  joinCode: string;
-};
 interface Course {
   id: number;
   name: string;
@@ -34,9 +29,8 @@ interface CourseGroup {
 }
 
 const OrganisationPage = () => {
-  const [organisation, setOrganisation] = useState<OrganisationData | null>(
-    null
-  );
+  const [organisation, setOrganisation] =
+    useState<OrganisationResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
@@ -121,8 +115,32 @@ const OrganisationPage = () => {
       const newOrganisation = await createOrganisationAndAssignToUser({
         name,
         description: desc,
-        logoUrl: previewUrl,
+        logoUrl: "",
       });
+
+      if (organisationImage && newOrganisation?.id) {
+        const formData = new FormData();
+        formData.append("file", organisationImage);
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/organisations/${newOrganisation.id}/upload-logo`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            },
+            body: formData,
+          }
+        );
+
+        if (!res.ok) {
+          toast.error("Logo upload failed");
+        } else {
+          const msg = await res.text();
+          console.log("✅ Logo upload successful:", msg);
+        }
+      }
+
       setOrganisation(newOrganisation);
     } catch (err) {
       toast.error("Failed to create organisation.");
@@ -138,6 +156,7 @@ const OrganisationPage = () => {
     return <PulseLoader color="#ba5648" size={15} />;
   }
 
+  console.log(organisation);
   return (
     <div className="w-full lg:max-w-[80%] max-w-[90%] m-auto h-full flex items-center justify-center">
       <Toaster position="top-right" />
@@ -156,7 +175,7 @@ const OrganisationPage = () => {
               </h2>
             </div>
             <Image
-              src="/assets/ui/logo(yy).png"
+              src={organisation.logoUrl || "/assets/ui/logo(yy).png"}
               width={200}
               height={200}
               alt="Logo"
@@ -164,7 +183,7 @@ const OrganisationPage = () => {
             />
           </div>
           <div className="mt-10 relative">
-            <h2 className="h2 text-4xl lg:text-center text-start">
+            <h2 className="h2 text-4xl flex text-start">
               Courses
               <span className="lg:block hidden"> at {organisation?.name}</span>
             </h2>

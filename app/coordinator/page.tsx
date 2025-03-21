@@ -26,7 +26,7 @@ const CoordinatorDashboard = () => {
     },
     // more programme data...
   ];
-  
+  console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
   return (
     <div className="min-w-[60vw] bg-light py-10 px-6 lg:px-16">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

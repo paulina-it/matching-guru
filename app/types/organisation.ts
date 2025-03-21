@@ -9,6 +9,7 @@ export interface OrganisationResponseDto {
     name: string;
     description: string;
     joinCode: string;
+    logoUrl: string;
 }
 
 export interface InviteTokenResponse {
