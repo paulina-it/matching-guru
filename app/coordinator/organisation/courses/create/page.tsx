@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { createCourseGroup, createCourse } from "@/app/api/courses";
 import { PulseLoader } from "react-spinners";
+import { useRef } from "react";
 
 const CourseGroupsPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -23,6 +24,7 @@ const CourseGroupsPage = () => {
   });
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const goToNextSlide = () => {
     if (swiperInstance) swiperInstance.slideNext();
@@ -94,6 +96,16 @@ const CourseGroupsPage = () => {
       setLoading(false);
     }
   };
+  const handleFileButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // uploadFile(file);
+    }
+  };
 
   if (loading) {
     return (
@@ -125,9 +137,16 @@ const CourseGroupsPage = () => {
               <Button type="button" onClick={goToNextSlide}>
                 Manual Input
               </Button>
-              <Button disabled type="button" onClick={goToNextSlide}>
-                File Upload
+              <Button type="button" onClick={handleFileButtonClick}>
+                Upload File
               </Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".csv, .xlsx"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
             </div>
           </div>
         </SwiperSlide>
