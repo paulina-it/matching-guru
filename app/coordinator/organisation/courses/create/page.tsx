@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { createCourseGroup, createCourse } from "@/app/api/courses";
 import { PulseLoader } from "react-spinners";
 import { useRef } from "react";
+import { uploadCourseFile } from "@/app/api/upload";
 
 const CourseGroupsPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -25,6 +26,7 @@ const CourseGroupsPage = () => {
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [entryMode, setEntryMode] = useState<"manual" | "upload" | null>(null);
 
   const goToNextSlide = () => {
     if (swiperInstance) swiperInstance.slideNext();
@@ -100,10 +102,34 @@ const CourseGroupsPage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // uploadFile(file);
+    if (!file) return;
+
+    if (!user?.organisationId) {
+      toast.error("Organisation ID is missing.");
+      return;
+    }
+
+    try {
+      toast.loading("Uploading file...");
+      const result = await uploadCourseFile(
+        user.organisationId,
+        file,
+        localStorage.getItem("token") || ""
+      );
+
+      toast.dismiss();
+      toast.success("File uploaded successfully!");
+
+      console.log("📦 Parsed result:", result);
+      // setCourseGroups(result.courseGroups); // if you return them
+    } catch (err) {
+      toast.dismiss();
+      console.error(err);
+      toast.error((err as Error).message);
     }
   };
 
@@ -134,10 +160,22 @@ const CourseGroupsPage = () => {
               manually or upload two files in CSV or XLSX format.
             </p>
             <div className="flex gap-4">
-              <Button type="button" onClick={goToNextSlide}>
+              <Button
+                type="button"
+                onClick={() => {
+                  setEntryMode("manual");
+                  goToNextSlide();
+                }}
+              >
                 Manual Input
               </Button>
-              <Button type="button" onClick={handleFileButtonClick}>
+              <Button
+                type="button"
+                onClick={() => {
+                  setEntryMode("upload");
+                  goToNextSlide();
+                }}
+              >
                 Upload File
               </Button>
               <input
@@ -151,93 +189,147 @@ const CourseGroupsPage = () => {
           </div>
         </SwiperSlide>
 
-        {/* Slide 2: Manual Input */}
-        <SwiperSlide className="bg-light rounded-[5px] px-6 py-7">
-          <form onSubmit={handleAddGroup}>
-            <h2 className="text-xl font-bold text-center mb-4">
-              Add Courses at {user?.organisationName}
-            </h2>
+        {entryMode == "manual" ? (
+          <SwiperSlide className="bg-light rounded-[5px] px-6 py-7">
+            <form onSubmit={handleAddGroup}>
+              <h2 className="text-xl font-bold text-center mb-4">
+                Add Courses at {user?.organisationName}
+              </h2>
 
-            <InputField
-              id="name"
-              label="Course Group Name*"
-              value={currentGroup.name}
-              onChange={(e) =>
-                setCurrentGroup((prev) => ({ ...prev, name: e.target.value }))
-              }
-              required
-              placeholder="Enter course group name"
-            />
+              <InputField
+                id="name"
+                label="Course Group Name*"
+                value={currentGroup.name}
+                onChange={(e) =>
+                  setCurrentGroup((prev) => ({ ...prev, name: e.target.value }))
+                }
+                required
+                placeholder="Enter course group name"
+              />
 
-            <div className="mt-2">
-              <label className="block text-gray-700 font-medium">
-                Course Type*
+              <div className="mt-2">
+                <label className="block text-gray-700 font-medium">
+                  Course Type*
+                </label>
+                <select
+                  value={currentGroup.type}
+                  onChange={(e) =>
+                    setCurrentGroup((prev) => ({
+                      ...prev,
+                      type: e.target.value,
+                    }))
+                  }
+                  className="border rounded w-full px-4 py-2 mt-1"
+                  required
+                >
+                  <option value="UNDERGRAD">Undergraduate</option>
+                  <option value="POSTGRAD">Postgraduate</option>
+                  <option value="DOCTORAL">Doctoral</option>
+                  <option value="APPRENTICESHIP">Apprenticeship</option>
+                </select>
+              </div>
+
+              <label htmlFor="courses" className="text-gray-700 block mt-4">
+                Course Names (one per line)*
               </label>
-              <select
-                value={currentGroup.type}
+              <textarea
+                id="courses"
+                value={currentGroup.courses}
                 onChange={(e) =>
                   setCurrentGroup((prev) => ({
                     ...prev,
-                    type: e.target.value,
+                    courses: e.target.value,
                   }))
                 }
-                className="border rounded w-full px-4 py-2 mt-1"
+                placeholder="Enter each course on a new line"
+                className="border rounded w-full px-4 py-2 mt-2"
+                rows={5}
                 required
-              >
-                <option value="UNDERGRAD">Undergraduate</option>
-                <option value="POSTGRAD">Postgraduate</option>
-                <option value="DOCTORAL">Doctoral</option>
-                <option value="APPRENTICESHIP">Apprenticeship</option>
-              </select>
-            </div>
+              />
 
-            <label htmlFor="courses" className="text-gray-700 block mt-4">
-              Course Names (one per line)*
-            </label>
-            <textarea
-              id="courses"
-              value={currentGroup.courses}
-              onChange={(e) =>
-                setCurrentGroup((prev) => ({
-                  ...prev,
-                  courses: e.target.value,
-                }))
-              }
-              placeholder="Enter each course on a new line"
-              className="border rounded w-full px-4 py-2 mt-2"
-              rows={5}
-              required
-            />
+              <div className="flex justify-between items-center mt-6">
+                <Button type="button" onClick={goToPrevSlide}>
+                  ⬅️ Previous Step
+                </Button>
+                <Button type="submit">Add Group</Button>
+              </div>
+            </form>
 
-            <div className="flex justify-between items-center mt-6">
-              <Button type="button" onClick={goToPrevSlide}>
-                ⬅️ Previous Step
-              </Button>
-              <Button type="submit">Add Group</Button>
-            </div>
-          </form>
+            {courseGroups.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-bold mb-4">Added Course Groups</h3>
+                <ul className="list-disc list-inside">
+                  {courseGroups.map((group, index) => (
+                    <li key={index}>
+                      <strong>{group.name}</strong> ({group.type}):{" "}
+                      {group.courses.length} courses
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="mt-4"
+                  onClick={handleSubmitAllGroups}
+                  type="button"
+                >
+                  Submit All Groups
+                </Button>
+              </div>
+            )}
+          </SwiperSlide>
+        ) : (
+          <SwiperSlide className="bg-light rounded-[5px] px-6 py-7">
+            <div className="flex flex-col items-center text-left justify-center m-auto">
+              <h2 className="text-2xl font-bold text-center mb-4">
+                📁 File Upload Guide
+              </h2>
 
-          {courseGroups.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-bold mb-4">Added Course Groups</h3>
-              <ul className="list-disc list-inside">
-                {courseGroups.map((group, index) => (
-                  <li key={index}>
-                    <strong>{group.name}</strong> ({group.type}):{" "}
-                    {group.courses.length} courses
-                  </li>
-                ))}
+              <p className="mb-4 text-gray-700">
+                Please prepare <strong>one file</strong> in either{" "}
+                <code>.csv</code> or <code>.xlsx</code> format.
+              </p>
+
+              <ul className="list-disc pl-6 mb-6 text-gray-600">
+                <li>
+                 Columns:{" "}
+                  <code>CourseGroup</code>, <code>Type</code>, and{" "}
+                  <code>CourseName</code>.
+                </li>
+                <li>
+                  <strong>CourseGroup</strong> is used to group similar degree
+                  programmes (e.g. "Computing", "Engineering").
+                </li>
+                <li>
+                  <strong>CourseName</strong> is the full name of a degree
+                  programme (e.g. "BSc Software Engineering").
+                </li>
+                <li>
+                  <strong>Type</strong> should be one of: <code>UNDERGRAD</code>
+                  , <code>POSTGRAD</code>, <code>DOCTORAL</code>, or{" "}
+                  <code>APPRENTICESHIP</code>.
+                </li>
               </ul>
-              <Button
-                className="mt-4"
-                onClick={handleSubmitAllGroups}
-                type="button"
-              >
-                Submit All Groups
-              </Button>
+
+              <p className="mb-6 text-gray-700">
+                Courses will be automatically matched to their respective groups
+                by <strong>CourseGroup</strong>. Please make sure the values are
+                spelled consistently across rows.
+              </p>
+
+              <div className="flex gap-4">
+                <Button onClick={goToPrevSlide}>⬅️ Back</Button>
+                <Button onClick={handleFileButtonClick}>Upload Files</Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".csv, .xlsx"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </div>
             </div>
-          )}
-        </SwiperSlide>
+          </SwiperSlide>
+        )}
       </Swiper>
     </div>
   );
