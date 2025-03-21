@@ -62,7 +62,7 @@ const Programmes = () => {
         onClick={handleRedirect}
         variant="outline"
         disabled={active}
-        className="text-accent hover:text-white hidden top-5 right-5 lg:absolute"
+        className="text-accent hover:text-white top-5 right-5 absolute"
       >
         Create a Programme
       </Button>

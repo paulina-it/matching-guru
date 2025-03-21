@@ -56,18 +56,19 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
   const handleCourseGroupSelection = (groupId: number) => {
     setSelectedCourseGroups((prev: number[]) =>
       prev.includes(groupId)
-        ? prev.filter((id: number) => id !== groupId) 
-        : [...prev, groupId] 
+        ? prev.filter((id: number) => id !== groupId)
+        : [...prev, groupId]
     );
   };
-  
-  
+
   const handleSelectAll = () => {
+    event?.preventDefault();
     const allGroupIds = courseGroups.map((group) => group.id);
     setSelectedCourseGroups(allGroupIds);
   };
 
   const handleDeselectAll = () => {
+    event?.preventDefault();
     setSelectedCourseGroups([]);
   };
 
@@ -126,7 +127,12 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
                 type="checkbox"
                 checked={selectedCourseGroups.includes(group.id)}
                 onChange={() => handleCourseGroupSelection(group.id)}
-                className="mr-2"
+                className="mx-3 w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white 
+  checked:bg-accent checked:border-none checked:ring-2 checked:ring-accent-hover
+  focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all cursor-pointer
+  relative checked:before:content-['✔'] checked:before:absolute 
+  checked:before:top-1/2 checked:before:left-1/2 checked:before:-translate-x-1/2 
+  checked:before:-translate-y-1/2 checked:before:text-white checked:before:text-md"
               />
               <label>{group.name}</label>
             </div>
