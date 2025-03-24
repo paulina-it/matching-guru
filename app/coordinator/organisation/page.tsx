@@ -16,6 +16,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { fetchCourseGroupsByOrganisationId } from "@/app/api/courses";
 import { OrganisationResponseDto } from "@/app/types/organisation";
+import { uploadOrganisationLogo } from "@/app/api/upload";
 
 interface Course {
   id: number;
@@ -117,27 +118,18 @@ const OrganisationPage = () => {
         description: desc,
         logoUrl: "",
       });
-
+      
       if (organisationImage && newOrganisation?.id) {
-        const formData = new FormData();
-        formData.append("file", organisationImage);
-
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/organisations/${newOrganisation.id}/upload-logo`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-            },
-            body: formData,
-          }
-        );
-
-        if (!res.ok) {
+        try {
+          const logoUrl = await uploadOrganisationLogo(
+            newOrganisation.id,
+            organisationImage
+          );
+          console.log("✅ Logo uploaded successfully:", logoUrl);
+          newOrganisation.logoUrl = logoUrl;
+        } catch (uploadError) {
+          console.error("❌ Logo upload failed:", uploadError);
           toast.error("Logo upload failed");
-        } else {
-          const msg = await res.text();
-          console.log("✅ Logo upload successful:", msg);
         }
       }
 

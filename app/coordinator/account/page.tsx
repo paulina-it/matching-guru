@@ -6,7 +6,8 @@ import { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import InputField from "@/components/InputField";
 import { Button } from "@/components/ui/button";
 import { Toaster, toast } from "react-hot-toast";
-import { updateUser, uploadImage } from "@/app/api/users";
+import { updateUser } from "@/app/api/users";
+import { uploadProfileImage } from "@/app/api/upload";
 import {
   Dialog,
   DialogContent,
@@ -118,19 +119,15 @@ const Account = () => {
       let updatedProfileImageUrl = formData.profileImageUrl;
   
       if (avatar) {
-        console.log("Uploading profile image...");
-        const imageData = new FormData();
-        imageData.append("file", avatar);
-        imageData.append("email", formData.email);
-  
         try {
-          updatedProfileImageUrl = await uploadImage(imageData);
+          updatedProfileImageUrl = await uploadProfileImage(avatar); 
           toast.success("Profile image uploaded successfully!");
         } catch (error) {
           console.error("Image Upload Error:", error);
           toast.error("Image upload failed, but other details were updated.");
         }
       }
+      
   
       await updateUser({
         ...formData,

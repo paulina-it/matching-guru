@@ -14,8 +14,8 @@ import Header from "@/components/Header";
 import { useAuth } from "@/app/context/AuthContext";
 import { Toaster, toast } from "react-hot-toast";
 import { PulseLoader } from "react-spinners";
-import { uploadImage } from "@/app/api/users";
 import { loginUser } from "@/app/api/auth";
+import { uploadProfileImage, saveUserProfileImage } from "@/app/api/upload";
 
 const Signup: React.FC = () => {
   const [role, setRole] = useState<UserRole | "">("");
@@ -103,29 +103,37 @@ const Signup: React.FC = () => {
     }
 
     try {
+      setIsSubmitting(true);
       console.log("Registering user...");
+
       const userResponse = await register(formData);
       if (!userResponse) throw new Error("User registration failed");
 
-      toast.success("Signup successful! Now uploading profile image...");
-
-      const loginResponse = await loginUser({
-        email: formData.email,
-        password: formData.password,
-      });
       let imageUrl = "";
+
       if (profileImage) {
         console.log("Uploading profile image...");
-        const imageData = new FormData();
-        imageData.append("file", profileImage);
-        imageData.append("email", formData.email);
+
         try {
-          imageUrl = await uploadImage(imageData);
+          imageUrl = await uploadProfileImage(profileImage);
+          console.log("Image uploaded successfully:", imageUrl);
         } catch (error) {
           console.error("Image Upload Error:", error);
           toast.error("Image upload failed, but signup was successful.");
         }
       }
+
+      const loginResponse = await loginUser({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (imageUrl) {
+        await saveUserProfileImage(loginResponse.user.id, imageUrl);
+
+      }
+
+      toast.success("Signup completed successfully! 🎉");
 
       router.push(
         formData.role === UserRole.USER ? "/participant" : "/coordinator"
@@ -135,6 +143,8 @@ const Signup: React.FC = () => {
         (error as Error).message || "Signup failed. Please try again."
       );
       console.error("Signup Error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

@@ -13,7 +13,6 @@ async function handleApiError(response: Response): Promise<never> {
   throw new Error(errorMessage);
 }
 
-
 export async function updateUser(formData: UserUpdateDto): Promise<UserResponseDto> {
     const token = localStorage.getItem("token");
 
@@ -36,25 +35,4 @@ export async function updateUser(formData: UserUpdateDto): Promise<UserResponseD
     }
 
     return response.json();
-}
-
-
-export async function uploadImage(imageData: FormData): Promise<string> {
-  try {
-    const response = await fetch(`${API_URL}/auth/upload-profile-image`, {
-      method: "POST",
-      body: imageData, 
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("Upload failed:", errorData);
-      throw new Error(`Failed to upload profile image: ${errorData}`);
-    }
-
-    return await response.text(); 
-  } catch (error) {
-    console.error("Upload Image Error:", error);
-    throw error;
-  }
 }
