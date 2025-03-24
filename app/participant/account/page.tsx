@@ -7,8 +7,9 @@ import InputField from "@/components/InputField";
 import { Button } from "@/components/ui/button";
 import { PulseLoader } from "react-spinners";
 import { Toaster, toast } from "react-hot-toast";
-import { updateUser, uploadImage } from "@/app/api/users";
+import { updateUser } from "@/app/api/users";
 import { formatText } from "@/app/utils/text";
+import { uploadProfileImage } from "@/app/api/upload";
 import {
   Dialog,
   DialogContent,
@@ -140,12 +141,9 @@ const Account = () => {
 
       if (avatar) {
         console.log("Uploading profile image...");
-        const imageData = new FormData();
-        imageData.append("file", avatar);
-        imageData.append("email", formData.email);
 
         try {
-          updatedProfileImageUrl = await uploadImage(imageData);
+          updatedProfileImageUrl = await uploadProfileImage(avatar);
           toast.success("Profile image uploaded successfully!");
         } catch (error) {
           console.error("Image Upload Error:", error);

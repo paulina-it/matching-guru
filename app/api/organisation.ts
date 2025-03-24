@@ -60,7 +60,6 @@ export async function fetchOrganisation(id: number): Promise<OrganisationRespons
   return response.json();
 }
 
-
 export async function createOrganisationAndAssignToUser(
   organisationData: OrganisationCreateDto
 ): Promise<OrganisationResponseDto> {
