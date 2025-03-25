@@ -181,6 +181,7 @@ export async function updateProgrammeYear(
   if (!token) throw new Error("Authentication token is missing.");
 
   try {
+    console.table(updatedData);
     const response = await fetch(`${API_URL}/programme-years/${programmeYearId}`, {
       method: "PUT", 
       headers: {

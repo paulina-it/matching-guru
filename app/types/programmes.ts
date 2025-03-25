@@ -42,14 +42,16 @@ export interface ProgrammeYearDto {
   unmatchedCount?: number;
   matchingCriteria?: MatchingCriteriaDto[];
   initialMatchingIsDone?: boolean;
-  matchApprovalSettings?: MatchApprovalSettingsDto;
+  matchApprovalType?: "MANUAL" | "THRESHOLD" | "AUTO";
+  approvalThreshold?: number | null;
 }
 export interface ProgrammeYearUpdateDto {
   academicYear?: string;
   preferredAlgorithm?: "GALE_SHAPLEY" | "COLLABORATIVE_FILTERING" | "BRACE";
   isActive?: boolean;
   matchingCriteria?: MatchingCriteriaDto[];
-  matchApprovalSettings?: MatchApprovalSettingsDto;
+  matchApprovalType?: "MANUAL" | "THRESHOLD" | "AUTO";
+  approvalThreshold?: number | null;
 }
 
 export interface ProgrammeYearCreateDto {
@@ -58,10 +60,7 @@ export interface ProgrammeYearCreateDto {
   customSettings: string;
   preferredAlgorithm: AlgorithmType;
   matchingCriteria: MatchingCriteriaDto[];
-  matchApprovalSettings: MatchApprovalSettingsDto;
-}
-export interface MatchApprovalSettingsDto {
-  approvalType: "MANUAL" | "THRESHOLD" | "AUTO";
+  matchApprovalType: "MANUAL" | "THRESHOLD" | "AUTO";
   approvalThreshold?: number | null;
 }
 
