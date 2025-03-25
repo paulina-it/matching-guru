@@ -56,5 +56,4 @@ export interface ParticipantCreateDto {
     placementDescription: string | null;
     motivation: string | null;
     isReturningParticipant: boolean;
-    
   }

@@ -52,6 +52,7 @@ export async function getParticipant(
 
   return response.json();
 }
+
 /**
  * Get participant info, returning either a match or just the participant.
  *
@@ -157,4 +158,53 @@ export async function deleteParticipant(id: number): Promise<void> {
     const errorMessage = await response.text();
     throw new Error(errorMessage || "Failed to delete participant");
   }
+}
+
+/**
+ * Fetches participants for a specific programme year with support for pagination, search, sorting, and filtering.
+ *
+ * @param programmeYearId - The ID of the programme year.
+ * @param page - The current page number (starting from 0).
+ * @param size - Number of participants per page.
+ * @param search - Optional search query to filter by participant name or email.
+ * @param sortBy - The field to sort by (e.g., "userName", "userEmail", "academicStage").
+ * @param sortOrder - The sorting order: "asc" for ascending or "desc" for descending.
+ * @param roleFilter - Optional role filter ("MENTOR", "MENTEE", or empty string for all).
+ * @returns A paginated list of participants matching the given criteria.
+ */
+export async function getParticipantsByProgrammeYearId(
+  programmeYearId: number,
+  page: number = 0,
+  size: number = 10,
+  search: string = "",
+  sortBy: string = "lastName",
+  sortOrder: "asc" | "desc" = "asc",
+  roleFilter: string = ""
+): Promise<{ content: ParticipantDto[]; totalPages: number }> {
+  const token = localStorage.getItem("token");
+
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+    search,
+    sortBy,
+    sortOrder,
+    role: roleFilter,
+  });
+
+  const response = await fetch(
+    `${API_URL}/participants/programme-year/${programmeYearId}?${params.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to fetch participants");
+  }
+
+  return response.json();
 }

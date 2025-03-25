@@ -118,6 +118,15 @@ const ProgrammeYearPage = () => {
           Edit Cycle
         </Button>
         <Button
+          // variant="outline"
+          onClick={() => {
+            router.push(`${pathname}/participants`);
+          }}
+          className="lg:block hidden"
+        >
+          View All Participants
+        </Button>
+        <Button
           variant="outline"
           onClick={() => {
             router.push(`${pathname}/edit`);
