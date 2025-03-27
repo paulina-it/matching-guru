@@ -44,6 +44,8 @@ export interface ProgrammeYearDto {
   initialMatchingIsDone?: boolean;
   matchApprovalType?: "MANUAL" | "THRESHOLD" | "AUTO";
   approvalThreshold?: number | null;
+  strictAcademicStage?: boolean;
+  strictCourseGroup?: boolean;
 }
 export interface ProgrammeYearUpdateDto {
   academicYear?: string;
@@ -52,6 +54,8 @@ export interface ProgrammeYearUpdateDto {
   matchingCriteria?: MatchingCriteriaDto[];
   matchApprovalType?: "MANUAL" | "THRESHOLD" | "AUTO";
   approvalThreshold?: number | null;
+  strictAcademicStage?: boolean;
+  strictCourseGroup?: boolean;
 }
 
 export interface ProgrammeYearCreateDto {
@@ -62,6 +66,8 @@ export interface ProgrammeYearCreateDto {
   matchingCriteria: MatchingCriteriaDto[];
   matchApprovalType: "MANUAL" | "THRESHOLD" | "AUTO";
   approvalThreshold?: number | null;
+  strictAcademicStage?: boolean;
+  strictCourseGroup?: boolean;
 }
 
 export enum CriterionType {

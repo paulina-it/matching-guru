@@ -53,6 +53,9 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
     "MANUAL" | "THRESHOLD" | "AUTO"
   >("MANUAL");
   const [approvalThreshold, setApprovalThreshold] = useState<number>(70);
+  const [strictAcademicStage, setStrictAcademicStage] = useState(true);
+  const [strictCourseGroup, setStrictCourseGroup] = useState(true);
+
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -89,15 +92,14 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
               weight: criterion.weight,
             }))
           );
-          const backendApprovalType =
-            data.matchApprovalType?.toUpperCase() as
-              | "MANUAL"
-              | "THRESHOLD"
-              | "AUTO";
+          setStrictAcademicStage(data.strictAcademicStage ?? true);
+          setStrictCourseGroup(data.strictCourseGroup ?? true);
+          const backendApprovalType = data.matchApprovalType?.toUpperCase() as
+            | "MANUAL"
+            | "THRESHOLD"
+            | "AUTO";
           setApprovalType(backendApprovalType);
-          setApprovalThreshold(
-            data.approvalThreshold || 70
-          );
+          setApprovalThreshold(data.approvalThreshold || 70);
         })
         .catch(() => {
           toast.error("Failed to load programme year details.");
@@ -140,7 +142,9 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       preferredAlgorithm,
       matchingCriteria: formattedCriteria,
       matchApprovalType: approvalType,
-      approvalThreshold: approvalThreshold
+      approvalThreshold: approvalThreshold,
+      strictAcademicStage,
+      strictCourseGroup,
     };
 
     try {
@@ -238,6 +242,63 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
           />
         </div>
       )}
+      <div className="mb-6">
+        <h3 className="h3 mb-2">Matching Strictness Settings</h3>
+        <p className="mb-4">
+          Uncheck the options below to allow more flexible matches.
+        </p>
+
+        <div className="mb-4">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={strictAcademicStage}
+              onChange={() => setStrictAcademicStage(!strictAcademicStage)}
+              className="w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white
+                  checked:bg-accent checked:border-transparent checked:ring-2 checked:ring-accent-hover
+                  focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all relative
+                  checked:before:content-['✔'] checked:before:absolute 
+                  checked:before:top-1/2 checked:before:left-1/2 
+                  checked:before:-translate-x-1/2 checked:before:-translate-y-1/2 
+                  checked:before:text-white checked:before:text-md"
+            />
+            <span className="ml-2 font-medium text-gray-700">
+              Match Only Within Adjacent Academic Stages
+            </span>
+          </label>
+          <p className="text-sm text-gray-600 italic ml-6 mt-1">
+            When checked, mentors will only be matched to mentees exactly one
+            academic stage below them (e.g., a Year 2 mentor with a Year 1
+            mentee). When unchecked, mentors from higher academic stages can be
+            matched with mentees.
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={strictCourseGroup}
+              onChange={() => setStrictCourseGroup(!strictCourseGroup)}
+              className="w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white
+                  checked:bg-accent checked:border-transparent checked:ring-2 checked:ring-accent-hover
+                  focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all relative
+                  checked:before:content-['✔'] checked:before:absolute 
+                  checked:before:top-1/2 checked:before:left-1/2 
+                  checked:before:-translate-x-1/2 checked:before:-translate-y-1/2 
+                  checked:before:text-white checked:before:text-md"
+            />
+            <span className="ml-2 font-medium text-gray-700">
+              Match Only Within Same Course Group
+            </span>
+          </label>
+          <p className="text-sm text-gray-600 italic ml-6 mt-1">
+            When checked, matching will occur only between participants from the
+            same course group. When unchecked, participants can be matched
+            across different groups within the same course.
+          </p>
+        </div>
+      </div>
       <div className="mb-4">
         <label className="block font-medium text-gray-700 my-2">
           Matching Criteria

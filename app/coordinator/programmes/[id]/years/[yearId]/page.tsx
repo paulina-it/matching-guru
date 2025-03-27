@@ -118,7 +118,6 @@ const ProgrammeYearPage = () => {
           Edit Cycle
         </Button>
         <Button
-          // variant="outline"
           onClick={() => {
             router.push(`${pathname}/participants`);
           }}
@@ -184,6 +183,22 @@ const ProgrammeYearPage = () => {
                   ""
                 )
               )}
+              <tr className="border border-gray-300">
+                <td className="px-4 py-2">
+                  Academic Stage is 
+                </td>
+                <td className="px-4 py-2">
+                  {programmeYear.strictAcademicStage ? "Strict (Mentor can be one stage above mentee)" : "Soft (Mentor can be any stage above mentee)"}
+                </td>
+              </tr>
+              <tr className="border border-gray-300">
+                <td className="px-4 py-2">
+                  Course Group is 
+                </td>
+                <td className="px-4 py-2">
+                  {programmeYear.strictCourseGroup ? "Strict (Matching within same group)" : "Soft (Matching between different course groups)"}
+                </td>
+              </tr>
             </tbody>
           </table>
         ) : (
