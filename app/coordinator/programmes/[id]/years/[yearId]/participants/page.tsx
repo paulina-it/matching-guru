@@ -22,7 +22,7 @@ const ParticipantsInProgrammeYear: React.FC = () => {
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState("");
-  const [sortBy, setSortBy] = useState("user.firstName"); // fixed default
+  const [sortBy, setSortBy] = useState("user.firstName");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [roleFilter, setRoleFilter] = useState("");
 

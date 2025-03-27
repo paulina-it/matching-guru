@@ -57,3 +57,47 @@ export interface ParticipantCreateDto {
     motivation: string | null;
     isReturningParticipant: boolean;
   }
+  export type ParticipantResponseDto = {
+    id: number
+    userId: number
+    userName: string
+    userEmail: string
+    userGender: 'MALE' | 'FEMALE' | 'OTHER'
+    userAge: number
+    userNationality: string
+    userHomeCountry: string
+    userPersonalityType: string
+    userCourseId: number
+    userCourseName: string
+    userLivingArrangement: string
+    userDisability: string
+    userDbsCertificate: boolean
+    userAgeGroup: string
+  
+    programmeYearId: number
+    programmeName: string
+    academicYear: string
+  
+    role: 'MENTOR' | 'MENTEE'
+    menteesNumber: number | null
+    isMatched: boolean
+    academicStage: string
+    hadPlacement: boolean
+    placementDescription: string
+    motivation: string
+    isReturningParticipant: boolean
+    availableDays: DayOfWeek[]
+    timeRange: string
+    meetingsFrequency: string
+    skills: string[]
+  }
+  
+  export type DayOfWeek =
+    | 'MONDAY'
+    | 'TUESDAY'
+    | 'WEDNESDAY'
+    | 'THURSDAY'
+    | 'FRIDAY'
+    | 'SATURDAY'
+    | 'SUNDAY'
+  

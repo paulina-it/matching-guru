@@ -72,7 +72,9 @@ export async function getParticipantInfoByUserId(id: number): Promise<any> {
 
     if (!response.ok) {
       const errorMessage = await response.text();
-      throw new Error(errorMessage || `Failed to fetch participant (ID: ${id})`);
+      throw new Error(
+        errorMessage || `Failed to fetch participant (ID: ${id})`
+      );
     }
 
     const data = await response.json();
@@ -207,4 +209,27 @@ export async function getParticipantsByProgrammeYearId(
   }
 
   return response.json();
+}
+
+/**
+ * Fetches detailed participants for a specific programme year.
+ *
+ * @param programmeYearId - The ID of the programme year.
+ * @returns A list of detailed participants.
+ */
+export async function getDetailedParticipantsByProgrammeYearId(
+  programmeYearId: number
+) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(
+     `${API_URL}/participants/programme-year/detailed/${programmeYearId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  if (!res.ok) throw new Error("Failed to fetch detailed participants");
+  return res.json();
 }
