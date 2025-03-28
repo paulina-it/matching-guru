@@ -37,7 +37,7 @@ import {
 
 const Account = () => {
   const { user } = useAuth();
-
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [formData, setFormData] = useState<UserUpdateDto>(() => ({
     id: user?.id ?? 0,
     firstName: user?.firstName || "",
@@ -115,7 +115,7 @@ const Account = () => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value === "" ? null : value, // ✅ Convert empty string to null
+      [name]: value === "" ? null : value,
     }));
   };
 
@@ -182,29 +182,81 @@ const Account = () => {
   return (
     <div className="max-w-[40em] min-w-[30em] mx-auto my-[5em] rounded-lg p-6 bg-white shadow-md">
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
-        <div className="flex justify-center items-center gap-10 mb-4 col-span-2">
+        <div className="flex justify-center items-center flex-col gap-4 mb-6 col-span-2">
           {preview && (
             <img
               src={preview}
               alt="Profile Preview"
-              className="w-32 h-32 object-cover rounded-full shadow-md"
+              className="w-32 h-32 object-cover rounded-full shadow-md border border-gray-300"
             />
           )}
-          <div className="flex flex-col gap-2">
-            <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded shadow-md hover:bg-primary/80 transition">
-              Choose Profile Picture
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="hidden"
-              />
-            </label>
-            <Button onClick={handleRemoveAvatar} variant="outline">
-              Remove Avatar
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => setImageDialogOpen(true)}
+          >
+            Update Profile Picture
+          </Button>
         </div>
+        <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Update Profile Picture</DialogTitle>
+            </DialogHeader>
+
+            {/* File Upload */}
+            <div className="flex flex-col gap-3">
+              <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded shadow hover:bg-primary/90 text-center transition">
+                Upload from Device
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </label>
+
+              <Button
+                variant="outline"
+                onClick={handleRemoveAvatar}
+                className="w-full"
+              >
+                Remove Avatar
+              </Button>
+
+              {/* URL Upload */}
+              <InputField
+                id="imageUrlInput"
+                label="Or Paste Image URL"
+                type="url"
+                value={formData.profileImageUrl ?? ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, profileImageUrl: e.target.value })
+                }
+              />
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPreview(formData.profileImageUrl ?? "");
+                  toast.success("Preview updated from URL!");
+                }}
+              >
+                Use Image from URL
+              </Button>
+            </div>
+
+            <DialogFooter className="mt-4">
+              <Button
+                variant="default"
+                onClick={() => {
+                  setImageDialogOpen(false);
+                }}
+              >
+                Done
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <InputField
           id="firstName"
