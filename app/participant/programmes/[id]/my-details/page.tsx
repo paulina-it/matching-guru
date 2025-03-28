@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { getParticipantInfoByUserId } from "@/app/api/participant";
 import { useAuth } from "@/app/context/AuthContext";
-import InputField from "@/components/InputField";
+import { Pencil, Trash, CheckCircle } from "lucide-react";
 import { formatText } from "@/app/utils/text";
 import {
   Dialog,
@@ -20,6 +20,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CommunicationStatus,
+  CommunicationType,
+  CommunicationLogCreateDto,
+  CommunicationLogDto,
+} from "@/app/types/communicationLog";
+import {
+  createCommunicationLog,
+  deleteCommunicationLog,
+  getLogsForMatch,
+  updateCommunicationLog,
+} from "@/app/api/communicationLogs";
 
 const ParticipantProgrammeDetails = () => {
   const { id } = useParams<{ id: string }>() || {};
@@ -38,6 +50,17 @@ const ParticipantProgrammeDetails = () => {
   const [isMentor, setIsMentor] = useState<boolean | null>(null);
   const [participant, setParticipant] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingLogId, setEditingLogId] = useState<number | null>(null);
+  const [type, setType] = useState<CommunicationType>(
+    CommunicationType.VIDEO_CALL
+  );
+  const [status, setStatus] = useState<CommunicationStatus>(
+    CommunicationStatus.SCHEDULED
+  );
+  const [timestamp, setTimestamp] = useState(
+    new Date().toISOString().slice(0, 16)
+  );
+  const [logs, setLogs] = useState<CommunicationLogDto[]>([]);
 
   const generateEmailBody = () => {
     if (!matchDetails || isMentor === null) return "";
@@ -66,13 +89,12 @@ const ParticipantProgrammeDetails = () => {
   };
 
   useEffect(() => {
-    if (!programmeId || !user) {
-      setError("Invalid programme ID or user not authenticated");
-      setLoading(false);
-      return;
-    }
-
     const fetchData = async () => {
+      if (!programmeId || !user) {
+        console.error("❌ programmeId is null or undefined");
+        return;
+      }
+
       try {
         const [programmeData, participantInfo] = await Promise.all([
           fetchProgrammeById(programmeId),
@@ -84,9 +106,16 @@ const ParticipantProgrammeDetails = () => {
         if (participantInfo?.mentor && participantInfo?.mentee) {
           const isUserMentor = participantInfo.mentor.email === user.email;
           setIsMentor(isUserMentor);
-          if (isUserMentor) setParticipant(participantInfo.mentor);
-          else setParticipant(participantInfo.mentee);
+          setParticipant(
+            isUserMentor ? participantInfo.mentor : participantInfo.mentee
+          );
           setMatchDetails(participantInfo);
+
+          if (participantInfo.id) {
+            const fetchedLogs = await getLogsForMatch(participantInfo.id);
+            setLogs(fetchedLogs);
+            console.log("📜 Logs fetched:", fetchedLogs);
+          }
         } else {
           setParticipant(participantInfo);
         }
@@ -99,7 +128,9 @@ const ParticipantProgrammeDetails = () => {
       }
     };
 
-    fetchData();
+    if (programmeId && user) {
+      fetchData();
+    }
   }, [programmeId, user]);
 
   const getSharedAvailability = (): { day: string; time: string } | null => {
@@ -155,7 +186,7 @@ const ParticipantProgrammeDetails = () => {
     const todayIndex = today.getDay();
 
     let daysUntilTarget = (targetDayIndex - todayIndex + 7) % 7;
-    if (daysUntilTarget === 0) daysUntilTarget = 7; // if today, move to next week
+    if (daysUntilTarget === 0) daysUntilTarget = 7;
 
     const nextDate = new Date();
     nextDate.setDate(today.getDate() + daysUntilTarget);
@@ -165,6 +196,89 @@ const ParticipantProgrammeDetails = () => {
       day: "numeric",
       month: "long",
     });
+  };
+
+  const handleCreateLog = async () => {
+    try {
+      await createCommunicationLog({
+        matchId: matchDetails.id,
+        type,
+        status,
+        timestamp,
+      });
+      toast.success("Interaction logged successfully!");
+      const updated = await getLogsForMatch(matchDetails.id);
+      setLogs(updated);
+      closeDialog();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to log interaction");
+    }
+  };
+
+  const handleUpdateLog = async () => {
+    try {
+      if (!editingLogId) return;
+      await updateCommunicationLog(editingLogId, {
+        matchId: matchDetails.id,
+        type,
+        status,
+        timestamp,
+      });
+      toast.success("Interaction updated!");
+      const updated = await getLogsForMatch(matchDetails.id);
+      setLogs(updated);
+      closeDialog();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update log");
+    }
+  };
+
+  const handleDeleteLog = async (logId: number) => {
+    try {
+      await deleteCommunicationLog(logId);
+      toast.success("Interaction deleted");
+      const updated = await getLogsForMatch(matchDetails.id);
+      setLogs(updated);
+    } catch (err) {
+      toast.error("Failed to delete");
+    }
+  };
+
+  const handleMarkCompleted = async (log: CommunicationLogDto) => {
+    try {
+      await updateCommunicationLog(log.id, {
+        matchId: log.matchId,
+        type: log.type,
+        status: CommunicationStatus.COMPLETED,
+        timestamp: log.timestamp,
+      });
+      toast.success("Marked as completed!");
+      const updated = await getLogsForMatch(matchDetails.id);
+      setLogs(updated);
+    } catch (err) {
+      toast.error("Failed to complete log");
+    }
+  };
+
+  const openEditDialog = (log: CommunicationLogDto) => {
+    setEditingLogId(log.id);
+    setType(log.type);
+    setStatus(log.status);
+    setTimestamp(new Date(log.timestamp).toISOString().slice(0, 16));
+    setIsDialogOpen(true);
+  };
+
+  const openNewLogDialog = () => {
+    setEditingLogId(null);
+    setType(CommunicationType.VIDEO_CALL);
+    setStatus(CommunicationStatus.SCHEDULED);
+    setTimestamp(new Date().toISOString().slice(0, 16));
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setEditingLogId(null);
   };
 
   if (loading) {
@@ -322,7 +436,7 @@ const ParticipantProgrammeDetails = () => {
               </Button> */}
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="mt-4">
+                  <Button variant="outline" className="mb-5">
                     Contact Your Match
                   </Button>
                 </DialogTrigger>
@@ -365,7 +479,189 @@ const ParticipantProgrammeDetails = () => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+              {(() => {
+                const now = new Date().getTime();
+
+                if (!logs.length && matchDetails?.updatedAt) {
+                  const matchUpdated = new Date(
+                    matchDetails.updatedAt
+                  ).getTime();
+                  const diffDays = Math.floor(
+                    (now - matchUpdated) / (1000 * 60 * 60 * 24)
+                  );
+
+                  if (diffDays >= 14) {
+                    return (
+                      <p className="text-sm text-accent mb-2">
+                        ⚠️ No interactions logged yet. It's been {diffDays} days
+                        since you were matched. Have you connected?
+                      </p>
+                    );
+                  }
+                }
+
+                if (logs.length > 0) {
+                  const lastLogDate = new Date(
+                    [...logs].sort(
+                      (a, b) =>
+                        new Date(b.timestamp).getTime() -
+                        new Date(a.timestamp).getTime()
+                    )[0].timestamp
+                  );
+                  const lastLogDays = Math.floor(
+                    (now - lastLogDate.getTime()) / (1000 * 60 * 60 * 24)
+                  );
+
+                  return (
+                    <>
+                      <p className="text-sm text-green-600 mb-2">
+                        ✅ Last logged interaction:{" "}
+                        {lastLogDate.toLocaleDateString("en-GB")} ({lastLogDays}{" "}
+                        day{lastLogDays !== 1 ? "s" : ""} ago)
+                      </p>
+                      {lastLogDays >= 14 && (
+                        <p className="text-sm text-yellow-600 mb-2">
+                          ⏳ It's been over 2 weeks since your last log.
+                          Consider reconnecting!
+                        </p>
+                      )}
+                    </>
+                  );
+                }
+
+                return null;
+              })()}
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="default"
+                    className="mt-2"
+                    onClick={openNewLogDialog}
+                  >
+                    Log Interaction
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Log Communication</DialogTitle>
+                  </DialogHeader>
+
+                  <div className="space-y-4">
+                    <label className="block">
+                      Type:
+                      <select
+                        value={type}
+                        onChange={(e) =>
+                          setType(e.target.value as CommunicationType)
+                        }
+                        className="w-full border rounded px-3 py-2 mt-1"
+                      >
+                        {Object.values(CommunicationType).map((t) => (
+                          <option key={t} value={t}>
+                            {t.replace(/_/g, " ")}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="block">
+                      Status:
+                      <select
+                        value={status}
+                        onChange={(e) =>
+                          setStatus(e.target.value as CommunicationStatus)
+                        }
+                        className="w-full border rounded px-3 py-2 mt-1"
+                      >
+                        {Object.values(CommunicationStatus).map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="block">
+                      Timestamp:
+                      <input
+                        type="datetime-local"
+                        value={timestamp}
+                        onChange={(e) => setTimestamp(e.target.value)}
+                        className="w-full border rounded px-3 py-2 mt-1"
+                      />
+                    </label>
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      onClick={editingLogId ? handleUpdateLog : handleCreateLog}
+                    >
+                      {editingLogId ? "Update Log" : "Save Log"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
+            {logs.length > 0 && (
+              <div className="mt-6">
+                <h4 className="text-md font-semibold mb-2">
+                  Interaction History
+                </h4>
+                <ul className="space-y-2">
+                  {logs
+                    .sort(
+                      (a, b) =>
+                        new Date(b.timestamp).getTime() -
+                        new Date(a.timestamp).getTime()
+                    )
+                    .map((log) => (
+                      <li
+                        key={log.id}
+                        className="text-sm text-gray-700 border p-3 rounded flex justify-between items-center"
+                      >
+                        <div>
+                          {new Date(log.timestamp).toLocaleString("en-GB")} –{" "}
+                          <strong>{log.type.replace(/_/g, " ")}</strong> –{" "}
+                          <span className="italic">{log.status}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 ml-4">
+                          {/* Complete icon (only if not already completed) */}
+                          {log.status !== CommunicationStatus.COMPLETED && (
+                            <button
+                              onClick={() => handleMarkCompleted(log)}
+                              className="text-green-600 hover:text-green-800"
+                              title="Mark as Completed"
+                            >
+                              <CheckCircle size={16} />
+                            </button>
+                          )}
+
+                          {/* Edit icon */}
+                          <button
+                            onClick={() => openEditDialog(log)}
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Edit"
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          {/* Delete icon */}
+                          <button
+                            onClick={() => handleDeleteLog(log.id)}
+                            className="text-red-600 hover:text-red-800"
+                            title="Delete"
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>
