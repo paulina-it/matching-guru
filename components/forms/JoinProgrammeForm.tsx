@@ -67,6 +67,17 @@ const predefinedNationalities = [
   "French",
 ];
 
+const predefinedLivingArrangements = [
+  { value: "ON_CAMPUS", label: "On Campus" },
+  { value: "PARENT_HOME", label: "At Parent's Home" },
+  { value: "PRIVATE_RENT", label: "Private Rent" },
+  {
+    value: "STUDENT_ACCOMMODATION_OFFCAMPUS",
+    label: "Off-campus Student Accommodation",
+  },
+  { value: "OTHER", label: "Other" },
+];
+
 const predefinedPersonalityTypes = [
   { value: "ARCHITECT_INTJ", label: "Architect (INTJ)" },
   { value: "LOGICIAN_INTP", label: "Logician (INTP)" },
@@ -133,6 +144,7 @@ const JoinProgrammeForm: React.FC<{
   const [availableTime, setAvailableTime] = useState<string>("");
   const [skills, setSkills] = useState<string[]>([]);
   const [gender, setGender] = useState<string>("");
+  const [livingArrangement, setLivingArrangement] = useState<string>("");
 
   const toggleSkillSelection = (skill: string) => {
     setSkills((prevSkills) =>
@@ -258,6 +270,7 @@ const JoinProgrammeForm: React.FC<{
       skills: skills.length > 0 ? skills : null,
       ageGroup: ageGroup || null,
       gender: gender || null,
+      livingArrangement: livingArrangement || null,
     };
 
     if (!userProp.course) {
@@ -443,6 +456,35 @@ const JoinProgrammeForm: React.FC<{
           </div>
         );
 
+      case "LIVING_ARRANGEMENT":
+        return (
+          <div>
+            <label
+              htmlFor={`criterion-${criterion.id}`}
+              className="block text-md font-bold"
+            >
+              Living Arrangement (Weight: {criterion.weight}%)
+            </label>
+            <p className="text-sm text-black/70">
+              Select your current living situation.
+            </p>
+            <select
+              id={`criterion-${criterion.id}`}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+              value={livingArrangement}
+              onChange={(e) => setLivingArrangement(e.target.value)}
+            >
+              <option value="">Select living arrangement</option>
+              {predefinedLivingArrangements.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+
       case "SKILLS":
         return (
           <div>
@@ -561,6 +603,8 @@ const JoinProgrammeForm: React.FC<{
     }
   };
 
+  console.table(matchingCriteria);
+
   return (
     <div className="max-w-lg mx-auto ">
       {loading ? (
@@ -646,8 +690,8 @@ const JoinProgrammeForm: React.FC<{
           </SwiperSlide>
 
           {/* Slide 2: Placement Information */}
-          {(academicStage === "Second Year Undergraduate" &&
-                role.toUpperCase() == "MENTEE"  ||
+          {((academicStage === "Second Year Undergraduate" &&
+            role.toUpperCase() == "MENTEE") ||
             academicStage === "Final Year Undergraduate") && (
             <SwiperSlide className="bg-light p-6 shadow rounded">
               <h2 className="text-xl font-bold mb-4">Placement Information</h2>
@@ -681,61 +725,58 @@ const JoinProgrammeForm: React.FC<{
                 </div>
               )}
               {academicStage === "Second Year Undergraduate" && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-4">
-                      Placement Interest
-                    </h2>
+                <div>
+                  <h2 className="text-xl font-bold mb-4">Placement Interest</h2>
 
-                    {/* Do you want a placement? */}
+                  {/* Do you want a placement? */}
+                  <div className="mb-4">
+                    <label className="block text-md font-bold">
+                      Are you interested in a placement?
+                    </label>
+                    <div className="flex gap-4 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => setPlacementInterest(true)}
+                        className={`px-4 py-2 border rounded ${
+                          placementInterest
+                            ? "bg-blue-500 text-white"
+                            : "bg-white"
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPlacementInterest(false)}
+                        className={`px-4 py-2 border rounded ${
+                          placementInterest === false
+                            ? "bg-accent rounded text-white"
+                            : "bg-white"
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Desired Placement Description */}
+                  {placementInterest && (
                     <div className="mb-4">
                       <label className="block text-md font-bold">
-                        Are you interested in a placement?
+                        What industry or type of placement are you looking for?
                       </label>
-                      <div className="flex gap-4 mt-2">
-                        <button
-                          type="button"
-                          onClick={() => setPlacementInterest(true)}
-                          className={`px-4 py-2 border rounded ${
-                            placementInterest
-                              ? "bg-blue-500 text-white"
-                              : "bg-white"
-                          }`}
-                        >
-                          Yes
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPlacementInterest(false)}
-                          className={`px-4 py-2 border rounded ${
-                            placementInterest === false
-                              ? "bg-accent rounded text-white"
-                              : "bg-white"
-                          }`}
-                        >
-                          No
-                        </button>
-                      </div>
+                      <textarea
+                        className="w-full border rounded px-4 py-2 mt-1"
+                        placeholder="Describe your desired placement (e.g., Tech industry, Software Development)"
+                        value={placementDescription}
+                        onChange={(e) =>
+                          setPlacementDescription(e.target.value)
+                        }
+                      />
                     </div>
-
-                    {/* Desired Placement Description */}
-                    {placementInterest && (
-                      <div className="mb-4">
-                        <label className="block text-md font-bold">
-                          What industry or type of placement are you looking
-                          for?
-                        </label>
-                        <textarea
-                          className="w-full border rounded px-4 py-2 mt-1"
-                          placeholder="Describe your desired placement (e.g., Tech industry, Software Development)"
-                          value={placementDescription}
-                          onChange={(e) =>
-                            setPlacementDescription(e.target.value)
-                          }
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
+              )}
 
               {academicStage === "Final Year Undergraduate" && hadPlacement && (
                 <div className="mb-4">
