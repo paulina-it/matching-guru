@@ -9,6 +9,7 @@ import {
   CoordinatorDashboardDto,
   fetchAdminDashboard,
 } from "@/app/api/dashboard";
+import Link from "next/link";
 
 const CoordinatorDashboard = () => {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ const CoordinatorDashboard = () => {
     const loadDashboard = async () => {
       try {
         const data = await fetchAdminDashboard();
-        console.log("Dashboard data fetched:", data); 
+        console.log("Dashboard data fetched:", data);
         setDashboardData(data);
       } catch (err) {
         console.error("Dashboard fetch error", err);
@@ -29,10 +30,9 @@ const CoordinatorDashboard = () => {
         setLoading(false);
       }
     };
-  
+
     if (user?.organisationId) loadDashboard();
   }, [user?.organisationId]);
-  
 
   return (
     <div className="min-w-[60vw] bg-light py-10 px-6 lg:px-16">
@@ -44,10 +44,12 @@ const CoordinatorDashboard = () => {
             {dashboardData?.recentActivity?.length ? (
               dashboardData?.recentActivity.map((activity, index) => (
                 <li key={index}>
-                  {activity.description} —{" "}
-                  <span className="text-xs text-gray-400">
-                    {new Date(activity.timestamp).toLocaleString()}
-                  </span>
+                  <Link href={activity.link}>
+                    {activity.description} —{" "}
+                    <span className="text-xs text-gray-400">
+                      {new Date(activity.timestamp).toLocaleString()}
+                    </span>
+                  </Link>
                 </li>
               ))
             ) : (
@@ -106,7 +108,7 @@ const CoordinatorDashboard = () => {
               <ProgrammeCard
                 key={programme.id}
                 id={programme.id}
-                programmeId={programme.programmeId} 
+                programmeId={programme.programmeId}
                 name={programme.name}
                 participantsCount={programme.participantsCount}
                 matchesCount={programme.matchesCount}

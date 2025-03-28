@@ -19,7 +19,7 @@ export const fetchAdminDashboard = async () => {
 };
 
 export type CoordinatorDashboardDto = {
-  recentActivity: { description: string; timestamp: string }[];
+  recentActivity: { description: string; timestamp: string; link: string }[];
   activeProgrammeYears: {
     id: number;
     programmeId: number;
