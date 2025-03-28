@@ -42,7 +42,7 @@ const ProgrammeCard: React.FC<ProgrammeCardProps> = ({
         <Button
           variant="outline"
           className="text-accent"
-          onClick={() => router.push(`/coordinator/programmes/${programmeId}/year/${id}`)}
+          onClick={() => router.push(`/coordinator/programmes/${programmeId}/years/${id}`)}
         >
           View
         </Button>
