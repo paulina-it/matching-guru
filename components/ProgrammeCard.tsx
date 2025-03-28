@@ -4,17 +4,19 @@ import { useRouter } from "next/navigation";
 
 interface ProgrammeCardProps {
   id: number;
+  programmeId: number;
   name: string;
-  participantCount: number;
-  matchCount: number;
+  participantsCount: number;
+  matchesCount: number;
   status: "Active" | "Inactive" | "Upcoming";
 }
 
 const ProgrammeCard: React.FC<ProgrammeCardProps> = ({
   id,
+  programmeId,
   name,
-  participantCount,
-  matchCount,
+  participantsCount,
+  matchesCount,
   status,
 }) => {
   const router = useRouter();
@@ -30,7 +32,7 @@ const ProgrammeCard: React.FC<ProgrammeCardProps> = ({
       <div className="flex-1">
         <h3 className="text-lg font-semibold text-gray-800">{name}</h3>
         <p className="text-sm text-gray-600">
-          Participants: <strong>{participantCount}</strong> | Matches: <strong>{matchCount}</strong>
+          Participants: <strong>{participantsCount}</strong> | Matches: <strong>{matchesCount}</strong>
         </p>
       </div>
       <div className="flex flex-col md:flex-row items-center gap-2 mt-3 md:mt-0">
@@ -40,7 +42,7 @@ const ProgrammeCard: React.FC<ProgrammeCardProps> = ({
         <Button
           variant="outline"
           className="text-accent"
-          onClick={() => router.push(`/coordinator/programmes/${id}`)}
+          onClick={() => router.push(`/coordinator/programmes/${programmeId}/year/${id}`)}
         >
           View
         </Button>

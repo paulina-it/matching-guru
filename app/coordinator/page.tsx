@@ -4,53 +4,69 @@ import { useAuth } from "@/app/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import ProgrammeCard from "@/components/ProgrammeCard";
+import { useEffect, useState } from "react";
+import {
+  CoordinatorDashboardDto,
+  fetchAdminDashboard,
+} from "@/app/api/dashboard";
 
 const CoordinatorDashboard = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const [dashboardData, setDashboardData] =
+    useState<CoordinatorDashboardDto | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const activeProgrammes = [
-    {
-      id: 1,
-      name: "Peer Mentoring Spring 2025",
-      participantCount: 120,
-      matchCount: 60,
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Professional Development 2025",
-      participantCount: 80,
-      matchCount: 40,
-      status: "Active",
-    },
-    // more programme data...
-  ];
-  console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const data = await fetchAdminDashboard();
+        console.log("Dashboard data fetched:", data); 
+        setDashboardData(data);
+      } catch (err) {
+        console.error("Dashboard fetch error", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    if (user?.organisationId) loadDashboard();
+  }, [user?.organisationId]);
+  
+
   return (
     <div className="min-w-[60vw] bg-light py-10 px-6 lg:px-16">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Recent Activity */}
-        <div className="bg-white rounded shadow p-6 lg:col-span-1">
+        <div className="bg-white rounded shadow p-6 lg:col-span-2">
           <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
           <ul className="text-gray-600">
-            {/* <li>John Doe joined as mentor.</li>
-            <li>New programme created.</li>
-            <li>5 new mentee applications.</li> */}
+            {dashboardData?.recentActivity?.length ? (
+              dashboardData?.recentActivity.map((activity, index) => (
+                <li key={index}>
+                  {activity.description} —{" "}
+                  <span className="text-xs text-gray-400">
+                    {new Date(activity.timestamp).toLocaleString()}
+                  </span>
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-500">No recent activity</p>
+            )}
           </ul>
         </div>
 
         {/* Queries & Notifications */}
-        <div className="grid grid-cols-2 lg:grid-cols-1 gap-6">
+        {/* <div className="grid grid-cols-2 lg:grid-cols-1 gap-6">
           <div className="bg-white rounded shadow p-6 flex flex-col items-center justify-center">
-            <h3 className="text-lg font-semibold">Queries</h3>
+            <h3 className="text-lg font-semibold">Queries:</h3>
             <span className="text-3xl font-bold"></span>
           </div>
           <div className="bg-white rounded shadow p-6 flex flex-col items-center justify-center">
-            <h3 className="text-lg font-semibold">Notifications</h3>
+            <h3 className="text-lg font-semibold">Notifications:</h3>
             <span className="text-3xl font-bold"></span>
           </div>
-        </div>
+        </div> */}
 
         {/* Welcome Profile */}
         <div className="bg-white rounded shadow p-6 flex flex-col items-center justify-center">
@@ -85,16 +101,21 @@ const CoordinatorDashboard = () => {
           </Button>
         </div>
         <div className="space-y-3">
-        {activeProgrammes.map((programme) => (
-          <ProgrammeCard
-            key={programme.id}
-            id={programme.id}
-            name={programme.name}
-            participantCount={programme.participantCount}
-            matchCount={programme.matchCount}
-            status={programme.status as "Active" | "Inactive" | "Upcoming"}
-          />
-        ))}
+          {dashboardData?.activeProgrammeYears?.length ? (
+            dashboardData.activeProgrammeYears.map((programme) => (
+              <ProgrammeCard
+                key={programme.id}
+                id={programme.id}
+                programmeId={programme.programmeId} 
+                name={programme.name}
+                participantsCount={programme.participantsCount}
+                matchesCount={programme.matchesCount}
+                status={programme.active ? "Active" : "Inactive"}
+              />
+            ))
+          ) : (
+            <p className="text-gray-500">No active programmes</p>
+          )}
         </div>
       </div>
 
