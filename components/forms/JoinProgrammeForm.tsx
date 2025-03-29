@@ -17,6 +17,7 @@ import { ParticipantCreateDto } from "@/app/types/participant";
 import { useAuth } from "@/app/context/AuthContext";
 import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/navigation";
+import { UserResponseDto } from "@/app/types/auth";
 
 interface MatchingCriterion {
   id: number;
@@ -31,7 +32,8 @@ const predefinedAcademicStages = [
   "Placement Year",
   "Final Year Undergraduate",
   "Graduate",
-  "Postgraduate",
+  "Postgraduate Masters", 
+  "Postgraduate PhD",     
 ];
 
 const predefinedSkills = [
@@ -116,7 +118,7 @@ const personalityTestLink =
 const JoinProgrammeForm: React.FC<{
   programmeYearId: number;
   programmeId: number;
-  userProp: { organisationId: number; course?: string };
+  userProp: UserResponseDto;
 }> = ({ programmeYearId, programmeId, userProp }) => {
   const { user } = useAuth();
   const router = useRouter();
@@ -132,19 +134,19 @@ const JoinProgrammeForm: React.FC<{
   const [academicStage, setAcademicStage] = useState<string>(
     "First Year Undergraduate"
   );
-  const [courseId, setCourseId] = useState<number | null>();
+  const [courseId, setCourseId] = useState<number | null | undefined>(user?.courseId);
   const [hadPlacement, setHadPlacement] = useState<boolean>(false);
   const [placementDescription, setPlacementDescription] = useState<string>("");
   const [placementInterest, setPlacementInterest] = useState<boolean>(false);
   const [eligibleCourses, setEligibleCourses] = useState<CourseDto[]>([]);
-  const [personalityType, setPersonalityType] = useState<string>("");
-  const [ageGroup, setAgeGroup] = useState<string>("");
+  const [personalityType, setPersonalityType] = useState<string | undefined>(user?.personalityType as string);
+  const [ageGroup, setAgeGroup] = useState<string | undefined>(user?.ageGroup as string);
   const [meetingFrequency, setMeetingFrequency] = useState<string>("");
   const [availableDays, setAvailableDays] = useState<string[]>([]);
   const [availableTime, setAvailableTime] = useState<string>("");
   const [skills, setSkills] = useState<string[]>([]);
-  const [gender, setGender] = useState<string>("");
-  const [livingArrangement, setLivingArrangement] = useState<string>("");
+  const [gender, setGender] = useState<string | undefined>(user?.gender as string);
+  const [livingArrangement, setLivingArrangement] = useState<string | undefined>(user?.livingArrangement as string);
 
   const toggleSkillSelection = (skill: string) => {
     setSkills((prevSkills) =>
@@ -153,7 +155,7 @@ const JoinProgrammeForm: React.FC<{
         : [...prevSkills, skill]
     );
   };
-  // DEBUGGINGG
+  
   useEffect(() => {
     console.log("🔄 Role changed:", role);
   }, [role]);
@@ -273,7 +275,7 @@ const JoinProgrammeForm: React.FC<{
       livingArrangement: livingArrangement || null,
     };
 
-    if (!userProp.course) {
+    if (!userProp.courseId) {
       participantData.courseId = courseId ?? null;
     }
 
@@ -304,6 +306,10 @@ const JoinProgrammeForm: React.FC<{
   const renderInput = (criterion: MatchingCriterion) => {
     switch (criterion.criterionType) {
       case "FIELD":
+        if (userProp.courseId != null) {
+          return null;
+        }
+
         const filterCoursesByStage = () => {
           const stageToLevelMap: Record<string, string[]> = {
             "First Year Undergraduate": ["BA", "BSc", "BEng"],
@@ -321,35 +327,33 @@ const JoinProgrammeForm: React.FC<{
 
         const filteredCourses = filterCoursesByStage();
 
-        if (userProp.course == null) {
-          return (
-            <div>
-              <label
-                htmlFor={`criterion-${criterion.id}`}
-                className="block text-md font-bold"
-              >
-                Academic Field (Weight: {criterion.weight}%)
-              </label>
-              <p className="text-sm">Select your course from the list below.</p>
-              <select
-                id={`criterion-${criterion.id}`}
-                name={criterion.criterionType}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                onChange={(e) =>
-                  setCourseId(e.target.value ? Number(e.target.value) : null)
-                }
-                required
-              >
-                <option value="">Select a course</option>
-                {filteredCourses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          );
-        }
+        return (
+          <div>
+            <label
+              htmlFor={`criterion-${criterion.id}`}
+              className="block text-md font-bold"
+            >
+              Academic Field (Weight: {criterion.weight}%)
+            </label>
+            <p className="text-sm">Select your course from the list below.</p>
+            <select
+              id={`criterion-${criterion.id}`}
+              name={criterion.criterionType}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              onChange={(e) =>
+                setCourseId(e.target.value ? Number(e.target.value) : null)
+              }
+              required
+            >
+              <option value="">Select a course</option>
+              {filteredCourses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
 
       case "AVAILABILITY":
         return (
@@ -418,6 +422,9 @@ const JoinProgrammeForm: React.FC<{
         );
 
       case "PERSONALITY":
+        if (userProp.personalityType != null) {
+          return null;
+        }
         return (
           <div>
             <label
@@ -457,6 +464,9 @@ const JoinProgrammeForm: React.FC<{
         );
 
       case "LIVING_ARRANGEMENT":
+        if (userProp.livingArrangement != null) {
+          return null; 
+        }
         return (
           <div>
             <label
@@ -518,6 +528,9 @@ const JoinProgrammeForm: React.FC<{
         );
 
       case "GENDER":
+        if (userProp.gender != null) {
+          return null;
+        }
         return (
           <div>
             <label
@@ -546,6 +559,9 @@ const JoinProgrammeForm: React.FC<{
         );
 
       case "AGE":
+        if (userProp.ageGroup != null) {
+          return null;
+        }
         return (
           <div>
             <label
@@ -554,7 +570,9 @@ const JoinProgrammeForm: React.FC<{
             >
               Age Group (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70 dark:text-light/70">Select your age group.</p>
+            <p className="text-sm text-black/70 dark:text-light/70">
+              Select your age group.
+            </p>
             <select
               id={`criterion-${criterion.id}`}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -573,6 +591,9 @@ const JoinProgrammeForm: React.FC<{
         );
 
       case "NATIONALITY":
+        if (userProp.nationality != null) {
+          return null;
+        }
         return (
           <div>
             <label
@@ -581,7 +602,9 @@ const JoinProgrammeForm: React.FC<{
             >
               Nationality (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70 dark:text-light/70">Select your nationality.</p>
+            <p className="text-sm text-black/70 dark:text-light/70">
+              Select your nationality.
+            </p>
             <select
               id={`criterion-${criterion.id}`}
               name={criterion.criterionType}
@@ -705,7 +728,9 @@ const JoinProgrammeForm: React.FC<{
                       type="button"
                       onClick={() => setHadPlacement(true)}
                       className={`px-4 py-2 border rounded ${
-                        hadPlacement ? "bg-blue-500 text-white" : "bg-white"
+                        hadPlacement
+                          ? "bg-primary dark:bg-primary-dark text-white"
+                          : "bg-white dark:bg-dark"
                       }`}
                     >
                       Yes
@@ -715,8 +740,8 @@ const JoinProgrammeForm: React.FC<{
                       onClick={() => setHadPlacement(false)}
                       className={`px-4 py-2 border rounded ${
                         hadPlacement === false
-                          ? "bg-blue-500 text-white"
-                          : "bg-white"
+                          ? "bg-primary dark:bg-primary-dark text-white"
+                          : "bg-white dark:bg-dark"
                       }`}
                     >
                       No
@@ -739,8 +764,8 @@ const JoinProgrammeForm: React.FC<{
                         onClick={() => setPlacementInterest(true)}
                         className={`px-4 py-2 border rounded ${
                           placementInterest
-                            ? "bg-blue-500 text-white"
-                            : "bg-white"
+                            ? "bg-primary dark:bg-primary-dark text-white"
+                            : "bg-white dark:bg-dark"
                         }`}
                       >
                         Yes
@@ -750,8 +775,8 @@ const JoinProgrammeForm: React.FC<{
                         onClick={() => setPlacementInterest(false)}
                         className={`px-4 py-2 border rounded ${
                           placementInterest === false
-                            ? "bg-accent rounded text-white"
-                            : "bg-white"
+                            ? "bg-primary dark:bg-primary-dark text-white"
+                            : "bg-white dark:bg-dark"
                         }`}
                       >
                         No

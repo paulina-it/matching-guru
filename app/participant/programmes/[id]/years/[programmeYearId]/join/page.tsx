@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import JoinProgrammeForm from "@/components/forms/JoinProgrammeForm";
 import { useAuth } from "@/app/context/AuthContext";
 
-// Helper function to validate and parse params
 const validateParams = (params: {
   programmeYearId?: string;
   id?: string;
@@ -87,13 +86,15 @@ const JoinProgrammePage = ({
 
   const { programmeYearId, programmeId } = validatedParams;
 
+  console.log(user)
+
   return (
     <div className="max-w-xl mx-auto mt-10">
       <h1 className="text-2xl font-bold mb-4">Join Mentoring Programme</h1>
       <JoinProgrammeForm
         programmeYearId={programmeYearId}
         programmeId={programmeId}
-        userProp={{ organisationId: user.organisationId, course: user.course }}
+        userProp={user}
       />
     </div>
   );

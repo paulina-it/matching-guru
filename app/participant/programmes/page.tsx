@@ -67,7 +67,7 @@ const Programmes = () => {
         <div>
           {userProgrammes.length > 0 ? (
             userProgrammes.map((programme, index) => (
-              <Link href={`programmes/${programme.id}/my-details`} key={index}>
+              <Link href={`programmes/${programme.id}`} key={index}>
                 <div className="mb-4 p-4 bg-white dark:bg-zinc-800 rounded shadow transition-colors">
                   <h3 className="text-lg font-semibold">{programme.name}</h3>
                   <p className="text-gray-700 dark:text-gray-300">

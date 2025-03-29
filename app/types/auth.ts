@@ -34,7 +34,8 @@ export interface UserResponseDto {
   uniEmail?: string;
   studentNumber?: number;
   role: UserRole;
-  course?: string;
+  courseName?: string;
+  courseId?: number;
   organisationId?: number;
   organisationName?: string;
   personalityType?: PersonalityType;

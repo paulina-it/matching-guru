@@ -59,7 +59,7 @@ export async function getParticipant(
  * @param id - The participant's user ID.
  * @returns The participant's data or match info.
  */
-export async function getParticipantInfoByUserId(id: number): Promise<any> {
+export async function getParticipantInfoByUserId(id: number): Promise<any | null> {
   const token = localStorage.getItem("token");
 
   try {
@@ -69,6 +69,12 @@ export async function getParticipantInfoByUserId(id: number): Promise<any> {
         Authorization: `Bearer ${token}`,
       },
     });
+
+    if (response.status === 404) {
+      // Gracefully handle unmatched participant
+      console.warn(`No match found for user ID: ${id}`);
+      return null;
+    }
 
     if (!response.ok) {
       const errorMessage = await response.text();
@@ -85,6 +91,7 @@ export async function getParticipantInfoByUserId(id: number): Promise<any> {
     throw error;
   }
 }
+
 
 /**
  * Get a participant by user ID.
@@ -232,4 +239,40 @@ export async function getDetailedParticipantsByProgrammeYearId(
   );
   if (!res.ok) throw new Error("Failed to fetch detailed participants");
   return res.json();
+}
+
+/**
+ * Fetches detailed participant info (including match if exists) by user ID and programme year ID.
+ *
+ * @param userId - The ID of the user.
+ * @param programmeYearId - The ID of the programme year.
+ * @returns A promise resolving to either a ParticipantResponseDto or a DetailedMatchResponseDto.
+ */
+export async function getParticipantInfoByUserIdAndProgrammeYearId(
+  userId: number,
+  programmeYearId: number
+) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/participants/info/${userId}/programmeYear/${programmeYearId}`,
+      {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("An error occurred while fetching participant");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching participant:", error);
+    throw error;
+  }
 }

@@ -7,7 +7,10 @@ import { ProgrammeDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import { getParticipantInfoByUserId } from "@/app/api/participant";
+import {
+  getParticipantInfoByUserId,
+  getParticipantInfoByUserIdAndProgrammeYearId,
+} from "@/app/api/participant";
 import { useAuth } from "@/app/context/AuthContext";
 import { Pencil, Trash, CheckCircle } from "lucide-react";
 import { formatText } from "@/app/utils/text";
@@ -34,8 +37,9 @@ import {
 } from "@/app/api/communicationLogs";
 
 const ParticipantProgrammeDetails = () => {
-  const { id } = useParams<{ id: string }>() || {};
-  const programmeId = id ? parseInt(id, 10) : null;
+  const params = useParams() as { id: string; programmeYearId: string };
+  const programmeId = parseInt(params.id, 10);
+  const programmeYearId = parseInt(params.programmeYearId, 10);
   const { user } = useAuth();
   const router = useRouter();
   const [meetingLink, setMeetingLink] = useState("");
@@ -87,22 +91,31 @@ const ParticipantProgrammeDetails = () => {
 
     return emailBody;
   };
-
   useEffect(() => {
     const fetchData = async () => {
       if (!programmeId || !user) {
-        console.error("❌ programmeId is null or undefined");
+        console.error("❌ programmeId or user is undefined");
         return;
       }
 
       try {
         const [programmeData, participantInfo] = await Promise.all([
           fetchProgrammeById(programmeId),
-          getParticipantInfoByUserId(user.id),
+          getParticipantInfoByUserIdAndProgrammeYearId(
+            user.id,
+            programmeYearId
+          ),
         ]);
-
+        console.log(participantInfo);
         setProgramme(programmeData);
 
+        if (!participantInfo) {
+          console.warn("No participant info returned");
+          setParticipant(null);
+          setMatchDetails(null);
+          setIsMentor(null);
+          return;
+        }
         if (participantInfo?.mentor && participantInfo?.mentee) {
           const isUserMentor = participantInfo.mentor.email === user.email;
           setIsMentor(isUserMentor);
@@ -114,15 +127,29 @@ const ParticipantProgrammeDetails = () => {
           if (participantInfo.id) {
             const fetchedLogs = await getLogsForMatch(participantInfo.id);
             setLogs(fetchedLogs);
-            console.log("📜 Logs fetched:", fetchedLogs);
           }
-        } else {
+        } else if (participantInfo?.role) {
           setParticipant(participantInfo);
+          setIsMentor(participantInfo.role === "MENTOR");
+          setMatchDetails(null);
+        } else {
+          setParticipant(null);
+          setMatchDetails(null);
+          setIsMentor(null);
         }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        toast.error("Error fetching data.");
-        setError("Failed to load data. Please try again.");
+      } catch (err: any) {
+        const message = err?.message?.toLowerCase?.() ?? "";
+
+        if (message.includes("404")) {
+          setParticipant(null);
+          setMatchDetails(null);
+          setIsMentor(null);
+          setError(null);
+        } else {
+          console.error("Fetch error:", err);
+          toast.error("Error fetching data.");
+          setError("Failed to load data. Please try again.");
+        }
       } finally {
         setLoading(false);
       }
@@ -131,7 +158,7 @@ const ParticipantProgrammeDetails = () => {
     if (programmeId && user) {
       fetchData();
     }
-  }, [programmeId, user]);
+  }, [programmeId, programmeYearId, user]);
 
   const getSharedAvailability = (): { day: string; time: string } | null => {
     const mentor = matchDetails?.mentor;
@@ -289,13 +316,19 @@ const ParticipantProgrammeDetails = () => {
     );
   }
 
+  console.log(participant);
+
   return (
     <div className="max-w-[55vw] bg-light p-6 rounded shadow relative dark:bg-dark dark:border dark:border-white/30 text-light">
-      <h2 className="h2 font-bold mb-4">{programme?.name ?? "N/A"}</h2>
+      <h2 className="h2 font-bold mb-4 text-dark dark:text-light">
+        {programme?.name ?? "N/A"}
+      </h2>
       <p className="text-gray-700 dark:text-light/60">
         {programme?.description ?? "No description available"}
       </p>
-      <p>Contact details: mentoring@aston.ac.uk</p>
+      <p className=" text-dark dark:text-light mt-3">
+        Contact details: mentoring@aston.ac.uk
+      </p>
 
       <div className="mt-6">
         <p className="bg-secondary dark:bg-secondary-dark text-white rounded p-2 w-fit absolute top-6 right-6">
@@ -307,12 +340,11 @@ const ParticipantProgrammeDetails = () => {
             : "❌ Unmatched"}
         </p>
 
-        {(!matchDetails || matchDetails.status !== "APPROVED") && (
-          <div className="mt-6 border p-4 rounded bg-gray-100 dark:bg-dark">
+        {participant && (
+          <div className="mt-6 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/20 text-dark dark:text-light">
             <h3 className="h3">Your Participation</h3>
             <p>
-              <strong>Role:</strong> {participant?.role}
-              {participant?.lastName}
+              <strong>Role:</strong> {formatText(participant?.role)}
             </p>
             <p>
               <strong>Name:</strong> {participant?.userName}
@@ -324,24 +356,24 @@ const ParticipantProgrammeDetails = () => {
               <strong>Course:</strong> {participant?.userCourseName}
             </p>
             <p>
-              <strong>Academic Stage: </strong>
+              <strong>Academic Stage:</strong>{" "}
               {formatText(participant?.academicStage)}
             </p>
             <p>
-              <strong>Skills: </strong>
+              <strong>Skills:</strong>{" "}
               {participant?.skills?.length
                 ? participant.skills.map(formatText).join(", ")
                 : "None listed"}
             </p>
 
-            {matchDetails?.status === "PENDING" ? (
+            {!matchDetails ? (
+              <p className="mt-3 text-gray-500 italic">No match found yet.</p>
+            ) : matchDetails.status === "PENDING" ? (
               <p className="mt-3 text-yellow-600">
                 A match has been found for you, but coordinator approval is
                 pending.
               </p>
-            ) : (
-              <p className="mt-3 text-gray-500 italic">No match found yet.</p>
-            )}
+            ) : null}
           </div>
         )}
 
