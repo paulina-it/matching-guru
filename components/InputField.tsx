@@ -22,7 +22,7 @@ const InputField: React.FC<InputFieldProps> = ({
   accept
 }) => (
   <div className="col-span-2 md:col-span-1">
-    <label htmlFor={id} className="block mb-1 text-gray-700">
+    <label htmlFor={id} className="block mb-1 text-gray-700 dark:text-light">
       {label}
     </label>
     <Input

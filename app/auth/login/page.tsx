@@ -46,7 +46,7 @@ const Login: React.FC = () => {
   return (
     <div>
       <Header />
-      <div className="flex justify-center items-center min-h-screen bg-primary">
+      <div className="flex justify-center items-center min-h-screen bg-primary dark:bg-primary-dark">
         <Toaster position="top-right" />
         <Card className="lg:w-full w-[95vw] max-w-md p-4 shadow-md">
           <CardHeader>
@@ -87,7 +87,7 @@ const Login: React.FC = () => {
               </Button>
             </form>
             <Link href={"/auth/signup"}>
-              <p className="mt-5 text-dark/60 hover:underline hover:text-dark transition-all duration-200 text-center">
+              <p className="mt-5 text-dark/60 dark:text-light/70 hover:underline hover:text-dark transition-all duration-200 text-center">
                 Do not have an account? Sign Up
               </p>
             </Link>

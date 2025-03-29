@@ -130,7 +130,6 @@ const Signup: React.FC = () => {
 
       if (imageUrl) {
         await saveUserProfileImage(loginResponse.user.id, imageUrl);
-
       }
 
       toast.success("Signup completed successfully! 🎉");
@@ -159,7 +158,7 @@ const Signup: React.FC = () => {
   return (
     <div>
       <Header />
-      <div className="min-h-screen bg-primary flex flex-col mt-20">
+      <div className="min-h-screen bg-primary dark:bg-primary-dark flex flex-col mt-20">
         <div className="flex justify-center items-center flex-grow py-5">
           <Toaster position="top-right" />
           <Card className="lg:w-full w-[95vw] lg:max-w-[50vw] p-4 shadow-md">
@@ -264,10 +263,10 @@ const ParticipantForm: React.FC<FormProps> = ({
       <img
         src={previewUrl}
         alt="Profile Preview"
-        className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 shadow-md"
+        className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 dark:border-light/70 shadow-md"
       />
 
-      <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded shadow-md hover:bg-primary/80 transition">
+      <label className="cursor-pointer bg-primary dark:bg-primary-dark dark:hover:bg-primary-darkHover text-white px-4 py-2 rounded shadow-md hover:bg-primary/80 transition">
         Choose Profile Picture
         <input
           type="file"
@@ -393,10 +392,10 @@ const CoordinatorForm: React.FC<FormProps> = ({
         <img
           src={previewUrl}
           alt="Profile Preview"
-          className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 shadow-md"
+          className="w-32 h-32 object-cover rounded-full border-2 border-gray-300 dark:border-light/70 shadow-md"
         />
 
-        <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded-lg shadow-md hover:bg-primary/80 transition">
+        <label className="cursor-pointer bg-primary dark:bg-primary-dark dark:hover:bg-primary-darkHover text-white px-4 py-2 rounded shadow-md hover:bg-primary/80 transition">
           Choose Profile Picture
           <input
             type="file"
