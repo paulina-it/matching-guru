@@ -28,28 +28,32 @@ const config: Config = {
     },
     colors: {
       ...colors,
-	  light: "#fefaf9",
-	  dark: "#1A1A1A",
-	  primary: {
-		DEFAULT: "#9fcada",
-		hover: "#549ab4",
-		dark: "#25505f",
-	  },
-	  secondary: {
-		DEFAULT: "#62a8d7",
-		hover: "#2c7cb1",
-		dark: "#296f9e",
-	  },
-	  accent: {
-		DEFAULT: "#ba5648",
-		hover: "#9a3325",
-		dark: "#b55245",
-	  },
-	  highlight: {
-		DEFAULT: "#B89A5E",
-		hover: "#967E4D",
-		dark: "#705D3B",
-	  },
+      light: "#fefaf9",
+      dark: "#1A1A1A",
+      primary: {
+        DEFAULT: "#9fcada",
+        hover: "#549ab4",
+        dark: "#25505f",
+        darkHover: "#0f3746",
+      },
+      secondary: {
+        DEFAULT: "#62a8d7",
+        hover: "#2c7cb1",
+        dark: "#296f9e",
+        darkHover: "#0a4166",
+      },
+      accent: {
+        DEFAULT: "#ba5648",
+        hover: "#9a3325",
+        dark: "#b55245",
+        darkHover: "#80261a",
+      },
+      highlight: {
+        DEFAULT: "#B89A5E",
+        hover: "#967E4D",
+        dark: "#705D3B",
+        darkHover: "#5a431d",
+      },
     },
     extend: {
       borderRadius: {

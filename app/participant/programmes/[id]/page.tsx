@@ -64,20 +64,28 @@ const ProgrammeDetails = () => {
   }
 
   if (error) {
-    return <p className="text-red-500 text-center">{error}</p>;
+    return <p className="text-red-500 dark:text-red-400 text-center">{error}</p>;
   }
 
   return (
-    <div className="max-w-[55vw] bg-light p-6 rounded shadow relative">
+    <div className="max-w-[55vw] bg-light dark:bg-zinc-900 text-black dark:text-white p-6 rounded shadow relative transition-colors duration-300 dark:border dark:border-white/30">
       <h2 className="h2 font-bold mb-4">{programme?.name}</h2>
-      <p className="text-gray-700">{programme?.description}</p>
+      <p className="text-gray-700 dark:text-gray-300">{programme?.description}</p>
+      
       <div className="mt-6">
         <h3 className="text-lg font-semibold">Programme Years</h3>
         {programmeYears && programmeYears.length > 0 ? (
           programmeYears.map((year) => (
-            <div key={year.id} className="mb-4 flex justify-between items-center">
-              <p className="text-gray-700">Year: {year.academicYear}</p>
-              <p className="text-gray-700">Status: {year.isActive ? "Active" : "Inactive"}</p>
+            <div
+              key={year.id}
+              className="mb-4 p-4 bg-white dark:bg-zinc-800 rounded shadow flex justify-between items-center transition-colors"
+            >
+              <div>
+                <p className="text-gray-700 dark:text-gray-300">Year: {year.academicYear}</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Status: {year.isActive ? "🟢 Active" : "⚪ Inactive"}
+                </p>
+              </div>
               {programmeId !== null && (
                 <Button onClick={() => handleJoinRedirect(year.id, programmeId)}>
                   Join this Programme Year
@@ -86,7 +94,7 @@ const ProgrammeDetails = () => {
             </div>
           ))
         ) : (
-          <p className="text-gray-500">No programme years available.</p>
+          <p className="text-gray-500 dark:text-gray-400">No programme years available.</p>
         )}
       </div>
     </div>

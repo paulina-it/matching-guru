@@ -290,15 +290,15 @@ const ParticipantProgrammeDetails = () => {
   }
 
   return (
-    <div className="max-w-[55vw] bg-light p-6 rounded shadow relative">
+    <div className="max-w-[55vw] bg-light p-6 rounded shadow relative dark:bg-dark dark:border dark:border-white/30 text-light">
       <h2 className="h2 font-bold mb-4">{programme?.name ?? "N/A"}</h2>
-      <p className="text-gray-700">
+      <p className="text-gray-700 dark:text-light/60">
         {programme?.description ?? "No description available"}
       </p>
       <p>Contact details: mentoring@aston.ac.uk</p>
 
       <div className="mt-6">
-        <p className="bg-secondary text-white rounded p-2 w-fit absolute top-6 right-6">
+        <p className="bg-secondary dark:bg-secondary-dark text-white rounded p-2 w-fit absolute top-6 right-6">
           Status:{" "}
           {matchDetails
             ? matchDetails.status === "APPROVED"
@@ -308,7 +308,7 @@ const ParticipantProgrammeDetails = () => {
         </p>
 
         {(!matchDetails || matchDetails.status !== "APPROVED") && (
-          <div className="mt-6 border p-4 rounded bg-gray-100">
+          <div className="mt-6 border p-4 rounded bg-gray-100 dark:bg-dark">
             <h3 className="h3">Your Participation</h3>
             <p>
               <strong>Role:</strong> {participant?.role}
@@ -346,7 +346,7 @@ const ParticipantProgrammeDetails = () => {
         )}
 
         {matchDetails?.status === "APPROVED" && (
-          <div className="mt-6 border p-4 rounded bg-gray-100">
+          <div className="mt-6 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/30">
             <h4 className="h4 text-lg italic">You have been paired with:</h4>
 
             {isMentor ? (
@@ -406,12 +406,12 @@ const ParticipantProgrammeDetails = () => {
             <h3 className="h3 mt-4">
               Compatibility Score: {matchDetails.compatibilityScore}%
             </h3>
-            <div className="bg-gray-50 border p-4 rounded mt-6">
+            <div className="bg-gray-50 dark:bg-light/5 border dark:border-light/10 p-4 rounded mt-6">
               <h3 className="text-lg font-semibold mb-2">
                 Schedule Your First Meeting
               </h3>
               {getSharedAvailability() && (
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-light/80 mt-2">
                   🕒 You’re both available on{" "}
                   <strong>
                     {getSharedAvailability()?.day}{" "}
@@ -421,7 +421,7 @@ const ParticipantProgrammeDetails = () => {
                 </p>
               )}
 
-              <p className="text-sm text-gray-700 my-4">
+              <p className="text-sm text-gray-700 dark:text-light/90 my-4">
                 Contact your match to schedule a meeting. You can paste a
                 Microsoft Teams or Zoom link below to confirm.
               </p>
@@ -619,7 +619,7 @@ const ParticipantProgrammeDetails = () => {
                     .map((log) => (
                       <li
                         key={log.id}
-                        className="text-sm text-gray-700 border p-3 rounded flex justify-between items-center"
+                        className="text-sm text-gray-700 dark:text-light/95 border p-3 rounded flex justify-between items-center"
                       >
                         <div>
                           {new Date(log.timestamp).toLocaleString("en-GB")} –{" "}
@@ -642,7 +642,7 @@ const ParticipantProgrammeDetails = () => {
                           {/* Edit icon */}
                           <button
                             onClick={() => openEditDialog(log)}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-primary hover:text-primary-hover dark:text-primary-dark dark:hover:text-primary-darkHover"
                             title="Edit"
                           >
                             <Pencil size={16} />
@@ -651,7 +651,7 @@ const ParticipantProgrammeDetails = () => {
                           {/* Delete icon */}
                           <button
                             onClick={() => handleDeleteLog(log.id)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-accent hover:text-accent-hover dark:text-accent-dark dark:hover:text-accent-darkHover"
                             title="Delete"
                           >
                             <Trash size={16} />

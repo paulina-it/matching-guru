@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
 
-// Reusable Label component
+// Simple reusable label component
 const Label = ({
   htmlFor,
   children,
@@ -16,14 +17,25 @@ const Label = ({
 }) => (
   <label
     htmlFor={htmlFor}
-    className="text-sm font-medium text-gray-700 block mb-1"
+    className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1"
   >
     {children}
   </label>
 );
 
 export default function SettingsPanel() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setIsDark(resolvedTheme === "dark");
+  }, [resolvedTheme]);
+
+  const handleThemeToggle = (checked: boolean) => {
+    setIsDark(checked);
+    setTheme(checked ? "dark" : "light");
+  };
+
   const [fontScale, setFontScale] = useState("medium");
   const [reminderFrequency, setReminderFrequency] = useState("weekly");
 
@@ -41,7 +53,7 @@ export default function SettingsPanel() {
       return;
     }
 
-    // TODO: Call real API to validate current password and update
+    // TODO: Call real API
     toast.success("Password updated!");
     setCurrentPassword("");
     setNewPassword("");
@@ -57,7 +69,7 @@ export default function SettingsPanel() {
   };
 
   return (
-    <div className="min-w-[60vw] bg-light rounded mx-auto p-6 space-y-10">
+    <div className="min-w-[60vw] bg-light dark:bg-zinc-900 text-black dark:text-white rounded mx-auto p-6 space-y-10 transition-colors dark:border dark:border-white/30">
       <h2 className="text-2xl font-bold">Settings</h2>
 
       {/* Theme & Accessibility */}
@@ -66,11 +78,7 @@ export default function SettingsPanel() {
 
         <div className="flex items-center justify-between gap-4">
           <Label htmlFor="dark-mode">Dark Mode</Label>
-          <Switch
-            id="dark-mode"
-            checked={darkMode}
-            onCheckedChange={setDarkMode}
-          />
+          <Switch id="dark-mode" checked={isDark} onCheckedChange={handleThemeToggle} />
         </div>
 
         <div>
@@ -141,13 +149,13 @@ export default function SettingsPanel() {
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
         />
-        <Button onClick={updatePassword}>Update Password</Button>
+        <Button variant="outline" onClick={updatePassword}>Update Password</Button>
       </div>
 
       {/* Deactivate */}
       <div className="space-y-2">
         <h3 className="font-semibold text-red-600">Deactivate Account</h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           This is a soft delete. Type <strong>DEACTIVATE</strong> to confirm.
         </p>
         <Input

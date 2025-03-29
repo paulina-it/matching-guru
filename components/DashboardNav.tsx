@@ -31,7 +31,7 @@ const coordinatorLinks = [
   { route: "/coordinator/programmes", name: "Programmes", icon: <RiProjectorLine /> },
   { route: "/coordinator/reports", name: "Reports", icon: <AiOutlineFileText /> },
   { route: "/coordinator/account", name: "Account", icon: <FiUser /> },
-  { route: "/coordinator/account/settings", name: "Settings", icon: <FiSettings /> },
+  { route: "/coordinator/settings", name: "Settings", icon: <FiSettings /> },
 ];
 
 const participantLinks = [
@@ -39,7 +39,7 @@ const participantLinks = [
   { route: "/participant/organisation", name: "Organisation", icon: <FaBuilding /> },
   { route: "/participant/programmes", name: "Programmes", icon: <RiProjectorLine /> },
   { route: "/participant/account", name: "Account", icon: <FiUser /> },
-  { route: "/participant/account/settings", name: "Settings", icon: <FiSettings /> },
+  { route: "/participant/settings", name: "Settings", icon: <FiSettings /> },
 ];
 
 const DashboardNav = ({ type, onCollapse }: Props) => {
@@ -48,7 +48,7 @@ const DashboardNav = ({ type, onCollapse }: Props) => {
   const [collapsed, setCollapsed] = useState(false);
 
   let links: Array<LinkType> = type === "coordinator" ? coordinatorLinks : participantLinks;
-  
+
   links = links.map((link) => ({
     ...link,
     disabled: !user?.organisationName && link.name !== "Home" && link.name !== "Organisation",
@@ -60,7 +60,10 @@ const DashboardNav = ({ type, onCollapse }: Props) => {
   };
 
   return (
-    <Card className={`fixed min-h-full z-10 transition-all duration-300 ${collapsed ? "w-[4rem]" : "w-[15rem]"}`}
+    <Card
+      className={`fixed min-h-full z-10 transition-all duration-300 bg-white dark:bg-zinc-800 ${
+        collapsed ? "w-[4rem]" : "w-[15rem]"
+      }`}
     >
       <div className="flex flex-col items-center pt-5">
         <Image
@@ -76,7 +79,11 @@ const DashboardNav = ({ type, onCollapse }: Props) => {
           className="mt-5 rounded-full"
           onClick={handleCollapse}
         >
-          {collapsed ? <IoMdArrowDropright size={24} /> : <IoMdArrowDropleft size={24} />}
+          {collapsed ? (
+            <IoMdArrowDropright size={24} />
+          ) : (
+            <IoMdArrowDropleft size={24} />
+          )}
         </Button>
       </div>
 
@@ -85,12 +92,12 @@ const DashboardNav = ({ type, onCollapse }: Props) => {
           <Link
             key={index}
             href={!link.disabled ? link.route : "#"}
-            className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
+            className={`flex items-center gap-3 p-2 rounded-lg transition-colors text-sm ${
               pathname === link.route
-                ? "bg-primary text-white"
+                ? "bg-primary dark:bg-secondary-dark text-white"
                 : link.disabled
-                ? "text-gray-400 cursor-not-allowed"
-                : "hover:bg-primary/20"
+                ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                : "hover:bg-primary/10 dark:hover:bg-zinc-700 dark:text-white"
             } ${collapsed ? "justify-center w-[4rem]" : "px-4 w-full"}`}
           >
             {link.icon}

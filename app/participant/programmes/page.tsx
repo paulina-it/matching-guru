@@ -47,7 +47,6 @@ const Programmes = () => {
     fetchData();
   }, [user?.organisationId]);
 
-  // Filter available programmes
   const availableProgrammes = programmes.filter(
     (programme) =>
       !userProgrammes.some((userProgramme) => userProgramme.id === programme.id)
@@ -62,43 +61,51 @@ const Programmes = () => {
   }
 
   return (
-    <div className="bg-light p-4 rounded w-[50vw] relative">
+    <div className="bg-light dark:bg-zinc-900 text-black dark:text-white p-4 rounded w-[50vw] transition-colors duration-300 dark:border dark:border-white/30">
       <div>
         <h2 className="h2 mb-4">My Programmes</h2>
         <div>
           {userProgrammes.length > 0 ? (
             userProgrammes.map((programme, index) => (
               <Link href={`programmes/${programme.id}/my-details`} key={index}>
-                <div className="mb-4 p-4 bg-white rounded shadow">
+                <div className="mb-4 p-4 bg-white dark:bg-zinc-800 rounded shadow transition-colors">
                   <h3 className="text-lg font-semibold">{programme.name}</h3>
-                  <p className="text-gray-700">{programme.description}</p>
-                  {/* <p className="mt-5 font-bold">Status: Unmatched</p> */}
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {programme.description}
+                  </p>
                 </div>
               </Link>
             ))
           ) : (
-            <p className="text-gray-500 italic mb-6">
-              You are not participating in any programmes, take a look at the
+            <p className="text-gray-500 dark:text-gray-400 italic mb-6">
+              You are not participating in any programmes. Take a look at the
               available options below.
             </p>
           )}
         </div>
       </div>
+
       <div>
         <h2 className="h2 text-3xl mb-4">Available Programmes</h2>
         <div>
           {availableProgrammes.length > 0 ? (
             availableProgrammes.map((programme, index) => (
               <Link href={`programmes/${programme.id}`} key={index}>
-                <div className="mb-4 p-4 bg-white rounded shadow">
+                <div className="mb-4 p-4 bg-white dark:bg-zinc-800 rounded shadow transition-colors">
                   <h3 className="text-lg font-semibold">{programme.name}</h3>
-                  <p className="text-gray-700">{programme.description}</p>
-                  <p className="mt-5">Participants: {programme.participants}</p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {programme.description}
+                  </p>
+                  <p className="mt-5 text-sm text-gray-600 dark:text-gray-400">
+                    Participants: {programme.participants}
+                  </p>
                 </div>
               </Link>
             ))
           ) : (
-            <p className="text-gray-500 italic">No programmes available.</p>
+            <p className="text-gray-500 dark:text-gray-400 italic">
+              No programmes available.
+            </p>
           )}
         </div>
       </div>

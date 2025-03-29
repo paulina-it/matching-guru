@@ -426,7 +426,7 @@ const JoinProgrammeForm: React.FC<{
             >
               Personality Type (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70">
+            <p className="text-sm text-black/70 dark:text-light/70">
               What best describes your personality? If unsure, you can take the
               test{" "}
               <a
@@ -465,7 +465,7 @@ const JoinProgrammeForm: React.FC<{
             >
               Living Arrangement (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70">
+            <p className="text-sm text-black/70 dark:text-light/70">
               Select your current living situation.
             </p>
             <select
@@ -494,7 +494,7 @@ const JoinProgrammeForm: React.FC<{
             >
               Skills (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70">
+            <p className="text-sm text-black/70 dark:text-light/70">
               Select multiple skills that best describe your strengths and
               interests.
             </p>
@@ -526,7 +526,7 @@ const JoinProgrammeForm: React.FC<{
             >
               Gender (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70">
+            <p className="text-sm text-black/70 dark:text-light/70">
               Specify your preferred gender.
             </p>
             <select
@@ -554,7 +554,7 @@ const JoinProgrammeForm: React.FC<{
             >
               Age Group (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70">Select your age group.</p>
+            <p className="text-sm text-black/70 dark:text-light/70">Select your age group.</p>
             <select
               id={`criterion-${criterion.id}`}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -581,7 +581,7 @@ const JoinProgrammeForm: React.FC<{
             >
               Nationality (Weight: {criterion.weight}%)
             </label>
-            <p className="text-sm text-black/70">Select your nationality.</p>
+            <p className="text-sm text-black/70 dark:text-light/70">Select your nationality.</p>
             <select
               id={`criterion-${criterion.id}`}
               name={criterion.criterionType}
@@ -620,11 +620,11 @@ const JoinProgrammeForm: React.FC<{
           className="h-full"
         >
           {/* Slide 1: Role and Academic Stage */}
-          <SwiperSlide className="bg-light p-6 shadow rounded">
+          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded">
             <h2 className="text-xl font-bold mb-4">Step 1</h2>
             <div className="mb-4">
               <label className="block text-md font-bold">Select Role</label>
-              <p className="text-black/70 text-sm">
+              <p className="text-black/70 dark:text-light/70 text-sm">
                 If you wish to join as both mentor and mentee, please submit
                 another form.
               </p>
@@ -648,7 +648,7 @@ const JoinProgrammeForm: React.FC<{
                 <label className="block text-md font-bold">
                   Number of Mentees
                 </label>
-                <p className="text-sm text-black/70">
+                <p className="text-sm text-black/70 dark:text-light/70">
                   Specify the maximum number of mentees you are willing to take.
                 </p>
                 <input
@@ -693,7 +693,7 @@ const JoinProgrammeForm: React.FC<{
           {((academicStage === "Second Year Undergraduate" &&
             role.toUpperCase() == "MENTEE") ||
             academicStage === "Final Year Undergraduate") && (
-            <SwiperSlide className="bg-light p-6 shadow rounded">
+            <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded">
               <h2 className="text-xl font-bold mb-4">Placement Information</h2>
               {academicStage === "Final Year Undergraduate" && (
                 <div className="mb-4">
@@ -810,7 +810,7 @@ const JoinProgrammeForm: React.FC<{
           )}
 
           {/* Slide 3: Criteria Based */}
-          <SwiperSlide className="bg-light p-6 shadow rounded">
+          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded">
             <h2 className="text-xl font-bold mb-4">Step 2</h2>
             {matchingCriteria
               .filter((criterion) => criterion.weight > 0)

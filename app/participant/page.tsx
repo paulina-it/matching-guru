@@ -5,7 +5,13 @@ import React, { useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { redirect } from "next/navigation";
 import { joinOrganisation } from "@/app/api/organisation";
 
@@ -28,7 +34,7 @@ const ParticipantDashboard = () => {
   return (
     <div className="grid grid-cols-2 gap-6">
       {/* Profile Overview */}
-      <div className="bg-light rounded p-10 flex justify-center items-center gap-6">
+      <div className="bg-light dark:bg-dark dark:border dark:border-white/30 rounded p-10 flex justify-center items-center gap-6">
         <img
           src={user?.profileImageUrl || "/assets/placeholders/avatar.png"}
           alt="Profile Preview"
@@ -37,20 +43,29 @@ const ParticipantDashboard = () => {
         <div>
           <h2 className="h2">Hello, {user?.firstName}</h2>
           <h3 className="h3 mt-3">({user?.role})</h3>
-          {user?.personalityType && <p className="text-gray-600 mt-2">Personality: {user.personalityType}</p>}
+          {user?.personalityType && (
+            <p className="text-gray-600 mt-2">
+              Personality: {user.personalityType}
+            </p>
+          )}
         </div>
       </div>
 
       {/* Organisation & Programme Status */}
-      <div className="bg-light rounded p-10">
+      <div className="bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-10">
         {user?.organisationName ? (
           <h3 className="h3">
-            Organisation: <span className="font-bold">{user.organisationName}</span>
+            Organisation:{" "}
+            <span className="font-bold">{user.organisationName}</span>
           </h3>
         ) : (
           <div className="flex flex-col justify-center items-center">
             <p className="text-gray-700 mb-4">No organisation found.</p>
-            <Button onClick={() => setIsModalOpen(true)} variant="outline" className="text-accent hover:text-white">
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              variant="outline"
+              className="text-accent hover:text-white"
+            >
               Join Organisation
             </Button>
           </div>
@@ -58,7 +73,7 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Mentorship Status */}
-      <div className="bg-light rounded p-10">
+      <div className="bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-10">
         <h3 className="h3 mb-4">Recent Participations</h3>
         {/* {user?.participations?.length > 0 ? (
           user.participations.map((participation, index) => (
@@ -76,7 +91,7 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Meetings & Calendar */}
-      <div className="bg-light rounded p-10">
+      <div className="bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-10">
         <h3 className="h3 mb-4">Upcoming Meetings</h3>
         {/* {user?.meetings?.length > 0 ? (
           user.meetings.map((meeting, index) => (
@@ -105,7 +120,7 @@ const ParticipantDashboard = () => {
       </div> */}
 
       {/* Feedback & Review */}
-      <div className="bg-light rounded p-10">
+      <div className="bg-light  dark:bg-dark dark:border dark:border-white/30 rounded p-10">
         <h3 className="h3 mb-4">Feedback & Reviews</h3>
         {/* {user?.feedback?.length > 0 ? (
           user.feedback.map((review, index) => (

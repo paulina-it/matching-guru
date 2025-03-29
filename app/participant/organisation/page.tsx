@@ -69,9 +69,9 @@ const OrganisationPage = () => {
 
   return (
     <div className="w-full max-w-[80%] m-auto h-full flex items-center justify-center">
-      <Toaster position="top-right" /> {/* Toast container */}
+      <Toaster position="top-right" /> 
       {organisation?.id != null ? (
-        <div className="bg-light my-[10vh] p-12 rounded-[10px]">
+        <div className="bg-light dark:bg-dark dark:border dark:border-white/30 my-[10vh] p-12 rounded-[10px]">
           <div className="flex justify-between gap-[3em]">
             <div>
               <h1 className="h1 mb-4">{organisation.name}</h1>

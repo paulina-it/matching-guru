@@ -180,14 +180,14 @@ const Account = () => {
   }
 
   return (
-    <div className="max-w-[40em] min-w-[30em] mx-auto my-[5em] rounded-lg p-6 bg-white shadow-md">
+    <div className="min-w-[40em] min-w-[30em] mx-auto my-[5em] rounded-lg p-6 bg-white dark:bg-zinc-900 text-black dark:text-white shadow-md transition-colors dark:border dark:border-white/30 rounded">
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
-        <div className="flex justify-center items-center flex-col gap-4 mb-6 col-span-2">
+        <div className="flex justify-center items-center flex-col gap-4 mb-6 col-span-2 transition-colors duration-300">
           {preview && (
             <img
               src={preview}
               alt="Profile Preview"
-              className="w-32 h-32 object-cover rounded-full shadow-md border border-gray-300"
+              className="w-32 h-32 object-cover rounded-full shadow-md border border-gray-300  transition-colors duration-300"
             />
           )}
           <Button
@@ -206,7 +206,7 @@ const Account = () => {
 
             {/* File Upload */}
             <div className="flex flex-col gap-3">
-              <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded shadow hover:bg-primary/90 text-center transition">
+              <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded shadow hover:bg-primary/90 text-center transition dark:bg-primary-dark dark:hover:bg-primary-darkHover">
                 Upload from Device
                 <input
                   type="file"
