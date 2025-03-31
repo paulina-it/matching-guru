@@ -153,7 +153,7 @@ const OrganisationPage = () => {
     <div className="w-full lg:max-w-[80%] max-w-[90%] m-auto h-full flex items-center justify-center">
       <Toaster position="top-right" />
       {organisation?.id != null ? (
-        <div className="bg-light my-[10vh] p-5 lg:p-12 rounded-[10px]">
+        <div className="bg-light  dark:bg-dark dark:border dark:border-white/30  my-[10vh] p-5 lg:p-12 rounded-[10px]">
           <div className="flex lg:flex-row flex-col-reverse justify-between gap-[3em]">
             <div>
               <h1 className="h1 mb-4">{organisation.name}</h1>
@@ -197,7 +197,7 @@ const OrganisationPage = () => {
                     {group.courses.length > 0 ? (
                       <ul className="list-disc pl-6">
                         {group.courses.map((course: Course) => (
-                          <li key={course.id} className="text-gray-700">
+                          <li key={course.id} className="text-gray-700 dark:text-light/75">
                             {course.name}
                           </li>
                         ))}
@@ -255,7 +255,7 @@ const OrganisationForm: React.FC<FormProps> = ({
   onSubmit,
 }) => (
   <form
-    className="max-w-[40em] min-w-[30em] bg-light rounded-[5px] px-6 py-7 flex flex-col gap-5"
+    className="max-w-[40em] min-w-[30em] bg-light dark:bg-dark dark:border dark:border-white/30  rounded-[5px] px-6 py-7 flex flex-col gap-5"
     onSubmit={onSubmit}
   >
     <h2 className="text-xl font-bold text-center mb-4">

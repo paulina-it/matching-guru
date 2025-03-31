@@ -175,7 +175,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-[90vw] lg:max-w-[50vw] my-[5em] lg:my-10 bg-light rounded p-5"
+      className="max-w-[90vw] lg:max-w-[50vw] my-[5em] lg:my-10 bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-5"
     >
       {" "}
       <h2 className="text-2xl font-bold mb-4">
@@ -191,7 +191,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
         required
       />
       <div className="mb-4">
-        <label className="block font-medium text-gray-700 my-2">
+        <label className="block font-medium my-2">
           Preferred Algorithm
         </label>
         <select
@@ -210,7 +210,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       </div>
       {/* Match Approval Settings */}
       <div className="mb-4">
-        <label className="block font-medium text-gray-700 my-2">
+        <label className="block font-medium my-2">
           Match Approval Type
         </label>
         <select
@@ -229,7 +229,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       </div>
       {approvalType === "THRESHOLD" && (
         <div className="mb-4">
-          <label className="block font-medium text-gray-700 my-2">
+          <label className="block font-medium my-2">
             Compatibility Score Threshold (%)
           </label>
           <input
@@ -262,11 +262,11 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
                   checked:before:-translate-x-1/2 checked:before:-translate-y-1/2 
                   checked:before:text-white checked:before:text-md"
             />
-            <span className="ml-2 font-medium text-gray-700">
+            <span className="ml-2 font-medium text-gray-700 dark:text-light">
               Match Only Within Adjacent Academic Stages
             </span>
           </label>
-          <p className="text-sm text-gray-600 italic ml-6 mt-1">
+          <p className="text-sm text-gray-600 italic ml-6 mt-1 dark:text-light/70">
             When checked, mentors will only be matched to mentees exactly one
             academic stage below them (e.g., a Year 2 mentor with a Year 1
             mentee). When unchecked, mentors from higher academic stages can be
@@ -288,11 +288,11 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
                   checked:before:-translate-x-1/2 checked:before:-translate-y-1/2 
                   checked:before:text-white checked:before:text-md"
             />
-            <span className="ml-2 font-medium text-gray-700">
+            <span className="ml-2 font-medium text-gray-700 dark:text-light">
               Match Only Within Same Course Group
             </span>
           </label>
-          <p className="text-sm text-gray-600 italic ml-6 mt-1">
+          <p className="text-sm text-gray-600 dark:text-light/70 italic ml-6 mt-1">
             When checked, matching will occur only between participants from the
             same course group. When unchecked, participants can be matched
             across different groups within the same course.
@@ -300,10 +300,10 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
         </div>
       </div>
       <div className="mb-4">
-        <label className="block font-medium text-gray-700 my-2">
+        <label className="block font-medium my-2">
           Matching Criteria
         </label>
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-gray-600 dark:text-light/70 mb-2">
           Adjust the weights to prioritize specific criteria. The total weight
           must equal 100.
         </p>
@@ -313,7 +313,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
               type="text"
               value={criterion.name}
               readOnly
-              className="flex-grow border bg-gray-100 rounded px-4 py-2 cursor-not-allowed"
+              className="flex-grow border bg-gray-100 dark:bg-dark dark:border dark:border-white/30  rounded px-4 py-2 cursor-not-allowed"
             />
             <input
               type="number"

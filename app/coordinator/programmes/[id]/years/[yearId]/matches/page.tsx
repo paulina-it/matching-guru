@@ -160,7 +160,7 @@ const ProgrammeYearMatches = () => {
   };
 
   return (
-    <div className="lg:w-[70vw] w-[95vw] bg-light p-6 my-[5em] rounded shadow relative">
+    <div className="lg:w-[70vw] w-[95vw] bg-light  dark:bg-dark dark:border dark:border-white/30  p-6 my-[5em] rounded shadow relative">
       <div className="flex lg:flex-row flex-col gap-6">
         <h2 className="h2 font-bold mb-4">Programme Year Matches</h2>
         <p className="lg:hidden text-center">
@@ -238,9 +238,9 @@ const ProgrammeYearMatches = () => {
             </div>
           ) : matches.length > 0 ? (
             <div>
-              <table className="min-w-full bg-white border border-gray-300">
+              <table className="min-w-full bg-white dark:bg-dark border border-gray-300">
                 <thead>
-                  <tr className="bg-gray-100">
+                  <tr className="bg-gray-100 dark:bg-black/40">
                     <th className="border p-2 m-auto">
                       <input
                         type="checkbox"

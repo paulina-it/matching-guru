@@ -64,7 +64,7 @@ const ParticipantsInProgrammeYear: React.FC = () => {
   )
 
   return (
-    <div className="mt-6 min-w-[65vw] bg-white rounded p-6 shadow-md">
+    <div className="mt-6 min-w-[65vw] bg-white  dark:bg-dark dark:border dark:border-white/30  rounded p-6 shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Participants</h2>
       </div>

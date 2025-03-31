@@ -28,10 +28,10 @@ const ProgrammeCard: React.FC<ProgrammeCardProps> = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center p-4 rounded shadow-sm bg-gray-50">
+    <div className="flex flex-col md:flex-row justify-between items-center p-4 rounded shadow-sm bg-gray-50  dark:bg-dark dark:border dark:border-white/30">
       <div className="flex-1">
-        <h3 className="text-lg font-semibold text-gray-800">{name}</h3>
-        <p className="text-sm text-gray-600">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-light">{name}</h3>
+        <p className="text-sm text-gray-600 dark:text-light/60">
           Participants: <strong>{participantsCount}</strong> | Matches: <strong>{matchesCount}</strong>
         </p>
       </div>

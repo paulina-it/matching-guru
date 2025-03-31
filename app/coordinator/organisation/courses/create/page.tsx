@@ -150,7 +150,7 @@ const CourseGroupsPage = () => {
         allowTouchMove={false}
       >
         {/* Slide 1: Manual or File Upload Selection */}
-        <SwiperSlide className="bg-light rounded-[5px] px-6 py-7">
+        <SwiperSlide className="bg-light  dark:bg-dark dark:border dark:border-white/30 rounded-[5px] px-6 py-7">
           <div className="flex flex-col items-center text-center">
             <h2 className="text-2xl font-bold mb-4">
               How would you like to add courses?
@@ -190,7 +190,7 @@ const CourseGroupsPage = () => {
         </SwiperSlide>
 
         {entryMode == "manual" ? (
-          <SwiperSlide className="bg-light rounded-[5px] px-6 py-7">
+          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-white/30  rounded-[5px] px-6 py-7">
             <form onSubmit={handleAddGroup}>
               <h2 className="text-xl font-bold text-center mb-4">
                 Add Courses at {user?.organisationName}
@@ -277,18 +277,18 @@ const CourseGroupsPage = () => {
             )}
           </SwiperSlide>
         ) : (
-          <SwiperSlide className="bg-light rounded-[5px] px-6 py-7">
+          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-white/30  rounded-[5px] px-6 py-7">
             <div className="flex flex-col items-center text-left justify-center m-auto">
               <h2 className="text-2xl font-bold text-center mb-4">
                 📁 File Upload Guide
               </h2>
 
-              <p className="mb-4 text-gray-700">
+              <p className="mb-4">
                 Please prepare <strong>one file</strong> in either{" "}
                 <code>.csv</code> or <code>.xlsx</code> format.
               </p>
 
-              <ul className="list-disc pl-6 mb-6 text-gray-600">
+              <ul className="list-disc pl-6 mb-6">
                 <li>
                  Columns:{" "}
                   <code>CourseGroup</code>, <code>Type</code>, and{" "}
@@ -309,7 +309,7 @@ const CourseGroupsPage = () => {
                 </li>
               </ul>
 
-              <p className="mb-6 text-gray-700">
+              <p className="mb-6 ">
                 Courses will be automatically matched to their respective groups
                 by <strong>CourseGroup</strong>. Please make sure the values are
                 spelled consistently across rows.

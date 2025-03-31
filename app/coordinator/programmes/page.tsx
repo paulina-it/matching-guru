@@ -56,7 +56,7 @@ const Programmes = () => {
   }
 
   return (
-    <div className="bg-light p-4 rounded lg:w-[50vw] relative m-5">
+    <div className="bg-light dark:bg-dark dark:border dark:border-white/30 p-4 rounded lg:w-[50vw] relative m-5">
       <h2 className="h2 mb-4">Programmes</h2>
       <Button
         onClick={handleRedirect}
@@ -79,9 +79,9 @@ const Programmes = () => {
         {programmes.length > 0 ? (
           programmes.map((programme, index) => (
             <Link href={`programmes/${programme.id}`} key={programme.id}>
-              <div className="mb-4 p-4 bg-white rounded shadow">
+              <div className="mb-4 p-4 bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow">
                 <h3 className="text-lg font-semibold">{programme.name}</h3>
-                <p className="text-gray-700">{programme.description}</p>
+                <p className="text-gray-700 dark:text-light/80">{programme.description}</p>
                 <p className="mt-5">Participants: {programme.participants}</p>
               </div>
             </Link>

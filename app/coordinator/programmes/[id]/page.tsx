@@ -64,7 +64,7 @@ const ProgrammeDetails = () => {
   }
 
   return (
-    <div className="max-w-[90vw] lg:max-w-[55vw] bg-light p-6 rounded shadow relative">
+    <div className="max-w-[90vw] lg:max-w-[55vw] bg-light dark:bg-dark dark:border dark:border-white/30  p-6 rounded shadow relative">
       <Button
         onClick={handleRedirect}
         variant="outline"
@@ -81,14 +81,14 @@ const ProgrammeDetails = () => {
       </Button>
 
       <h2 className="h2 font-bold mb-4">{programme?.name}</h2>
-      <p className="text-gray-700">{programme?.description}</p>
+      <p className="text-gray-700 dark:text-light/70">{programme?.description}</p>
       <p className="mt-4">Total Participants: {programme?.participants}</p>
       <div className="mt-6">
         <h3 className="h3">Academic Years</h3>
         {programmeYears && programmeYears.length > 0 ? (
           <table className="w-full mt-4 border-collapse border border-gray-300 text-sm text-left">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-gray-100 dark:bg-black/50">
                 <th className="border border-gray-300 px-4 py-2">
                   Academic Year
                 </th>
@@ -107,7 +107,7 @@ const ProgrammeDetails = () => {
             </thead>
             <tbody>
               {programmeYears.map((year) => (
-                <tr key={year.id} className="hover:bg-gray-50">
+                <tr key={year.id} className="">
                   <td className="border border-gray-300 px-4 py-2">
                     {year.academicYear}
                   </td>

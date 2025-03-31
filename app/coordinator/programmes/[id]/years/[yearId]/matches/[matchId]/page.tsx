@@ -73,7 +73,7 @@ const MatchDetails = () => {
   console.table(match);
 
   return (
-    <div className="lg:max-w-[65vw] max-w-[95vw] m-5 mt-[5em] bg-light p-6 rounded shadow relative">
+    <div className="lg:max-w-[65vw] max-w-[95vw] m-5 mt-[5em] bg-light  dark:bg-dark dark:border dark:border-white/30  p-6 rounded shadow relative">
       <h2 className="h2 font-bold mb-4">Match Details</h2>
 
       <div className="mt-4">
@@ -104,6 +104,7 @@ const MatchDetails = () => {
           </Button>
 
           <Button
+          variant={"outline"}
             onClick={() => handleStatusUpdate("DECLINED")}
             disabled={updating || match?.status === "DECLINED"}
             className={`bg-accent text-white hover:bg-accent-hover ${

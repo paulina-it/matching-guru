@@ -106,7 +106,7 @@ const ProgrammeYearPage = () => {
     : 0;
 
   return (
-    <div className="max-w-[90vw] lg:max-w-[65vw] bg-light p-6 my-[5em] rounded shadow relative">
+    <div className="max-w-[90vw] lg:max-w-[65vw] bg-light dark:bg-dark dark:border dark:border-white/30 p-6 my-[5em] rounded shadow relative">
       <div className="absolute top-5 right-5 flex gap-5">
         <Button
           variant="outline"
@@ -136,7 +136,7 @@ const ProgrammeYearPage = () => {
         </Button>
       </div>
       <h2 className="h2 font-bold mb-4">{programme?.name ?? "N/A"}</h2>
-      <p className="text-gray-700">
+      <p className="text-gray-700 dark:text-light/90">
         {programme?.description ?? "No description available."}
       </p>
       <div className="flex justify-between">
@@ -165,7 +165,7 @@ const ProgrammeYearPage = () => {
         programmeYear.matchingCriteria.length > 0 ? (
           <table className="w-full mt-2 border-collapse border border-gray-300">
             <thead>
-              <tr className="bg-gray-100 border border-gray-300">
+              <tr className="bg-gray-100 dark:bg-dark border border-gray-300">
                 <th className="px-4 py-2 text-left">Criterion Type</th>
                 <th className="px-4 py-2 text-left">Weight (%)</th>
               </tr>
