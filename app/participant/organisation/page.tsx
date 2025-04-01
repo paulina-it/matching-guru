@@ -5,53 +5,35 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import {
-  fetchAdminOrganisation,
-  createOrganisationAndAssignToUser,
   fetchOrganisation,
+  joinOrganisation,
 } from "@/app/api/organisation";
 import { useAuth } from "@/app/context/AuthContext";
 import { PulseLoader } from "react-spinners";
 import { toast, Toaster } from "react-hot-toast";
 import Image from "next/image";
-import { redirect } from "next/navigation";
-import { fetchCourseGroupsByOrganisationId } from "@/app/api/courses";
 import { OrganisationResponseDto } from "@/app/types/organisation";
-
-interface Course {
-  id: number;
-  name: string;
-}
-
-interface CourseGroup {
-  id: number;
-  name: string;
-  courses: Course[];
-}
+import { Input } from "@/components/ui/input";
 
 const OrganisationPage = () => {
-  const [organisation, setOrganisation] = useState<OrganisationResponseDto | null>(
-    null
-  );
+  const [organisation, setOrganisation] = useState<OrganisationResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [joinCode, setJoinCode] = useState("");
+  const [isJoining, setIsJoining] = useState(false);
   const { user } = useAuth();
-  const [courseGroups, setCourseGroups] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.organisationId) {
-        console.error("User organisation ID is undefined");
+        setLoading(false); // Still stop loading even if no org
         return;
       }
 
-      setLoading(true);
       try {
-        const data = await fetchOrganisation(user?.organisationId);
+        const data = await fetchOrganisation(user.organisationId);
         setOrganisation(data);
       } catch (err) {
-        toast.error("Failed to fetch data.");
+        toast.error("Failed to fetch organisation.");
         console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
@@ -59,18 +41,38 @@ const OrganisationPage = () => {
     };
 
     fetchData();
-  }, []);
+  }, [user]);
+
+  const handleJoinOrganisation = async () => {
+    if (!joinCode.trim()) {
+      toast.error("Please enter a join code.");
+      return;
+    }
+
+    try {
+      setIsJoining(true);
+      await joinOrganisation(joinCode.trim());
+      toast.success("Successfully joined the organisation!");
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message || "Invalid join code.");
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   if (loading) {
-    return <PulseLoader color="#ba5648" size={15} />;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <PulseLoader color="#ba5648" size={15} />
+      </div>
+    );
   }
-
-  console.log(organisation);
 
   return (
     <div className="w-full max-w-[80%] m-auto h-full flex items-center justify-center">
-      <Toaster position="top-right" /> 
-      {organisation?.id != null ? (
+      <Toaster position="top-right" />
+      {organisation ? (
         <div className="bg-light dark:bg-dark dark:border dark:border-white/30 my-[10vh] p-12 rounded-[10px]">
           <div className="flex justify-between gap-[3em]">
             <div>
@@ -87,7 +89,27 @@ const OrganisationPage = () => {
           </div>
         </div>
       ) : (
-        ""
+        <div className="bg-light dark:bg-dark dark:border dark:border-white/30 my-[10vh] p-10 rounded-[10px] w-full min-w-[40vw] text-dark dark:text-light">
+          <h2 className="text-xl font-semibold mb-4">Join an Organisation</h2>
+          <label htmlFor="joinCode" className="block mb-2 text-sm font-medium">
+            Enter Organisation Join Code
+          </label>
+          <Input
+            id="joinCode"
+            type="text"
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value)}
+            placeholder="Enter code..."
+            className="mb-4"
+          />
+          <Button
+            onClick={handleJoinOrganisation}
+            disabled={isJoining}
+            className="w-full"
+          >
+            {isJoining ? "Joining..." : "Join Organisation"}
+          </Button>
+        </div>
       )}
     </div>
   );

@@ -60,7 +60,7 @@ const ParticipantDashboard = () => {
           </h3>
         ) : (
           <div className="flex flex-col justify-center items-center">
-            <p className="text-gray-700 mb-4">No organisation found.</p>
+            <p className="text-gray-700 dark:text-light/80 mb-4">No organisation found.</p>
             <Button
               onClick={() => setIsModalOpen(true)}
               variant="outline"
