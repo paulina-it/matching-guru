@@ -8,7 +8,8 @@ interface InputFieldProps {
   type?: string;
   required?: boolean;
   placeholder?: string;
-  accept?: string; 
+  accept?: string;
+  hasError?: boolean;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -19,7 +20,8 @@ const InputField: React.FC<InputFieldProps> = ({
   type = "text",
   required,
   placeholder,
-  accept
+  accept,
+  hasError,
 }) => (
   <div className="col-span-2 md:col-span-1">
     <label htmlFor={id} className="block mb-1 text-gray-700 dark:text-light">
@@ -35,6 +37,9 @@ const InputField: React.FC<InputFieldProps> = ({
       required={required}
       accept={accept}
       {...(type !== "file" && { value })}
+      className={`border rounded px-3 py-2 w-full ${
+        hasError ? "border-accent" : "border-gray-300"
+      }`}
     />
   </div>
 );

@@ -36,6 +36,7 @@ const Signup: React.FC = () => {
     "/assets/placeholders/avatar.png"
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [invalidFields, setInvalidFields] = useState<string[]>([]);
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -88,37 +89,67 @@ const Signup: React.FC = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 🔍 **Form Validation**
-    const errors = [];
-    if (!formData.firstName.trim()) errors.push("First Name is required.");
-    if (!formData.lastName.trim()) errors.push("Last Name is required.");
-    if (!formData.email.trim()) errors.push("Email is required.");
-    if (!formData.password.trim()) errors.push("Password is required.");
-    if (formData.password !== confirmPassword)
+    const errors: string[] = [];
+    const invalids: string[] = [];
+
+    if (!formData.firstName.trim()) {
+      errors.push("First Name is required.");
+      invalids.push("firstName");
+    }
+
+    if (!formData.lastName.trim()) {
+      errors.push("Last Name is required.");
+      invalids.push("lastName");
+    }
+
+    if (!formData.email.trim()) {
+      errors.push("Email is required.");
+      invalids.push("email");
+    } else if (!validateEmail(formData.email)) {
+      errors.push("Invalid email format.");
+      invalids.push("email");
+    }
+
+    if (!formData.password) {
+      errors.push("Password is required.");
+      invalids.push("password");
+    } else if (!validatePassword(formData.password)) {
+      errors.push(
+        "Password must be at least 8 characters and include a number, uppercase and lowercase letter."
+      );
+      invalids.push("password");
+    }
+
+    if (!confirmPassword) {
+      errors.push("Confirm your password.");
+      invalids.push("confirmPassword");
+    } else if (formData.password !== confirmPassword) {
       errors.push("Passwords do not match.");
+      invalids.push("password", "confirmPassword");
+    }
+
+    if (role === UserRole.USER && !formData.joinCode?.trim()) {
+      errors.push("Organisation join code is required.");
+      invalids.push("joinCode");
+    }
+
+    setInvalidFields(invalids);
 
     if (errors.length > 0) {
-      errors.forEach((error) => toast.error(error));
+      errors.forEach((err) => toast.error(err));
       return;
     }
 
     try {
       setIsSubmitting(true);
-      console.log("Registering user...");
-
       const userResponse = await register(formData);
       if (!userResponse) throw new Error("User registration failed");
 
       let imageUrl = "";
-
       if (profileImage) {
-        console.log("Uploading profile image...");
-
         try {
           imageUrl = await uploadProfileImage(profileImage);
-          console.log("Image uploaded successfully:", imageUrl);
-        } catch (error) {
-          console.error("Image Upload Error:", error);
+        } catch {
           toast.error("Image upload failed, but signup was successful.");
         }
       }
@@ -133,15 +164,11 @@ const Signup: React.FC = () => {
       }
 
       toast.success("Signup completed successfully! 🎉");
-
-      router.push(
-        formData.role === UserRole.USER ? "/participant" : "/coordinator"
-      );
+      router.push(role === UserRole.USER ? "/participant" : "/coordinator");
     } catch (error) {
       toast.error(
         (error as Error).message || "Signup failed. Please try again."
       );
-      console.error("Signup Error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -183,11 +210,12 @@ const Signup: React.FC = () => {
                       </Button>
                     </div>
                     <Link href={"/auth/login"}>
-                      <p className="mt-5 text-dark/60 hover:underline hover:text-dark transition-all duration-200 text-center">
+                      <p className="mt-5 text-dark/60 dark:text-light hover:underline hover:text-dark transition-all duration-200 text-center">
                         Already have an account? Login
                       </p>
                     </Link>
                   </div>
+                  
                 </SwiperSlide>
 
                 <SwiperSlide>
@@ -207,6 +235,7 @@ const Signup: React.FC = () => {
                       handleImageChange={handleImageChange}
                       previewUrl={previewUrl}
                       isSubmitting={isSubmitting}
+                      invalidFields={invalidFields}
                     />
                   )}
                   {role === UserRole.ADMIN && (
@@ -218,6 +247,7 @@ const Signup: React.FC = () => {
                       handleImageChange={handleImageChange}
                       previewUrl={previewUrl}
                       isSubmitting={isSubmitting}
+                      invalidFields={invalidFields}
                     />
                   )}
                   {error && <p className="text-red-500 mt-4">{error}</p>}
@@ -239,6 +269,7 @@ interface FormProps {
   handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   previewUrl?: string;
   isSubmitting: boolean;
+  invalidFields: string[];
 }
 
 const ParticipantForm: React.FC<FormProps> = ({
@@ -249,6 +280,7 @@ const ParticipantForm: React.FC<FormProps> = ({
   handleImageChange,
   previewUrl,
   isSubmitting,
+  invalidFields
 }) => (
   <form
     className="grid grid-cols-1 md:grid-cols-2 gap-4 gap-y-8"
@@ -284,6 +316,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       onChange={onChange}
       required={true}
       placeholder="Enter your first name"
+      hasError={invalidFields.includes("firstName")}
     />
     <InputField
       id="lastName"
@@ -292,6 +325,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       onChange={onChange}
       required={true}
       placeholder="Enter your last name"
+      hasError={invalidFields.includes("lastName")}
     />
     <InputField
       id="email"
@@ -300,6 +334,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       onChange={onChange}
       required={true}
       placeholder="Enter your main email"
+      hasError={invalidFields.includes("email")}
     />
     <InputField
       id="uniEmail"
@@ -308,6 +343,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       onChange={onChange}
       required={false}
       placeholder="Enter your university email"
+      hasError={invalidFields.includes("uniEmail")}
     />
     <InputField
       id="password"
@@ -317,6 +353,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       onChange={onChange}
       required={true}
       placeholder="Enter your password"
+      hasError={invalidFields.includes("password")}
     />
     <InputField
       id="confirmPassword"
@@ -326,6 +363,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       onChange={onChange}
       required={true}
       placeholder="Confirm your password"
+      hasError={invalidFields.includes("confirmPassword")}
     />
     <InputField
       id="studentNumber"
@@ -334,6 +372,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       onChange={onChange}
       required={false}
       placeholder="Enter your student number"
+      hasError={invalidFields.includes("studentNumber")}
     />
     <InputField
       id="joinCode"
@@ -342,6 +381,7 @@ const ParticipantForm: React.FC<FormProps> = ({
       onChange={onChange}
       required={true}
       placeholder="Enter your organisation join code"
+      hasError={invalidFields.includes("joinCode")}
     />
     <Button type="submit" className="w-full h-12 text-xl col-span-2">
       {isSubmitting ? "Signing Up..." : "Signup"}
@@ -357,6 +397,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
   handleImageChange,
   previewUrl,
   isSubmitting,
+  invalidFields
 }) => {
   const [orgExists, setOrgExists] = useState("yes");
   const [confirmEmail, setConfirmEmail] = useState<string>("");
@@ -413,6 +454,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
         onChange={onChange}
         required={true}
         placeholder="Enter your first name"
+        hasError={invalidFields.includes("firstName")}
       />
       <InputField
         id="lastName"
@@ -421,6 +463,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
         onChange={onChange}
         required={true}
         placeholder="Enter your last name"
+        hasError={invalidFields.includes("lastName")}
       />
       <InputField
         id="email"
@@ -429,6 +472,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
         onChange={onChange}
         required={true}
         placeholder="Enter your university/work email"
+        hasError={invalidFields.includes("email")}
       />
       <InputField
         id="confirmEmail"
@@ -437,6 +481,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
         onChange={handleConfirmEmailChange}
         required={true}
         placeholder="Confirm your university/work email"
+        hasError={invalidFields.includes("confirmEmail")}
       />
       <InputField
         id="password"
@@ -446,6 +491,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
         onChange={onChange}
         required={true}
         placeholder="Enter your password"
+        hasError={invalidFields.includes("password")}
       />
       <InputField
         id="confirmPassword"
@@ -455,6 +501,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
         onChange={onChange}
         required={true}
         placeholder="Confirm your password"
+        hasError={invalidFields.includes("confirmPassword")}
       />
       <div className="col-span-2 md:col-span-1">
         <p className="text-gray-700 mb-2">
@@ -494,6 +541,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
           onChange={onChange}
           required={orgExists === "yes"}
           placeholder="Enter your join code"
+          hasError={invalidFields.includes("joinCode")}
         />
       )}
 

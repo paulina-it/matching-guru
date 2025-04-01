@@ -57,7 +57,7 @@ const Login: React.FC = () => {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4" noValidate>
               <div>
-                <label htmlFor="email" className="block mb-1 text-gray-700">
+                <label htmlFor="email" className="block mb-1">
                   Email
                 </label>
                 <Input
@@ -70,7 +70,7 @@ const Login: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block mb-1 text-gray-700">
+                <label htmlFor="password" className="block mb-1">
                   Password
                 </label>
                 <Input
