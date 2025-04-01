@@ -296,7 +296,7 @@ const ParticipantProgrammeDetails = () => {
 
             {!matchDetails?.length ? (
               <p className="mt-3 text-gray-500 italic">No match found yet.</p>
-            )  : null}
+            ) : null}
           </div>
         )}
 
@@ -304,6 +304,32 @@ const ParticipantProgrammeDetails = () => {
           console.log("MATCH");
           console.log(match);
           const logs = logsByMatchId[match.id] || [];
+
+          const sortedLogs = [...logs].sort(
+            (a, b) =>
+              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          );
+
+          const lastInteraction = sortedLogs.find(
+            (log) => log.status === CommunicationStatus.COMPLETED
+          );
+          const now = new Date();
+          const lastInteractionDate = lastInteraction
+            ? new Date(lastInteraction.timestamp)
+            : null;
+
+          const msInDay = 1000 * 60 * 60 * 24;
+          let daysSinceLastInteraction: number | null = null;
+          if (lastInteraction) {
+            daysSinceLastInteraction = Math.floor(
+              (now.getTime() - new Date(lastInteraction.timestamp).getTime()) /
+                msInDay
+            );
+          } else if (match.updatedAt) {
+            daysSinceLastInteraction = Math.floor(
+              (now.getTime() - new Date(match.updatedAt).getTime()) / msInDay
+            );
+          }
 
           const shared = (() => {
             const mentor = match.mentor;
@@ -494,6 +520,13 @@ ${user?.firstName}`;
                     </p>
                   )}
                   {/* Interaction History */}
+                  {daysSinceLastInteraction !== null &&
+                    daysSinceLastInteraction > 14 && (
+                      <p className="text-accent mt-2 font-medium italic text-sm">
+                        ⚠️ It's been over 2 weeks since your last logged
+                        interaction. Consider reaching out to your match!
+                      </p>
+                    )}
                   {logs.length > 0 && (
                     <div className="mt-4">
                       <h5 className="font-semibold mb-1 text-sm">
