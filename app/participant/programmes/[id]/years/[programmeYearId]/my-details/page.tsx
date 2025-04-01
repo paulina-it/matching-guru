@@ -35,6 +35,7 @@ import {
   getLogsForMatch,
   updateCommunicationLog,
 } from "@/app/api/communicationLogs";
+import FeedbackSubmissionBox from "@/components/FeedbackSubmissionBox";
 
 const ParticipantProgrammeDetails = () => {
   const params = useParams() as { id: string; programmeYearId: string };
@@ -70,6 +71,8 @@ const ParticipantProgrammeDetails = () => {
   );
   const [logs, setLogs] = useState<CommunicationLogDto[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
+  const [feedbackCode, setFeedbackCode] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -251,6 +254,11 @@ const ParticipantProgrammeDetails = () => {
       <p className=" text-dark dark:text-light mt-3">
         Contact details: mentoring@aston.ac.uk
       </p>
+      <FeedbackSubmissionBox
+        userId={user!.id}
+        programmeYearId={programmeYearId}
+        alreadySubmitted={participant?.hasSubmittedFeedback}
+      />
 
       <div className="mt-6">
         {matchDetails.length === 1 && (

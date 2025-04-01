@@ -10,8 +10,8 @@ export interface ParticipantCreateDto {
   placementInterest?: boolean | null;
   motivation?: string | null;
   isReturningParticipant?: boolean | null;
-  availableDays?: string[] | null; 
-  timeRange?: string | null; 
+  availableDays?: string[] | null;
+  timeRange?: string | null;
   meetingFrequency?: string | null;
   skills?: string[] | null;
   gender?: string | null;
@@ -26,8 +26,7 @@ export interface ParticipantCreateDto {
   ageGroup?: string | null;
 }
 
-  
-  export type AcademicStage =
+export type AcademicStage =
   | "FOUNDATION"
   | "PG_PHD"
   | "PLACEMENT"
@@ -40,64 +39,69 @@ export interface ParticipantCreateDto {
   | "FINAL_YEAR"
   | "SECOND_YEAR_P";
 
-  export interface ParticipantDto {
-    id: number;
-    userId: number;
-    userName: string;
-    userEmail: string;
-    programmeYearId: number;
-    programmeName: string;
-    academicYear: string;
-    role: "MENTOR" | "MENTEE";
-    menteesNumber: number | null;
-    isMatched: boolean;
-    academicStage: AcademicStage;
-    hadPlacement: boolean;
-    placementDescription: string | null;
-    motivation: string | null;
-    isReturningParticipant: boolean;
-  }
-  export type ParticipantResponseDto = {
-    id: number
-    userId: number
-    userName: string
-    userEmail: string
-    userGender: 'MALE' | 'FEMALE' | 'OTHER'
-    userAge: number
-    userNationality: string
-    userHomeCountry: string
-    userPersonalityType: string
-    userCourseId: number
-    userCourseName: string
-    userLivingArrangement: string
-    userDisability: string
-    userDbsCertificate: boolean
-    userAgeGroup: string
-  
-    programmeYearId: number
-    programmeName: string
-    academicYear: string
-  
-    role: 'MENTOR' | 'MENTEE'
-    menteesNumber: number | null
-    isMatched: boolean
-    academicStage: string
-    hadPlacement: boolean
-    placementDescription: string
-    motivation: string
-    isReturningParticipant: boolean
-    availableDays: DayOfWeek[]
-    timeRange: string
-    meetingsFrequency: string
-    skills: string[]
-  }
-  
-  export type DayOfWeek =
-    | 'MONDAY'
-    | 'TUESDAY'
-    | 'WEDNESDAY'
-    | 'THURSDAY'
-    | 'FRIDAY'
-    | 'SATURDAY'
-    | 'SUNDAY'
-  
+export interface ParticipantDto {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  programmeYearId: number;
+  programmeName: string;
+  academicYear: string;
+  role: "MENTOR" | "MENTEE";
+  menteesNumber: number | null;
+  isMatched: boolean;
+  academicStage: AcademicStage;
+  hadPlacement: boolean;
+  placementDescription: string | null;
+  motivation: string | null;
+  isReturningParticipant: boolean;
+}
+export type ParticipantResponseDto = {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  userGender: "MALE" | "FEMALE" | "OTHER";
+  userAge: number;
+  userNationality: string;
+  userHomeCountry: string;
+  userPersonalityType: string;
+  userCourseId: number;
+  userCourseName: string;
+  userLivingArrangement: string;
+  userDisability: string;
+  userDbsCertificate: boolean;
+  userAgeGroup: string;
+
+  programmeYearId: number;
+  programmeName: string;
+  academicYear: string;
+
+  role: "MENTOR" | "MENTEE";
+  menteesNumber: number | null;
+  isMatched: boolean;
+  academicStage: string;
+  hadPlacement: boolean;
+  placementDescription: string;
+  motivation: string;
+  isReturningParticipant: boolean;
+  availableDays: DayOfWeek[];
+  timeRange: string;
+  meetingsFrequency: string;
+  skills: string[];
+};
+
+export type DayOfWeek =
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY"
+  | "SUNDAY";
+
+export interface FeedbackSubmissionDto {
+  userId: number;
+  programmeYearId: number;
+  secretCode: string;
+}

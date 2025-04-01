@@ -1,4 +1,4 @@
-import { ParticipantCreateDto, ParticipantDto } from "@/app/types/participant";
+import { ParticipantCreateDto, ParticipantDto, FeedbackSubmissionDto } from "@/app/types/participant";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 /**
@@ -273,6 +273,38 @@ export async function getParticipantInfoByUserIdAndProgrammeYearId(
     return await response.json();
   } catch (error) {
     console.error("Error fetching participant:", error);
+    throw error;
+  }
+}
+
+/**
+ * Submits feedback code to unlock certificate.
+ *
+ * @param dto - FeedbackSubmissionDto containing userId, programmeYearId and secretCode
+ * @returns Promise resolving to success message
+ */
+export async function submitFeedbackCode(dto: FeedbackSubmissionDto) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/participants/feedback`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(dto),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Failed to submit feedback.");
+    }
+
+    return await response.text(); // "Feedback recorded."
+  } catch (error) {
+    console.error("Feedback submission error:", error);
     throw error;
   }
 }
