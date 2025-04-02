@@ -3,12 +3,14 @@ export interface ProgrammeCreateDto {
   description: string;
   organisationId: number;
   courseGroupIds: number[];
+  contactEmail: string;
 }
 
 export interface ProgrammeUpdateDto {
   name: string;
   description: string;
   courseGroupIds: number[];
+  contactEmail: string;
 }
 
 export interface ProgrammeDto {
@@ -18,6 +20,7 @@ export interface ProgrammeDto {
   organisationId: number;
   courseGroupIds: number[];
   participants: number;
+  contactEmail: string;
 }
 
 export interface MatchingCriteriaDto {
@@ -35,6 +38,9 @@ export enum AlgorithmType {
 export interface ProgrammeYearDto {
   id: number;
   academicYear: string;
+  programmeName?: string;
+  programmeDescription?: string;
+  contactEmail?: string;
   isActive: boolean;
   preferredAlgorithm: "GALE_SHAPLEY" | "COLLABORATIVE_FILTERING" | "BRACE";
   joinCode?: string;
@@ -46,6 +52,8 @@ export interface ProgrammeYearDto {
   approvalThreshold?: number | null;
   strictAcademicStage?: boolean;
   strictCourseGroup?: boolean;
+  surveyOpenDate?: Date;
+  surveyCloseDate?: Date;
 }
 export interface ProgrammeYearUpdateDto {
   academicYear?: string;

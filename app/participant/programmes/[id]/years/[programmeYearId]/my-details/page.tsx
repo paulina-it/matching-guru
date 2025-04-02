@@ -2,15 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { fetchProgrammeById } from "@/app/api/programmes";
-import { ProgrammeDto } from "@/app/types/programmes";
+import { fetchProgrammeById, fetchProgrammeYear } from "@/app/api/programmes";
+import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import {
-  getParticipantInfoByUserId,
-  getParticipantInfoByUserIdAndProgrammeYearId,
-} from "@/app/api/participant";
+import { getParticipantInfoByUserIdAndProgrammeYearId } from "@/app/api/participant";
 import { useAuth } from "@/app/context/AuthContext";
 import { Pencil, Trash, CheckCircle } from "lucide-react";
 import { formatText } from "@/app/utils/text";
@@ -42,13 +39,16 @@ const ParticipantProgrammeDetails = () => {
   const programmeId = parseInt(params.id, 10);
   const programmeYearId = parseInt(params.programmeYearId, 10);
   const { user } = useAuth();
-  const router = useRouter();
-  const [meetingLink, setMeetingLink] = useState("");
-  const saveMeetingLink = () => {
-    toast.success("Meeting link saved!");
-  };
+  // const router = useRouter();
+  // const [meetingLink, setMeetingLink] = useState("");
+  // const saveMeetingLink = () => {
+  //   toast.success("Meeting link saved!");
+  // };
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
+  const [programmeYear, setProgrammeYear] = useState<ProgrammeYearDto | null>(
+    null
+  );
   const [matchDetails, setMatchDetails] = useState<any[]>([]);
   const [logsByMatchId, setLogsByMatchId] = useState<
     Record<number, CommunicationLogDto[]>
@@ -73,26 +73,31 @@ const ParticipantProgrammeDetails = () => {
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
   const [feedbackCode, setFeedbackCode] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const now = new Date();
+  const [surveyOpen, setSurveyOpen] = useState<Date | null>();
+  const [surveyClosed, setSurveyClosed] = useState<Date | null>();
+  const [canShowFeedbackBox, setCanShowFeedbackBox] = useState<boolean>(false);
+
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!programmeId || !user) return;
+      if (!programmeYearId || !user) return;
 
       try {
         const [programmeData, matchArray] = await Promise.all([
-          fetchProgrammeById(programmeId),
+          fetchProgrammeYear(programmeYearId),
           getParticipantInfoByUserIdAndProgrammeYearId(
             user.id,
             programmeYearId
           ),
         ]);
 
-        setProgramme(programmeData);
+        setProgrammeYear(programmeData);
         setMatchDetails(matchArray);
         setIsMentor(matchArray[0]?.mentor?.email === user.email);
         const userIsMentor = matchArray[0]?.mentor?.email === user.email;
         setIsMentor(userIsMentor);
-
+        
         const selected = userIsMentor
           ? { ...matchArray[0].mentor, role: "MENTOR" }
           : { ...matchArray[0].mentee, role: "MENTEE" };
@@ -114,6 +119,26 @@ const ParticipantProgrammeDetails = () => {
 
     fetchData();
   }, [programmeId, programmeYearId, user]);
+
+  useEffect(() => {
+    const setSurveyDates = () => {
+      console.log(programmeYear);
+      
+      setSurveyOpen(programmeYear?.surveyOpenDate);
+      setSurveyClosed(programmeYear?.surveyCloseDate);
+
+      console.log("OPEN");
+      console.log(surveyOpen);
+      console.log("CLOSED");
+      console.log(surveyClosed);
+
+      if (surveyOpen != null && surveyClosed != null) {
+        setCanShowFeedbackBox(now >= surveyOpen && now <= surveyClosed);
+      }
+    }
+
+    setSurveyDates();
+  }, [programmeYear])
 
   const getNextDateForDay = (dayName: string): string => {
     const daysOfWeek: Record<string, number> = {
@@ -246,20 +271,24 @@ const ParticipantProgrammeDetails = () => {
   return (
     <div className="max-w-[55vw] bg-light p-6 rounded shadow relative dark:bg-dark dark:border dark:border-white/30 text-light">
       <h2 className="h2 font-bold mb-4 text-dark dark:text-light">
-        {programme?.name ?? "N/A"}
+        {programmeYear?.programmeName ?? "N/A"} |{" "}
+        {programmeYear?.academicYear ?? "N/A"}
       </h2>
       <p className="text-gray-700 dark:text-light/60">
-        {programme?.description ?? "No description available"}
+        {programmeYear?.programmeDescription ?? "No description available"}
       </p>
-      <p className=" text-dark dark:text-light mt-3">
-        Contact details: mentoring@aston.ac.uk
-      </p>
-      <FeedbackSubmissionBox
-        userId={user!.id}
-        programmeYearId={programmeYearId}
-        alreadySubmitted={participant?.hasSubmittedFeedback}
-      />
-
+      {programmeYear?.contactEmail && (
+        <p className=" text-dark dark:text-light mt-3">
+          Contact details: {programmeYear?.contactEmail}
+        </p>
+      )}
+      {canShowFeedbackBox && (
+        <FeedbackSubmissionBox
+          userId={user!.id}
+          programmeYearId={programmeYearId}
+          alreadySubmitted={participant?.hasSubmittedFeedback}
+        />
+      )}
       <div className="mt-6">
         {matchDetails.length === 1 && (
           <p className="bg-secondary dark:bg-secondary-dark text-white rounded p-2 w-fit absolute top-6 right-6">
@@ -321,7 +350,6 @@ const ParticipantProgrammeDetails = () => {
           const lastInteraction = sortedLogs.find(
             (log) => log.status === CommunicationStatus.COMPLETED
           );
-          const now = new Date();
           const lastInteractionDate = lastInteraction
             ? new Date(lastInteraction.timestamp)
             : null;
