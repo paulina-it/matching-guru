@@ -54,6 +54,7 @@ export interface ProgrammeYearDto {
   strictCourseGroup?: boolean;
   surveyOpenDate?: Date;
   surveyCloseDate?: Date;
+  surveyUrl: string;
 }
 export interface ProgrammeYearUpdateDto {
   academicYear?: string;
@@ -64,6 +65,9 @@ export interface ProgrammeYearUpdateDto {
   approvalThreshold?: number | null;
   strictAcademicStage?: boolean;
   strictCourseGroup?: boolean;
+  surveyOpenDate?: Date;
+  surveyCloseDate?: Date;
+  surveyUrl: string;
 }
 
 export interface ProgrammeYearCreateDto {
@@ -76,6 +80,9 @@ export interface ProgrammeYearCreateDto {
   approvalThreshold?: number | null;
   strictAcademicStage?: boolean;
   strictCourseGroup?: boolean;
+  surveyOpenDate?: Date;
+  surveyCloseDate?: Date;
+  surveyUrl: string;
 }
 
 export enum CriterionType {

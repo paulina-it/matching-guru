@@ -54,7 +54,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </div>
 
       
-      <main className={`w-full min-h-screen bg-dark flex items-center justify-center relative ${collapsed ? "lg:ml-[4rem]" : "lg:ml-[15rem]"}`}>
+      <main className={`w-full min-h-screen bg-primary/50 dark:bg-dark flex items-center justify-center relative ${collapsed ? "lg:ml-[4rem]" : "lg:ml-[15rem]"}`}>
         <Logout className=" absolute top-5 right-5 text-accent hover:text-white" />
         <PageTransition>{children}</PageTransition>
       </main>

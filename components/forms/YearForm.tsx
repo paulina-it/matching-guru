@@ -17,6 +17,12 @@ import {
 import toast from "react-hot-toast";
 import { PulseLoader } from "react-spinners";
 import { useRouter } from "next/navigation";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface ProgrammeYearFormProps {
   programmeId: number;
@@ -55,8 +61,14 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   const [approvalThreshold, setApprovalThreshold] = useState<number>(70);
   const [strictAcademicStage, setStrictAcademicStage] = useState(true);
   const [strictCourseGroup, setStrictCourseGroup] = useState(true);
+  const [collectFeedback, setCollectFeedback] = useState(false);
+  const [surveyOpenDate, setSurveyOpenDate] = useState("");
+  const [surveyCloseDate, setSurveyCloseDate] = useState("");
+  const [surveyUrl, setSurveyUrl] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [openAlgorithmInfo, setOpenAlgorithmInfo] = useState(false);
+  const [openStrictnessInfo, setOpenStrictnessInfo] = useState(false);
   const router = useRouter();
 
   const totalWeight = criteria.reduce(
@@ -100,6 +112,18 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
             | "AUTO";
           setApprovalType(backendApprovalType);
           setApprovalThreshold(data.approvalThreshold || 70);
+          setCollectFeedback(!!data.surveyUrl);
+          setSurveyOpenDate(
+            data.surveyOpenDate
+              ? new Date(data.surveyOpenDate).toISOString().slice(0, 16)
+              : ""
+          );
+          setSurveyCloseDate(
+            data.surveyCloseDate
+              ? new Date(data.surveyCloseDate).toISOString().slice(0, 16)
+              : ""
+          );
+          setSurveyUrl(data.surveyUrl || "");
         })
         .catch(() => {
           toast.error("Failed to load programme year details.");
@@ -145,6 +169,9 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       approvalThreshold: approvalThreshold,
       strictAcademicStage,
       strictCourseGroup,
+      surveyOpenDate: surveyOpenDate ? new Date(surveyOpenDate) : undefined,
+      surveyCloseDate: surveyCloseDate ? new Date(surveyCloseDate) : undefined,
+      surveyUrl,
     };
 
     try {
@@ -175,7 +202,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-[90vw] lg:max-w-[50vw] my-[5em] lg:my-10 bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-5"
+      className="max-w-[90vw] lg:max-w-[60vw] lg:min-w-[60vw] my-[5em] lg:my-10 bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-5"
     >
       {" "}
       <h2 className="text-2xl font-bold mb-4">
@@ -191,7 +218,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
         required
       />
       <div className="mb-4">
-        <label className="block font-medium my-2">
+        <label className="block font-medium mb-2 mt-5 h3">
           Preferred Algorithm
         </label>
         <select
@@ -202,17 +229,128 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
           className="w-full border rounded px-4 py-2"
         >
           <option value={AlgorithmType.GALE_SHAPLEY}>Gale-Shapley</option>
-          <option value={AlgorithmType.COLLABORATIVE_FILTERING}>
+          {/* <option value={AlgorithmType.COLLABORATIVE_FILTERING}>
             Collaborative Filtering
-          </option>
+          </option> */}
           <option value={AlgorithmType.BRACE}>BRACE</option>
         </select>
+
+        {/* 💡 Algorithm Explanation */}
+        <Collapsible
+          open={openAlgorithmInfo}
+          onOpenChange={setOpenAlgorithmInfo}
+        >
+          <CollapsibleTrigger asChild>
+            <div className="cursor-pointer flex items-center gap-2 text-primary hover:text-primary-dark transition-colors duration-300">
+              {openAlgorithmInfo ? (
+                <ChevronUp size={18} />
+              ) : (
+                <ChevronDown size={18} />
+              )}
+              <span className="underline underline-offset-4 font-medium">
+                Learn about matching algorithms
+              </span>
+            </div>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="mt-2 px-4 py-3 bg-muted/30 dark:bg-muted/20 rounded-md border text-sm leading-relaxed space-y-2 transition-all duration-300 ease-in-out overflow-hidden data-[state=closed]:max-h-0 data-[state=open]:max-h-[500px]">
+            <p>
+              <strong>Gale-Shapley (GS):</strong> Prioritises mentor
+              preferences. The soft version improves coverage significantly
+              (~71%) and is most suitable for small cohorts (under 100 participants).
+            </p>
+            <p>
+              <strong>BRACE:</strong> Balances mentee needs, especially
+              effective in high-volume scenarios. Achieves ~72% match rate in
+              soft mode.
+            </p>
+            <p className="italic text-muted-foreground">
+              Both support multi-mentee matching. Choose based on coordinator
+              preference.
+            </p>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+      {/* Strict or Soft Matching */}
+      <div className="mb-6">
+        <h3 className="h3 mb-[-1em]">Matching Strictness Settings</h3>
+        <div className="mb-4">
+
+          {/* 🧩 Matching Strictness Help */}
+          <Collapsible
+            open={openStrictnessInfo}
+            onOpenChange={setOpenStrictnessInfo}
+          >
+            <CollapsibleTrigger asChild>
+              <div className="cursor-pointer flex items-center gap-2 text-primary hover:text-primary-dark transition-colors duration-300 mt-7">
+                {openStrictnessInfo ? (
+                  <ChevronUp size={18} />
+                ) : (
+                  <ChevronDown size={18} />
+                )}
+                <span className="underline underline-offset-4 font-medium">
+                  What does strict matching do?
+                </span>
+              </div>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent className="mt-2 px-4 py-3 bg-muted/30 dark:bg-muted/20 rounded-md border text-sm leading-relaxed space-y-2 transition-all duration-300 ease-in-out overflow-hidden data-[state=closed]:max-h-0 data-[state=open]:max-h-[500px]">
+              <p>
+                <strong>Strict Academic Stage:</strong> Matches mentors with
+                mentees from only one stage below (e.g., Year 2 → Year 1).
+              </p>
+              <p>
+                <strong>Strict Course Group:</strong> Restricts matching to
+                participants from the same course group.
+              </p>
+              <p className="italic text-muted-foreground">
+                Unchecking these options allows broader pairing and increases
+                match coverage.
+              </p>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+
+        <div className="mb-4 mx-4">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={strictAcademicStage}
+              onChange={() => setStrictAcademicStage(!strictAcademicStage)}
+            />
+            <span className="ml-2 font-medium text-gray-700 dark:text-light">
+              Match Only Within Adjacent Academic Stages
+            </span>
+          </label>
+          {/* <p className="text-sm text-gray-600 italic ml-6 mt-1 dark:text-light/70">
+            When checked, mentors will only be matched to mentees exactly one
+            academic stage below them (e.g., a Year 2 mentor with a Year 1
+            mentee). When unchecked, mentors from higher academic stages can be
+            matched with mentees.
+          </p> */}
+        </div>
+
+        <div className="mb-4 mx-4">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={strictCourseGroup}
+              onChange={() => setStrictCourseGroup(!strictCourseGroup)}
+            />
+            <span className="ml-2 font-medium text-gray-700 dark:text-light">
+              Match Only Within Same Course Group
+            </span>
+          </label>
+          {/* <p className="text-sm text-gray-600 dark:text-light/70 italic ml-6 mt-1">
+            When checked, matching will occur only between participants from the
+            same course group. When unchecked, participants can be matched
+            across different groups within the same course.
+          </p> */}
+        </div>
       </div>
       {/* Match Approval Settings */}
       <div className="mb-4">
-        <label className="block font-medium my-2">
-          Match Approval Type
-        </label>
+        <label className="block font-medium my-2 h3">Match Approval Type</label>
         <select
           value={approvalType}
           onChange={(e) =>
@@ -242,67 +380,8 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
           />
         </div>
       )}
-      <div className="mb-6">
-        <h3 className="h3 mb-2">Matching Strictness Settings</h3>
-        <p className="mb-4">
-          Uncheck the options below to allow more flexible matches.
-        </p>
-
-        <div className="mb-4">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={strictAcademicStage}
-              onChange={() => setStrictAcademicStage(!strictAcademicStage)}
-              className="w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white
-                  checked:bg-accent checked:border-transparent checked:ring-2 checked:ring-accent-hover
-                  focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all relative
-                  checked:before:content-['✔'] checked:before:absolute 
-                  checked:before:top-1/2 checked:before:left-1/2 
-                  checked:before:-translate-x-1/2 checked:before:-translate-y-1/2 
-                  checked:before:text-white checked:before:text-md"
-            />
-            <span className="ml-2 font-medium text-gray-700 dark:text-light">
-              Match Only Within Adjacent Academic Stages
-            </span>
-          </label>
-          <p className="text-sm text-gray-600 italic ml-6 mt-1 dark:text-light/70">
-            When checked, mentors will only be matched to mentees exactly one
-            academic stage below them (e.g., a Year 2 mentor with a Year 1
-            mentee). When unchecked, mentors from higher academic stages can be
-            matched with mentees.
-          </p>
-        </div>
-
-        <div className="mb-4">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={strictCourseGroup}
-              onChange={() => setStrictCourseGroup(!strictCourseGroup)}
-              className="w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white
-                  checked:bg-accent checked:border-transparent checked:ring-2 checked:ring-accent-hover
-                  focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all relative
-                  checked:before:content-['✔'] checked:before:absolute 
-                  checked:before:top-1/2 checked:before:left-1/2 
-                  checked:before:-translate-x-1/2 checked:before:-translate-y-1/2 
-                  checked:before:text-white checked:before:text-md"
-            />
-            <span className="ml-2 font-medium text-gray-700 dark:text-light">
-              Match Only Within Same Course Group
-            </span>
-          </label>
-          <p className="text-sm text-gray-600 dark:text-light/70 italic ml-6 mt-1">
-            When checked, matching will occur only between participants from the
-            same course group. When unchecked, participants can be matched
-            across different groups within the same course.
-          </p>
-        </div>
-      </div>
       <div className="mb-4">
-        <label className="block font-medium my-2">
-          Matching Criteria
-        </label>
+        <label className="block font-medium my-2 h3">Matching Criteria</label>
         <p className="text-sm text-gray-600 dark:text-light/70 mb-2">
           Adjust the weights to prioritize specific criteria. The total weight
           must equal 100.
@@ -331,6 +410,55 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
         <div className="mt-2 text-right text-sm font-medium">
           <p>Total Weight: {totalWeight}</p>
         </div>
+      </div>
+      <div className="mb-6 mx-4">
+      <label className="block font-medium my-2 h3">Feedback Collection</label>
+        <label className="flex items-center cursor-pointer mb-2">
+          <input
+            type="checkbox"
+            checked={collectFeedback}
+            onChange={() => setCollectFeedback(!collectFeedback)}
+            className="mr-2"
+          />
+          <span className="font-medium text-gray-800 dark:text-light">
+            Collect End-of-Programme Feedback
+          </span>
+        </label>
+
+        {collectFeedback && (
+          <div className="space-y-4 mt-2">
+            <div>
+              <label className="block font-medium mb-1">Survey Open Date</label>
+              <input
+                type="datetime-local"
+                value={surveyOpenDate}
+                onChange={(e) => setSurveyOpenDate(e.target.value)}
+                className="w-full border rounded px-4 py-2"
+              />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">
+                Survey Close Date
+              </label>
+              <input
+                type="datetime-local"
+                value={surveyCloseDate}
+                onChange={(e) => setSurveyCloseDate(e.target.value)}
+                className="w-full border rounded px-4 py-2"
+              />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">Form Link</label>
+              <input
+                type="url"
+                value={surveyUrl}
+                onChange={(e) => setSurveyUrl(e.target.value)}
+                placeholder="https://forms.gle/..."
+                className="w-full border rounded px-4 py-2"
+              />
+            </div>
+          </div>
+        )}
       </div>
       <Button type="submit" className="mt-4 w-full">
         {editMode ? "Update Programme Year" : "Create Programme Year"}
