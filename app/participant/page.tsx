@@ -1,167 +1,147 @@
 "use client";
 
-import DashboardNav from "@/components/DashboardNav";
-import React, { useState } from "react";
-import { useAuth } from "@/app/context/AuthContext";
+import { useEffect, useState } from "react";
+import { fetchParticipantDashboard } from "@/app/api/dashboard";
+import { MatchSummaryDto, ParticipantDashboardDto } from "../types/dashboard";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { redirect } from "next/navigation";
-import { joinOrganisation } from "@/app/api/organisation";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../context/AuthContext";
 
 const ParticipantDashboard = () => {
+  const [data, setData] = useState<ParticipantDashboardDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
   const { user } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [joinCode, setJoinCode] = useState("");
+  const [unconfirmedCount, setUnconfirmedCount] = useState<number>();
 
-  const handleJoinOrganisation = async () => {
-    try {
-      console.log("Joining organisation with code:", joinCode);
-      await joinOrganisation(joinCode);
-      setIsModalOpen(false);
-      window.location.reload();
-    } catch (error) {
-      console.error("Failed to join organisation:", error);
-    }
-  };
+  useEffect(() => {
+    fetchParticipantDashboard()
+      .then((data) => {
+        setData(data);
+        const count = data.matches.filter(
+          (m: MatchSummaryDto) => m.status.toUpperCase() === "PENDING"
+        ).length;
+        setUnconfirmedCount(count);
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  }, []);
 
+  if (loading) return <Skeleton className="w-full h-80" />;
+  if (!data) return <p className="text-red-500">Failed to load dashboard</p>;
+
+  console.log(data);
   return (
-    <div className="grid grid-cols-2 gap-6">
-      {/* Profile Overview */}
-      <div className="bg-light dark:bg-dark dark:border dark:border-white/30 rounded p-10 flex justify-center items-center gap-6">
-        <img
-          src={user?.profileImageUrl || "/assets/placeholders/avatar.png"}
-          alt="Profile Preview"
-          className="w-32 h-32 object-cover rounded-full shadow-md"
-        />
+    <div className="grid grid-cols-2 gap-6 bg-white rounded max-w-[65vw] p-5">
+      <div className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded-lg flex">
+        {user?.profileImageUrl ? (
+          <img
+            src={user.profileImageUrl}
+            alt="Profile"
+            className="w-24 h-24 rounded-full object-cover shadow-md mr-10"
+          />
+        ) : (
+          <div className="bg-gray-200 rounded-full w-24 h-24 flex items-center justify-center text-3xl font-semibold mr-10">
+            {user?.firstName.charAt(0)}
+            {user?.lastName.charAt(0)}
+          </div>
+        )}
         <div>
-          <h2 className="h2">Hello, {user?.firstName}</h2>
-          <h3 className="h3 mt-3">({user?.role})</h3>
-          {user?.personalityType && (
-            <p className="text-gray-600 mt-2">
-              Personality: {user.personalityType}
+          <h1 className="text-2xl font-bold">
+            Welcome, {data.participantName}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Organisation: <strong>{data.organisationName}</strong>
+          </p>
+          <p className="text-sm mt-2 text-muted-foreground">
+            Last updated: {new Date(data.lastUpdated).toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+      <div>
+        {/* Warnings */}
+        <div className="col-span-2 bg-primary/5 dark:bg-dark rounded p-6">
+          <h2 className="text-xl font-semibold mb-4">Next Steps</h2>
+          {data.hasUnconfirmedMatches && (
+            <p>
+              🔔 You have {unconfirmedCount} unconfirmed matches.
+              <br />
+              <span className="text-sm text-dark/70">
+                Please wait for a coordinator to approve them.
+              </span>
             </p>
+          )}
+          {data.hasOverdueInteractions && (
+            <p>
+              💬 You haven't logged a communication in a while.
+              <br />
+              <span className="text-sm text-dark/70">
+                Consider reaching out.
+              </span>
+            </p>
+          )}
+          {data.hasFeedbackPending && (
+            <p>📝 Feedback is pending for some programmes.</p>
           )}
         </div>
       </div>
 
-      {/* Organisation & Programme Status */}
-      <div className="bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-10">
-        {user?.organisationName ? (
-          <h3 className="h3">
-            Organisation:{" "}
-            <span className="font-bold">{user.organisationName}</span>
-          </h3>
+      {/* Match Summary */}
+      <div className="bg-primary/5 dark:bg-dark rounded p-6">
+        <h2 className="text-xl font-semibold mb-4">Matches Overview</h2>
+        {data.matches.length === 0 ? (
+          <p>No matches yet.</p>
         ) : (
-          <div className="flex flex-col justify-center items-center">
-            <p className="text-gray-700 dark:text-light/80 mb-4">No organisation found.</p>
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              variant="outline"
-              className="text-accent hover:text-white"
-            >
-              Join Organisation
-            </Button>
-          </div>
+          data.matches
+            .filter((m) => m.status == "APPROVED")
+            .map((m) => (
+              <div key={m.matchId} className="mb-4 border-b pb-2">
+                <p className="font-semibold">
+                  {m.mentor ? "Mentor to" : "Mentee of"} {m.matchWithName} (
+                  {m.matchWithEmail})
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Programme: {m.programmeName} ({m.academicYear})<br />
+                  Status: {m.status} | Compatibility:{" "}
+                  {m.compatibilityScore || "N/A"}
+                </p>
+                {m.lastInteractionDate && (
+                  <p className="text-xs text-gray-500">
+                    Last Interaction:{" "}
+                    {new Date(m.lastInteractionDate).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            ))
         )}
       </div>
 
-      {/* Mentorship Status */}
-      <div className="bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-10">
-        <h3 className="h3 mb-4">Recent Participations</h3>
-        {/* {user?.participations?.length > 0 ? (
-          user.participations.map((participation, index) => (
-            <div key={index} className="border-b border-gray-300 pb-4 mb-4">
-              <h4 className="font-bold">{participation.programmeName}</h4>
-              <p className="text-gray-700">
-                {participation.isMentor && <span>🌟 Mentor</span>}
-                {participation.isMentee && <span> 📚 Mentee</span>}
+      {/* Participations */}
+      <div className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2">
+        <h2 className="text-xl font-semibold mb-4">Your Programmes</h2>
+        {data.activeParticipations.map((p) => (
+          <div key={p.programmeYearId} className="mb-3 flex justify-between">
+            <div>
+              <p className="font-bold">
+                {p.programmeName} ({p.academicYear})
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Role: {p.role}, Matched: {p.matched ? "✅" : "❌"} <br />
+                {/* Feedback:{" "} {p.feedbackSubmitted ? "✅" : "❌"} */}
               </p>
             </div>
-          ))
-        ) : (
-          <p className="text-gray-700">You are not currently participating in any mentorships.</p>
-        )} */}
-      </div>
-
-      {/* Meetings & Calendar */}
-      <div className="bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-10">
-        <h3 className="h3 mb-4">Upcoming Meetings</h3>
-        {/* {user?.meetings?.length > 0 ? (
-          user.meetings.map((meeting, index) => (
-            <div key={index} className="border-b border-gray-300 pb-4 mb-4">
-              <h4 className="font-bold">{meeting.title}</h4>
-              <p className="text-gray-700">{meeting.date} at {meeting.time}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-700">No scheduled meetings.</p>
-        )} */}
-      </div>
-
-      {/* Notifications & Updates */}
-      {/* <div className="bg-light rounded p-10">
-        <h3 className="h3 mb-4">Notifications</h3>
-        {user?.notifications?.length > 0 ? (
-          user.notifications.map((notification, index) => (
-            <div key={index} className="border-b border-gray-300 pb-4 mb-4">
-              <p className="text-gray-700">{notification.message}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-700">No new notifications.</p>
-        )}
-      </div> */}
-
-      {/* Feedback & Review */}
-      <div className="bg-light  dark:bg-dark dark:border dark:border-white/30 rounded p-10">
-        <h3 className="h3 mb-4">Feedback & Reviews</h3>
-        {/* {user?.feedback?.length > 0 ? (
-          user.feedback.map((review, index) => (
-            <div key={index} className="border-b border-gray-300 pb-4 mb-4">
-              <h4 className="font-bold">{review.mentorName || "Anonymous"}</h4>
-              <p className="text-gray-700">"{review.comment}"</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-700">No feedback available.</p>
-        )} */}
-      </div>
-
-      {/* Join Organisation Popup */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Join Organisation</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <label htmlFor="joinCode" className="text-sm font-medium">
-              Enter Organisation Join Code
-            </label>
-            <Input
-              id="joinCode"
-              type="text"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-              placeholder="Enter code..."
-            />
+            <Button
+              onClick={() => {
+                router.push(`/programmes/${p.programmeYearId}`);
+              }}
+            >
+              View Details
+            </Button>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleJoinOrganisation} className="text-white">
-              Join
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        ))}
+      </div>
     </div>
   );
 };

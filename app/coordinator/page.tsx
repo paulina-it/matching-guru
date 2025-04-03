@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import ProgrammeCard from "@/components/ProgrammeCard";
 import { useEffect, useState } from "react";
 import {
-  CoordinatorDashboardDto,
   fetchAdminDashboard,
 } from "@/app/api/dashboard";
 import Link from "next/link";
+import { CoordinatorDashboardDto } from "../types/dashboard";
 
 const CoordinatorDashboard = () => {
   const { user } = useAuth();
