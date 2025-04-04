@@ -421,7 +421,8 @@ ${user?.firstName}`;
           return (
             <div
               key={match.id}
-              className="mt-8 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/30"
+              className="mt-8 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/30
+              text-dark dark:text-white"
             >
               <h4 className="h4 text-lg mb-3">
                 Match #{idx + 1} –{" "}
@@ -433,7 +434,7 @@ ${user?.firstName}`;
                   pending.
                 </p>
               ) : match.status !== "APPROVED" ? (
-                <p className="text-gray-500 italic mb-2">No match found yet.</p>
+                <p className="italic mb-2">No match found yet.</p>
               ) : null}
 
               {/* Suggested Email */}

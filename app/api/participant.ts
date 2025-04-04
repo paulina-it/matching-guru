@@ -254,28 +254,29 @@ export async function getParticipantInfoByUserIdAndProgrammeYearId(
 ) {
   const token = localStorage.getItem("token");
 
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/participants/info/${userId}/programmeYear/${programmeYearId}`,
-      {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("An error occurred while fetching participant");
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/participants/info/${userId}/programmeYear/${programmeYearId}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     }
+  );
 
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching participant:", error);
+  if (!response.ok) {
+    const errorText = await response.text();
+    const error = new Error(errorText);
+    (error as any).status = response.status;
+    (error as any).messageText = errorText;
     throw error;
   }
+
+  return await response.json();
 }
+
+
 
 /**
  * Submits feedback code to unlock certificate.

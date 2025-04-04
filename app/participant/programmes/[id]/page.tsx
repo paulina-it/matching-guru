@@ -13,19 +13,15 @@ import { getParticipantInfoByUserIdAndProgrammeYearId } from "@/app/api/particip
 const ProgrammeDetails = () => {
   const { id } = useParams<{ id: string }>() || {};
   const programmeId = id ? parseInt(id, 10) : null;
-  const [joinedProgrammeYearIds, setJoinedProgrammeYearIds] = useState<
-    number[]
-  >([]);
-
-  const router = useRouter();
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
-  const [programmeYears, setProgrammeYears] = useState<
-    ProgrammeYearDto[] | null
-  >(null);
+  const [programmeYears, setProgrammeYears] = useState<ProgrammeYearDto[] | null>(null);
+  const [joinedProgrammeYearIds, setJoinedProgrammeYearIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!programmeId || !user?.id) return;
@@ -45,15 +41,12 @@ const ProgrammeDetails = () => {
         await Promise.all(
           yearsData.map(async (year) => {
             try {
-              await getParticipantInfoByUserIdAndProgrammeYearId(
-                user.id,
-                year.id
-              );
+              await getParticipantInfoByUserIdAndProgrammeYearId(user.id, year.id);
               joinedIds.push(year.id);
             } catch (err: any) {
-              const msg = err?.message?.toLowerCase?.() ?? "";
-              if (!msg.includes("404")) {
-                console.error(`Error checking year ${year.id}:`, err);
+              const msg = err?.messageText?.toLowerCase?.() ?? "";
+              if (!msg.includes("participant not found")) {
+                console.error(`Error checking participation for year ${year.id}:`, err);
               }
             }
           })
@@ -72,37 +65,20 @@ const ProgrammeDetails = () => {
     fetchData();
   }, [programmeId, user?.id]);
 
-  const handleJoinRedirect = async (
-    programmeYearId: number,
-    programmeId: number
-  ) => {
+  const handleJoinRedirect = async (programmeYearId: number) => {
     if (!user?.id) {
       toast.error("You must be logged in to join a programme.");
       return;
     }
 
     try {
-      const participant = await getParticipantInfoByUserIdAndProgrammeYearId(
-        user.id,
-        programmeYearId
-      );
-
-      if (participant) {
-        toast.success("You're already a participant in this programme year!");
-        router.push(
-          `/participant/programmes/${programmeId}/years/${programmeYearId}/my-details`
-        );
-      } else {
-        router.push(
-          `/participant/programmes/${programmeId}/years/${programmeYearId}/join`
-        );
-      }
+      await getParticipantInfoByUserIdAndProgrammeYearId(user.id, programmeYearId);
+      toast.success("You're already a participant in this programme year!");
+      router.push(`/participant/programmes/${programmeId}/years/${programmeYearId}/my-details`);
     } catch (err: any) {
-      const message = err?.message?.toLowerCase?.() ?? "";
-      if (message.includes("404")) {
-        router.push(
-          `/participant/programmes/${programmeId}/years/${programmeYearId}/join`
-        );
+      const msg = err?.messageText?.toLowerCase?.() ?? "";
+      if (msg.includes("participant not found")) {
+        router.push(`/participant/programmes/${programmeId}/years/${programmeYearId}/join`);
       } else {
         toast.error("Error checking participant status.");
         console.error(err);
@@ -119,17 +95,13 @@ const ProgrammeDetails = () => {
   }
 
   if (error) {
-    return (
-      <p className="text-red-500 dark:text-red-400 text-center">{error}</p>
-    );
+    return <p className="text-red-500 dark:text-red-400 text-center">{error}</p>;
   }
 
   return (
     <div className="max-w-[55vw] bg-light dark:bg-zinc-900 text-black dark:text-white p-6 rounded shadow relative transition-colors duration-300 dark:border dark:border-white/30">
       <h2 className="h2 font-bold mb-4">{programme?.name}</h2>
-      <p className="text-gray-700 dark:text-gray-300">
-        {programme?.description}
-      </p>
+      <p className="text-gray-700 dark:text-gray-300">{programme?.description}</p>
 
       <div className="mt-6">
         <h3 className="text-lg font-semibold">Programme Years</h3>
@@ -148,9 +120,7 @@ const ProgrammeDetails = () => {
                 </p>
               </div>
               {programmeId !== null && (
-                <Button
-                  onClick={() => handleJoinRedirect(year.id, programmeId)}
-                >
+                <Button onClick={() => handleJoinRedirect(year.id)}>
                   {joinedProgrammeYearIds.includes(year.id)
                     ? "View Your Details"
                     : "Join this Programme Year"}
