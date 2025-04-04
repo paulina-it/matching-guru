@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import { useAuth } from "./context/AuthContext";
 import { UserRole } from "./types/auth";
 import { PulseLoader } from "react-spinners"; // Import a spinner component
+import FAQ from "@/components/FAQ";
 
 export default function Home() {
   const router = useRouter();
@@ -45,20 +46,20 @@ export default function Home() {
   }
 
   return (
-    <div className="container flex mx-auto gap-14">
+    <div className="container flex flex-col mx-auto gap-14">
       <Header />
       <div className="flex flex-col lg:flex-row">
         <section className="mt-[7em] relative">
-          <h2 className="font-semibold text-xl uppercase lg:text-start text-center">Welcome to</h2>
+          <h2 className="font-semibold text-xl uppercase lg:text-start text-center">
+            Welcome to
+          </h2>
           <h1 className="h1">Matching Guru</h1>
           <p className="my-4 text-center lg:text-start">
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ducimus
-            numquam ratione molestiae, illo omnis rerum aspernatur tempora
-            laborum recusandae iusto tenetur alias, debitis ea commodi accusamus
-            aliquid suscipit a rem!Lorem ipsum dolor sit, amet consectetur
-            adipisicing elit. Ducimus numquam ratione molestiae, illo omnis
-            rerum aspernatur tempora laborum recusandae iusto tenetur alias,
-            debitis ea commodi accusamus aliquid suscipit a rem!
+            Matching Guru helps universities streamline peer mentoring by
+            automatically matching students based on preferences, availability,
+            and academic background. Whether you're a mentor, mentee, or a
+            coordinator, our platform empowers you with the tools to create
+            meaningful academic support networks effortlessly.
           </p>
           <div className="flex justify-center lg:justify-start">
             {!isAuthenticated ? (
@@ -101,6 +102,7 @@ export default function Home() {
           />
         </div>
       </div>
+      <FAQ />
     </div>
   );
 }
