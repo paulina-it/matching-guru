@@ -7,6 +7,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import toast from "react-hot-toast";
+import {
+  downloadServerCertificate,
+  verifyFeedbackCode,
+} from "../api/programmes";
 
 const ParticipantDashboard = () => {
   const [data, setData] = useState<ParticipantDashboardDto | null>(null);
@@ -14,6 +29,33 @@ const ParticipantDashboard = () => {
   const router = useRouter();
   const { user } = useAuth();
   const [unconfirmedCount, setUnconfirmedCount] = useState<number>();
+  const [openCodeDialog, setOpenCodeDialog] = useState(false);
+  const [confirmationCodeInput, setConfirmationCodeInput] = useState("");
+  const [codeIsValid, setCodeIsValid] = useState(false);
+  const [activeProgrammeYearId, setActiveProgrammeYearId] = useState<number | null>(null);
+  const [activeParticipantId, setActiveParticipantId] = useState<number | null>(null);
+
+  const handleConfirmCode = async () => {
+    if (!activeParticipantId || !activeProgrammeYearId) return;
+  
+    try {
+      const isValid = await verifyFeedbackCode(
+        confirmationCodeInput,
+        activeParticipantId,
+        activeProgrammeYearId
+      );
+      if (isValid) {
+        toast.success("Code verified successfully.");
+        setCodeIsValid(true);
+      } else {
+        toast.error("Invalid confirmation code. Please double-check and try again.");
+      }
+    } catch (error: any) {
+      console.error("Verification failed:", error);
+      toast.error("Something went wrong verifying the code.");
+    }
+  };
+  
 
   useEffect(() => {
     fetchParticipantDashboard()
@@ -31,10 +73,10 @@ const ParticipantDashboard = () => {
   if (loading) return <Skeleton className="w-full h-80" />;
   if (!data) return <p className="text-red-500">Failed to load dashboard</p>;
 
-  console.log(data);
+  console.log(data.activeParticipations);
   return (
     <div className="grid grid-cols-2 gap-6 bg-white rounded max-w-[65vw] p-5">
-      <div className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded-lg flex">
+      <div className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded flex">
         {user?.profileImageUrl ? (
           <img
             src={user.profileImageUrl}
@@ -64,27 +106,179 @@ const ParticipantDashboard = () => {
         {/* Warnings */}
         <div className="col-span-2 bg-primary/5 dark:bg-dark rounded p-6">
           <h2 className="text-xl font-semibold mb-4">Next Steps</h2>
-          {data.hasUnconfirmedMatches && (
-            <p>
-              🔔 You have {unconfirmedCount} unconfirmed matches.
-              <br />
-              <span className="text-sm text-dark/70">
+
+          {/* 🔔 Unconfirmed Matches */}
+          {Object.entries(
+            data.matches
+              .filter((m) => m.status.toUpperCase() === "PENDING")
+              .reduce((acc, m) => {
+                const key = `${m.programmeId}-${m.programmeYearId}`;
+                if (!acc[key]) acc[key] = { ...m, count: 1 };
+                else acc[key].count += 1;
+                return acc;
+              }, {} as Record<string, MatchSummaryDto & { count: number }>)
+          ).map(([key, group]) => (
+            <div key={key} className="mb-2">
+              <p>
+                🔔 You have <span className="font-bold">{group.count}</span>{" "}
+                unconfirmed match
+                {group.count > 1 ? "es" : ""} in{" "}
+                <span className="font-medium">
+                  {group.programmeName} ({group.academicYear})
+                </span>
+              </p>
+              <span className="text-sm text-dark/70 italic">
                 Please wait for a coordinator to approve them.
               </span>
-            </p>
-          )}
-          {data.hasOverdueInteractions && (
-            <p>
-              💬 You haven't logged a communication in a while.
-              <br />
-              <span className="text-sm text-dark/70">
-                Consider reaching out.
-              </span>
-            </p>
-          )}
-          {data.hasFeedbackPending && (
-            <p>📝 Feedback is pending for some programmes.</p>
-          )}
+              <Button
+                variant="link"
+                className="px-0 text-sm"
+                onClick={() =>
+                  router.push(
+                    `/participant/programmes/${group.programmeId}/years/${group.programmeYearId}/my-details`
+                  )
+                }
+              >
+                View match details
+              </Button>
+            </div>
+          ))}
+
+          {/* Communication Logs */}
+          {data.matches
+            .filter(
+              (m) =>
+                m.status.toUpperCase() === "APPROVED" &&
+                m.lastInteractionDate &&
+                new Date(m.lastInteractionDate).getTime() <
+                  Date.now() - 14 * 24 * 60 * 60 * 1000
+            )
+            .map((m) => (
+              <div key={m.matchId} className="mb-2">
+                <p>
+                  💬 It's been over 2 weeks since you logged communication in{" "}
+                  <span className="font-medium">
+                    {m.programmeName} ({m.academicYear})
+                  </span>
+                </p>
+                <Button
+                  variant="link"
+                  className="px-0 text-sm"
+                  onClick={() =>
+                    router.push(
+                      `/participant/programmes/${m.programmeId}/years/${m.programmeYearId}/my-details`
+                    )
+                  }
+                >
+                  Log interaction
+                </Button>
+              </div>
+            ))}
+
+          {/* 📝 Pending Feedback */}
+          {data.activeParticipations
+            .filter(
+              (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
+            )
+            .map((p) => (
+              <div key={p.programmeYearId} className="mb-2">
+                <p>
+                  📝 Feedback pending for{" "}
+                  <span className="font-medium">
+                    {p.programmeName} ({p.academicYear})
+                  </span>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Please complete the survey by{" "}
+                  <strong>
+                    {new Date(p.surveyCloseDate!).toLocaleDateString()}
+                  </strong>{" "}
+                  to receive your certificate of participation.
+                </p>
+                <Button
+                  variant="link"
+                  className="px-0 text-sm"
+                  onClick={() => window.open(p.surveyUrl, "_blank")}
+                >
+                  Fill out feedback survey
+                </Button>
+                <Dialog open={openCodeDialog} onOpenChange={setOpenCodeDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="link"
+                      className="px-0 ml-3 text-sm text-accent/70"
+                      onClick={() => {
+                        setActiveProgrammeYearId(p.programmeYearId);
+                        setActiveParticipantId(p.participantId);
+                        setOpenCodeDialog(true);
+                      }}                      
+                    >
+                      Enter confirmation code
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="rounded">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {codeIsValid
+                          ? "✅ Code Verified"
+                          : "Enter Confirmation Code"}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {codeIsValid ? (
+                          <p className="text-green-600 font-medium mt-2">
+                            Thank you! The code is valid.
+                            <br />
+                            You can now access your certificate below.
+                          </p>
+                        ) : (
+                          "Paste the code you received after completing the feedback survey."
+                        )}
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    {!codeIsValid ? (
+                      <>
+                        <Input
+                          value={confirmationCodeInput}
+                          onChange={(e) =>
+                            setConfirmationCodeInput(e.target.value)
+                          }
+                          placeholder="e.g. 6e152370-1111-4888-a27d-c93b1f09efaf"
+                          className="mt-4"
+                        />
+
+                        <DialogFooter>
+                          <Button onClick={() => handleConfirmCode()}>
+                            Confirm Code
+                          </Button>
+                        </DialogFooter>
+                      </>
+                    ) : (
+                      <div className="mt-4 flex justify-center">
+                        <Button
+                          variant="default"
+                          onClick={() =>
+                            downloadServerCertificate(
+                              `${user?.firstName} ${user?.lastName}`,
+                              p.role.toLowerCase(), 
+                              p.programmeName,
+                              p.academicYear,
+                              new Date().toLocaleDateString("en-GB", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              }) 
+                            )
+                          }
+                        >
+                          Download Certificate
+                        </Button>
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
+            ))}
         </div>
       </div>
 
@@ -134,7 +328,9 @@ const ParticipantDashboard = () => {
             </div>
             <Button
               onClick={() => {
-                router.push(`participant/programmes/${p.programmeId}/years/${p.programmeYearId}/my-details`);
+                router.push(
+                  `participant/programmes/${p.programmeId}/years/${p.programmeYearId}/my-details`
+                );
               }}
             >
               View Details

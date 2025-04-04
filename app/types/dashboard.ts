@@ -12,17 +12,21 @@ export type MatchSummaryDto = {
   lastInteractionDate: string | null;
   lastInteractionStatus?: string;
   lastInteractionType?: string;
+  programmeId: number;
 };
 
 export type ProgrammeParticipationSummaryDto = {
   programmeYearId: number;
   programmeId: number;
+  participantId: number;
   programmeName: string;
   academicYear: string;
   role: string;
   isMatched: boolean;
   matched?: boolean;
   feedbackSubmitted: boolean;
+  surveyUrl?: string;
+  surveyCloseDate?: string;
 };
 
 export type ParticipantDashboardDto = {

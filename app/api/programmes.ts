@@ -298,3 +298,66 @@ export async function fetchEligibleCourses(
 
   return response.json();
 }
+
+export const verifyFeedbackCode = async (
+  code: string,
+  participantId: number,
+  programmeYearId: number
+): Promise<boolean> => {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/participants/feedback`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      code,
+      participantId,
+      programmeYearId,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Failed to verify code");
+  }
+
+  return response.json(); 
+};
+
+
+export const downloadServerCertificate = async (
+  name: string,
+  role: string,
+  programme: string,
+  year: string,
+  date: string
+) => {
+  const params = new URLSearchParams({ name, role, programme, year, date });
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/certificates/generate?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token") || ""}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to generate certificate");
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "certificate.png";
+  link.click();
+
+  window.URL.revokeObjectURL(url);
+};
