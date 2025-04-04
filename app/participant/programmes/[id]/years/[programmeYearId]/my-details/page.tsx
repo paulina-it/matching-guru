@@ -2,7 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { fetchProgrammeById, fetchProgrammeYear } from "@/app/api/programmes";
+import {
+  downloadServerCertificate,
+  fetchProgrammeById,
+  fetchProgrammeYear,
+} from "@/app/api/programmes";
 import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
@@ -78,7 +82,6 @@ const ParticipantProgrammeDetails = () => {
   const [surveyClosed, setSurveyClosed] = useState<Date | null>();
   const [canShowFeedbackBox, setCanShowFeedbackBox] = useState<boolean>(false);
 
-
   useEffect(() => {
     const fetchData = async () => {
       if (!programmeYearId || !user) return;
@@ -97,7 +100,7 @@ const ParticipantProgrammeDetails = () => {
         setIsMentor(matchArray[0]?.mentor?.email === user.email);
         const userIsMentor = matchArray[0]?.mentor?.email === user.email;
         setIsMentor(userIsMentor);
-        
+
         const selected = userIsMentor
           ? { ...matchArray[0].mentor, role: "MENTOR" }
           : { ...matchArray[0].mentee, role: "MENTEE" };
@@ -122,23 +125,18 @@ const ParticipantProgrammeDetails = () => {
 
   useEffect(() => {
     const setSurveyDates = () => {
-      console.log(programmeYear);
-      
+
       setSurveyOpen(programmeYear?.surveyOpenDate);
       setSurveyClosed(programmeYear?.surveyCloseDate);
-
-      console.log("OPEN");
-      console.log(surveyOpen);
-      console.log("CLOSED");
-      console.log(surveyClosed);
 
       if (surveyOpen != null && surveyClosed != null) {
         setCanShowFeedbackBox(now >= surveyOpen && now <= surveyClosed);
       }
-    }
+    };
 
     setSurveyDates();
-  }, [programmeYear])
+  }, [programmeYear]);
+
 
   const getNextDateForDay = (dayName: string): string => {
     const daysOfWeek: Record<string, number> = {
@@ -266,8 +264,6 @@ const ParticipantProgrammeDetails = () => {
     );
   }
 
-  console.log(participant);
-
   return (
     <div className="max-w-[55vw] bg-light p-6 rounded shadow relative dark:bg-dark dark:border dark:border-white/30 text-light">
       <h2 className="h2 font-bold mb-4 text-dark dark:text-light">
@@ -331,6 +327,38 @@ const ParticipantProgrammeDetails = () => {
                 : "None listed"}
             </p>
 
+            <div className="mt-4">
+              {participant?.hasSubmittedFeedback ? (
+                <Button
+                  variant="default"
+                  onClick={() =>
+                    downloadServerCertificate(
+                      `${participant.firstName} ${participant.lastName}`,
+                      participant.role.toLowerCase(),
+                      programmeYear?.programmeName || "",
+                      programmeYear?.academicYear || "",
+                      new Date().toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })
+                    )
+                  }
+                >
+                  Download Certificate
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    window.open(programmeYear?.surveyUrl ?? "#", "_blank")
+                  }
+                >
+                  Provide Feedback
+                </Button>
+              )}
+            </div>
+
             {!matchDetails?.length ? (
               <p className="mt-3 text-gray-500 italic">No match found yet.</p>
             ) : null}
@@ -338,10 +366,9 @@ const ParticipantProgrammeDetails = () => {
         )}
 
         {matchDetails.map((match, idx) => {
-          console.log("MATCH");
-          console.log(match);
           const logs = logsByMatchId[match.id] || [];
 
+          console.log(participant);
           const sortedLogs = [...logs].sort(
             (a, b) =>
               new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
