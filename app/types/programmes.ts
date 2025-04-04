@@ -55,6 +55,7 @@ export interface ProgrammeYearDto {
   surveyOpenDate?: Date;
   surveyCloseDate?: Date;
   surveyUrl: string;
+  feedbackConfirmationCode: string;
 }
 export interface ProgrammeYearUpdateDto {
   academicYear?: string;

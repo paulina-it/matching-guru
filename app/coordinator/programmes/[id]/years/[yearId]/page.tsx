@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { Progress } from "@/components/ui/progress";
 import { formatText } from "@/app/utils/text";
-import { Pencil } from "lucide-react";
+import { Copy, Pencil } from "lucide-react";
 
 const ProgrammeYearPage = () => {
   const params = useParams<{ id: string; yearId: string }>();
@@ -105,6 +105,8 @@ const ProgrammeYearPage = () => {
     ? Math.round((matchedParticipants / totalParticipants) * 100)
     : 0;
 
+  console.log(programmeYear);
+
   return (
     <div className="max-w-[90vw] lg:max-w-[65vw] bg-light dark:bg-dark dark:border dark:border-white/30 p-6 my-[5em] rounded shadow relative">
       <div className="absolute top-5 right-5 flex gap-5">
@@ -184,19 +186,19 @@ const ProgrammeYearPage = () => {
                 )
               )}
               <tr className="border border-gray-300">
+                <td className="px-4 py-2">Academic Stage is</td>
                 <td className="px-4 py-2">
-                  Academic Stage is 
-                </td>
-                <td className="px-4 py-2">
-                  {programmeYear.strictAcademicStage ? "Strict (Mentor can be one stage above mentee)" : "Soft (Mentor can be any stage above mentee)"}
+                  {programmeYear.strictAcademicStage
+                    ? "Strict (Mentor can be one stage above mentee)"
+                    : "Soft (Mentor can be any stage above mentee)"}
                 </td>
               </tr>
               <tr className="border border-gray-300">
+                <td className="px-4 py-2">Course Group is</td>
                 <td className="px-4 py-2">
-                  Course Group is 
-                </td>
-                <td className="px-4 py-2">
-                  {programmeYear.strictCourseGroup ? "Strict (Matching within same group)" : "Soft (Matching between different course groups)"}
+                  {programmeYear.strictCourseGroup
+                    ? "Strict (Matching within same group)"
+                    : "Soft (Matching between different course groups)"}
                 </td>
               </tr>
             </tbody>
@@ -258,6 +260,62 @@ const ProgrammeYearPage = () => {
             </Button>
           )}
         </div>
+        {/* Feedback Survey Info */}
+        {programmeYear?.surveyUrl && (
+          <div className="mt-8 p-4 border rounded bg-muted/30 dark:bg-muted/10">
+            <h3 className="h3 mb-2">Feedback Survey</h3>
+            <p className="text-sm mb-2 text-muted-foreground">
+              Feedback will be collected from{" "}
+              <strong>
+                {new Date(programmeYear.surveyOpenDate!).toLocaleString()}
+              </strong>{" "}
+              to{" "}
+              <strong>
+                {new Date(programmeYear.surveyCloseDate!).toLocaleString()}
+              </strong>
+              .
+            </p>
+            <p className="mt-2">
+              <strong>Survey Link: </strong>
+              <a
+                href={programmeYear.surveyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline hover:text-primary-hover"
+              >
+                {programmeYear.surveyUrl}
+              </a>
+            </p>
+            {programmeYear.feedbackConfirmationCode && (
+              <div className="mt-4">
+                <p className="font-medium">Feedback Confirmation Code:</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="font-mono bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">
+                    {programmeYear.feedbackConfirmationCode}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        programmeYear.feedbackConfirmationCode!
+                      );
+                      toast.success("Code copied!")
+                    }}
+                    className="p-1 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded transition-colors"
+                    title="Copy code"
+                  >
+                    <Copy size={16} />
+                  </button>
+                </div>
+                <p className="text-sm italic mt-1 text-muted-foreground">
+                  Please include this code at the end of your survey, so the
+                  participant can verify it on the platform to confirm survey
+                  completion.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
