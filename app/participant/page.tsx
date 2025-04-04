@@ -134,7 +134,7 @@ const ParticipantDashboard = () => {
             </div>
             <Button
               onClick={() => {
-                router.push(`/programmes/${p.programmeYearId}`);
+                router.push(`participant/programmes/${p.programmeId}/years/${p.programmeYearId}/my-details`);
               }}
             >
               View Details

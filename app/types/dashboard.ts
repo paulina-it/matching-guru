@@ -16,6 +16,7 @@ export type MatchSummaryDto = {
 
 export type ProgrammeParticipationSummaryDto = {
   programmeYearId: number;
+  programmeId: number;
   programmeName: string;
   academicYear: string;
   role: string;
