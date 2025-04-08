@@ -5,9 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import ProgrammeCard from "@/components/ProgrammeCard";
 import { useEffect, useState } from "react";
-import {
-  fetchAdminDashboard,
-} from "@/app/api/dashboard";
+import { fetchAdminDashboard } from "@/app/api/dashboard";
 import Link from "next/link";
 import { CoordinatorDashboardDto } from "../types/dashboard";
 
@@ -123,18 +121,29 @@ const CoordinatorDashboard = () => {
 
       {/* Stats */}
       <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center">
+        <Link
+          href={`/coordinator/stats/match-rates`}
+          className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+        >
           <span className="text-4xl">📊</span>
           <p className="mt-2">Match Rates</p>
-        </div>
-        <div className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center">
+        </Link>
+
+        <Link
+          href={`/coordinator/stats/engagement`}
+          className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+        >
           <span className="text-4xl">📈</span>
           <p className="mt-2">Engagement</p>
-        </div>
-        <div className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center">
+        </Link>
+
+        <Link
+          href={`/coordinator/stats/drop-off`}
+          className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+        >
           <span className="text-4xl">📉</span>
           <p className="mt-2">Drop-off Rate</p>
-        </div>
+        </Link>
       </div>
     </div>
   );
