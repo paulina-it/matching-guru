@@ -155,8 +155,17 @@ const ProgrammeYearPage = () => {
       </div>
 
       <div className="mt-6">
-        <h3 className="h3">
+        <h3 className="h3 flex items-center gap-3">
           Programme Year {programmeYear?.academicYear ?? "N/A"}
+          {programmeYear?.isActive ? (
+            <span className="text-green-700 bg-green-100 dark:bg-green-800 dark:text-green-300 text-xs font-semibold px-2 py-1 rounded">
+              Active
+            </span>
+          ) : (
+            <span className="text-red-700 bg-red-100 dark:bg-red-800 dark:text-red-300 text-xs font-semibold px-2 py-1 rounded">
+              Inactive
+            </span>
+          )}
         </h3>
         <h2 className="font-semibold mt-2">
           Algorithm: {programmeYear?.preferredAlgorithm ?? "Not specified"}
@@ -299,7 +308,7 @@ const ProgrammeYearPage = () => {
                       navigator.clipboard.writeText(
                         programmeYear.feedbackConfirmationCode!
                       );
-                      toast.success("Code copied!")
+                      toast.success("Code copied!");
                     }}
                     className="p-1 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded transition-colors"
                     title="Copy code"

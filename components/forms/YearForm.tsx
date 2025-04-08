@@ -65,6 +65,12 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   const [surveyOpenDate, setSurveyOpenDate] = useState("");
   const [surveyCloseDate, setSurveyCloseDate] = useState("");
   const [surveyUrl, setSurveyUrl] = useState("");
+  const [isActive, setIsActive] = useState(true);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [restrictSignupDates, setRestrictSignupDates] = useState(false);
+  const [signupOpenDate, setSignupOpenDate] = useState("");
+  const [signupCloseDate, setSignupCloseDate] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [openAlgorithmInfo, setOpenAlgorithmInfo] = useState(false);
@@ -118,6 +124,31 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
               ? new Date(data.surveyOpenDate).toISOString().slice(0, 16)
               : ""
           );
+          setIsActive(data.isActive ?? true);
+          setStartDate(
+            data.startDate
+              ? new Date(data.startDate).toISOString().slice(0, 10)
+              : ""
+          );
+          setEndDate(
+            data.endDate
+              ? new Date(data.endDate).toISOString().slice(0, 10)
+              : ""
+          );
+          setRestrictSignupDates(
+            !!(data.signupOpenDate || data.signupCloseDate)
+          );
+          setSignupOpenDate(
+            data.signupOpenDate
+              ? new Date(data.signupOpenDate).toISOString().slice(0, 16)
+              : ""
+          );
+          setSignupCloseDate(
+            data.signupCloseDate
+              ? new Date(data.signupCloseDate).toISOString().slice(0, 16)
+              : ""
+          );
+
           setSurveyCloseDate(
             data.surveyCloseDate
               ? new Date(data.surveyCloseDate).toISOString().slice(0, 16)
@@ -169,9 +200,20 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       approvalThreshold: approvalThreshold,
       strictAcademicStage,
       strictCourseGroup,
+      isActive,
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
       surveyOpenDate: surveyOpenDate ? new Date(surveyOpenDate) : undefined,
       surveyCloseDate: surveyCloseDate ? new Date(surveyCloseDate) : undefined,
       surveyUrl,
+      signupOpenDate:
+        restrictSignupDates && signupOpenDate
+          ? new Date(signupOpenDate)
+          : undefined,
+      signupCloseDate:
+        restrictSignupDates && signupCloseDate
+          ? new Date(signupCloseDate)
+          : undefined,
     };
 
     try {
@@ -217,6 +259,87 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
         onChange={(e) => setAcademicYear(e.target.value)}
         required
       />
+      {/* Active ot Inactive */}
+      <div className="my-5">
+        {" "}
+        <label className="block font-medium my-2 h3">
+          Programme Year Status
+        </label>
+        <label className="flex items-center cursor-pointer mb-4">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={() => setIsActive(!isActive)}
+            className="mr-2"
+          />
+          <span className="font-medium text-gray-800 dark:text-light">
+            Mark Programme Year as Active
+          </span>
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-medium mb-1">
+              Start Date (optional)
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full border rounded px-4 py-2"
+            />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">
+              End Date (optional)
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full border rounded px-4 py-2"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="my-6">
+        <label className="block font-medium my-2 h3">Sign-up Period</label>
+        <label className="flex items-center cursor-pointer mb-2">
+          <input
+            type="checkbox"
+            checked={restrictSignupDates}
+            onChange={() => setRestrictSignupDates(!restrictSignupDates)}
+            className="mr-2"
+          />
+          <span className="font-medium text-gray-800 dark:text-light">
+            Restrict Participant Sign-up to Specific Dates
+          </span>
+        </label>
+
+        {restrictSignupDates && (
+          <div className="space-y-4 mt-2">
+            <div>
+              <label className="block font-medium mb-1">Signup Open Date</label>
+              <input
+                type="datetime-local"
+                value={signupOpenDate}
+                onChange={(e) => setSignupOpenDate(e.target.value)}
+                className="w-full border rounded px-4 py-2"
+              />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">
+                Signup Close Date
+              </label>
+              <input
+                type="datetime-local"
+                value={signupCloseDate}
+                onChange={(e) => setSignupCloseDate(e.target.value)}
+                className="w-full border rounded px-4 py-2"
+              />
+            </div>
+          </div>
+        )}
+      </div>
       <div className="mb-4">
         <label className="block font-medium mb-2 mt-5 h3">
           Preferred Algorithm
@@ -257,7 +380,8 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
             <p>
               <strong>Gale-Shapley (GS):</strong> Prioritises mentor
               preferences. The soft version improves coverage significantly
-              (~71%) and is most suitable for small cohorts (under 100 participants).
+              (~71%) and is most suitable for small cohorts (under 100
+              participants).
             </p>
             <p>
               <strong>BRACE:</strong> Balances mentee needs, especially
@@ -275,7 +399,6 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       <div className="mb-6">
         <h3 className="h3 mb-[-1em]">Matching Strictness Settings</h3>
         <div className="mb-4">
-
           {/* 🧩 Matching Strictness Help */}
           <Collapsible
             open={openStrictnessInfo}
@@ -412,7 +535,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
         </div>
       </div>
       <div className="mb-6 mx-4">
-      <label className="block font-medium my-2 h3">Feedback Collection</label>
+        <label className="block font-medium my-2 h3">Feedback Collection</label>
         <label className="flex items-center cursor-pointer mb-2">
           <input
             type="checkbox"

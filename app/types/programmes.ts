@@ -42,6 +42,10 @@ export interface ProgrammeYearDto {
   programmeDescription?: string;
   contactEmail?: string;
   isActive: boolean;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  signupOpenDate?: Date;
+  signupCloseDate?: Date;
   preferredAlgorithm: "GALE_SHAPLEY" | "COLLABORATIVE_FILTERING" | "BRACE";
   joinCode?: string;
   participantCount?: number;
