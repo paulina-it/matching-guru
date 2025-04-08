@@ -53,6 +53,6 @@ export type CoordinatorDashboardDto = {
     name: string;
     participantsCount: number;
     matchesCount: number;
-    active: boolean;
+    isActive: boolean;
   }[];
 };

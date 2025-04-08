@@ -93,7 +93,7 @@ const CoordinatorDashboard = () => {
       {/* Active Programmes */}
       <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Active Programmes</h2>
+          <h2 className="text-xl font-semibold">Recent Programmes</h2>
           <Button
             variant="link"
             className="text-accent"
@@ -112,7 +112,7 @@ const CoordinatorDashboard = () => {
                 name={programme.name}
                 participantsCount={programme.participantsCount}
                 matchesCount={programme.matchesCount}
-                status={programme.active ? "Active" : "Inactive"}
+                status={programme.isActive ? "Active" : "Inactive"}
               />
             ))
           ) : (
@@ -125,7 +125,7 @@ const CoordinatorDashboard = () => {
       <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center">
           <span className="text-4xl">📊</span>
-          <p className="mt-2">Match Rate</p>
+          <p className="mt-2">Match Rates</p>
         </div>
         <div className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center">
           <span className="text-4xl">📈</span>
