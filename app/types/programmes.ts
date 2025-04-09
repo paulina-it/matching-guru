@@ -60,6 +60,7 @@ export interface ProgrammeYearDto {
   surveyCloseDate?: Date;
   surveyUrl: string;
   feedbackConfirmationCode: string;
+  certificateTemplateUrl: string;
 }
 export interface ProgrammeYearUpdateDto {
   academicYear?: string;
@@ -73,6 +74,7 @@ export interface ProgrammeYearUpdateDto {
   surveyOpenDate?: Date;
   surveyCloseDate?: Date;
   surveyUrl: string;
+  certificateTemplateUrl: string;
 }
 
 export interface ProgrammeYearCreateDto {
@@ -88,6 +90,7 @@ export interface ProgrammeYearCreateDto {
   surveyOpenDate?: Date;
   surveyCloseDate?: Date;
   surveyUrl: string;
+  certificateTemplateUrl: string;
 }
 
 export enum CriterionType {

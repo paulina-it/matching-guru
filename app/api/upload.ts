@@ -87,3 +87,27 @@ export const saveUserProfileImage = async (userId: number, imageUrl: string) => 
     throw new Error(text || "Failed to update user profile image");
   }
 };
+
+/**
+ * Uploads a certificate template image to Cloudinary and returns the URL.
+ */
+export const uploadCertificateTemplate = async (file: File): Promise<string> => {
+  const token = localStorage.getItem("token");
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_URL}/upload/certificate-template`, {
+    method: "POST",
+    body: formData,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include", 
+  });
+
+  const text = await response.text();
+  if (!response.ok) throw new Error(text || "Certificate template upload failed");
+
+  return text;
+};
