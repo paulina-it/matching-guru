@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import { fetchProgrammeById, fetchProgrammeYear } from "@/app/api/programmes";
 import { matchParticipants } from "@/app/api/matching";
-import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
+import { ProgrammeDto, ProgrammeYearResponseDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
@@ -21,7 +21,7 @@ const ProgrammeYearPage = () => {
   const programmeYearId = parseInt(params.yearId, 10);
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
-  const [programmeYear, setProgrammeYear] = useState<ProgrammeYearDto | null>(
+  const [programmeYear, setProgrammeYear] = useState<ProgrammeYearResponseDto | null>(
     null
   );
   const [loadingProgramme, setLoadingProgramme] = useState(true);

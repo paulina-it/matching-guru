@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { redirect, useParams } from "next/navigation";
 import { fetchProgrammeById, fetchProgrammeYears } from "@/app/api/programmes";
 import { matchParticipants } from "@/app/api/matching";
-import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
+import { ProgrammeDto, ProgrammeYearResponseDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
@@ -15,7 +15,7 @@ const ProgrammeDetails = () => {
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
   const [programmeYears, setProgrammeYears] = useState<
-    ProgrammeYearDto[] | null
+    ProgrammeYearResponseDto[] | null
   >(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

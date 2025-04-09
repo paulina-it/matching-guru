@@ -8,11 +8,13 @@ import {
   CriterionType,
   MatchingCriteriaDto,
   ProgrammeYearDto,
+  ProgrammeYearResponseDto,
 } from "@/app/types/programmes";
 import {
   createProgrammeYear,
   updateProgrammeYear,
   fetchProgrammeYear,
+  fetchLatestProgrammeYear,
 } from "@/app/api/programmes";
 import toast from "react-hot-toast";
 import { PulseLoader } from "react-spinners";
@@ -52,6 +54,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   error,
   editMode = false,
 }) => {
+  // FormData
   const [academicYear, setAcademicYear] = useState("");
   const [preferredAlgorithm, setPreferredAlgorithm] = useState<AlgorithmType>(
     AlgorithmType.GALE_SHAPLEY
@@ -75,19 +78,23 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   const [restrictSignupDates, setRestrictSignupDates] = useState(false);
   const [signupOpenDate, setSignupOpenDate] = useState("");
   const [signupCloseDate, setSignupCloseDate] = useState("");
-  const [certificateFile, setCertificateFile] = useState<File | null>(null);
-  const [certificatePreviewUrl, setCertificatePreviewUrl] = useState<
-    string | null
-  >(null);
   const [certificateTemplateUrl, setCertificateTemplateUrl] = useState<
     string | null
   >(null);
 
-  const [loading, setLoading] = useState(false);
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [certificatePreviewUrl, setCertificatePreviewUrl] = useState<
+    string | null
+  >(null);
   const [openAlgorithmInfo, setOpenAlgorithmInfo] = useState(false);
   const [openStrictnessInfo, setOpenStrictnessInfo] = useState(false);
+  const [presetYear, setPresetYear] = useState<ProgrammeYearDto | null>(null);
+
+  // Technical
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
+  const [isAutoPrefilling, setIsAutoPrefilling] = useState(false);
 
   const totalWeight = criteria.reduce(
     (sum, criterion) => sum + criterion.weight,
@@ -106,10 +113,19 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
   };
 
   useEffect(() => {
+    if (!editMode && programmeId) {
+      fetchLatestProgrammeYear(programmeId).then((latestYear) => {
+        if (latestYear) {
+          setPresetYear(latestYear);
+          console.log(latestYear);
+        }
+      });
+    }
+
     if (editMode && programmeYearId) {
       setLoading(true);
       fetchProgrammeYear(programmeYearId)
-        .then((data: ProgrammeYearDto) => {
+        .then((data: ProgrammeYearResponseDto) => {
           console.log(data);
           setAcademicYear(data.academicYear);
           setPreferredAlgorithm(data.preferredAlgorithm as AlgorithmType);
@@ -175,7 +191,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
         })
         .finally(() => setLoading(false));
     }
-  }, [editMode, programmeYearId]);
+  }, [editMode, programmeYearId, programmeId]);
 
   const handleCriteriaChange = (
     index: number,
@@ -213,7 +229,15 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
     setCertificateFile(file);
     setCertificatePreviewUrl(URL.createObjectURL(file));
   };
+
   const applyPreset = (presetName: string) => {
+    setIsAutoPrefilling(true);
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const nextYear = currentYear + 1;
+
+    setAcademicYear(`${currentYear}/${nextYear}`);
+
     switch (presetName) {
       case "academicSupport":
         setPreferredAlgorithm(AlgorithmType.GALE_SHAPLEY);
@@ -306,6 +330,8 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
     }
 
     toast.success("Preset applied! You can fine-tune the details below.");
+    setTimeout(() => setIsAutoPrefilling(false), 200);
+    goToNextSlide();
   };
 
   const uploadCertificateIfPresent = async (): Promise<string | null> => {
@@ -322,8 +348,54 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
     }
   };
 
+  const populateFromPreviousYear = (prev: ProgrammeYearDto) => {
+    setIsAutoPrefilling(true);
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const nextYear = currentYear + 1;
+
+    setAcademicYear(`${currentYear}/${nextYear}`);
+    setPreferredAlgorithm(prev.preferredAlgorithm as AlgorithmType);
+    setStrictAcademicStage(prev.strictAcademicStage ?? true);
+    setStrictCourseGroup(prev.strictCourseGroup ?? true);
+    setApprovalType(
+      (prev.matchApprovalType?.toUpperCase() || "MANUAL") as
+        | "MANUAL"
+        | "THRESHOLD"
+        | "AUTO"
+    );
+    setApprovalThreshold(prev.approvalThreshold || 70);
+    setCollectFeedback(!!prev.surveyUrl);
+    setSurveyOpenDate(
+      prev.surveyOpenDate
+        ? new Date(prev.surveyOpenDate).toISOString().slice(0, 16)
+        : ""
+    );
+    setSurveyCloseDate(
+      prev.surveyCloseDate
+        ? new Date(prev.surveyCloseDate).toISOString().slice(0, 16)
+        : ""
+    );
+    setSurveyUrl(prev.surveyUrl || "");
+
+    setCriteria(
+      prev.matchingCriteria!.map((criterion) => ({
+        name:
+          predefinedCriteria.find(
+            (c) => nameToCriterionTypeMap[c] === criterion.criterionType
+          ) || criterion.name,
+        weight: criterion.weight,
+      }))
+    );
+    setTimeout(() => setIsAutoPrefilling(false), 200);
+    goToNextSlide();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isAutoPrefilling) {
+      return;
+    }
 
     if (totalWeight !== 100) {
       toast.error("The total weight must add up to 100.");
@@ -408,7 +480,11 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       onSubmit={handleSubmit}
       className="p-5 max-w-[90vw] lg:max-w-[60vw] lg:min-w-[60vw] my-[5em] lg:my-10 "
     >
-      <Swiper onSwiper={setSwiperInstance} allowTouchMove={false} className="">
+      <Swiper
+        onSwiper={setSwiperInstance}
+        allowTouchMove={true}
+        className="h-full"
+      >
         {/* Slide 0: Presets */}
         {!editMode && (
           <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-white/30 rounded p-6">
@@ -458,6 +534,25 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
               skip.
             </p>
 
+            {presetYear && (
+              <div className="mt-8 p-4 border rounded-md bg-muted/20 dark:bg-muted/30">
+                <h3 className="text-lg font-semibold mb-2">
+                  📋 Copy Settings from Previous Year?
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  We found an existing Programme Year. Would you like to copy
+                  its settings to save time?
+                </p>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setPresetYear(null)}>
+                    No, Start Fresh
+                  </Button>
+                  <Button onClick={() => populateFromPreviousYear(presetYear)}>
+                    Yes, Copy Settings
+                  </Button>
+                </div>
+              </div>
+            )}
             <Button
               onClick={(e) => {
                 e.preventDefault();
@@ -621,7 +716,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
             </div>
           </div>
           <div className="flex justify-between">
-            {editMode && (
+            {!editMode && (
               <Button
                 type="button"
                 onClick={() => goToPrevSlide()}
@@ -630,7 +725,11 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
                 Back
               </Button>
             )}
-            <Button type="button" onClick={goToNextSlide} className="w-[48%]">
+            <Button
+              type="button"
+              onClick={goToNextSlide}
+              className={!editMode ? "w-[48%]" : "w-full"}
+            >
               Next
             </Button>
           </div>
@@ -863,9 +962,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
               Here's an example, the rest of the data will be autofilled:
             </h3>
             <Image
-              src={
-                "/assets/placeholders/certificate-template.png"
-              }
+              src={"/assets/placeholders/certificate-template.png"}
               alt="Certificate Preview"
               width={800}
               height={566}

@@ -37,6 +37,22 @@ export enum AlgorithmType {
 
 export interface ProgrammeYearDto {
   id: number;
+  programmeId: number;
+  academicYear: string;
+  preferredAlgorithm: AlgorithmType;
+  matchingCriteria: MatchingCriteriaDto[];
+  matchApprovalType: "MANUAL" | "THRESHOLD" | "AUTO";
+  approvalThreshold?: number | null;
+  strictAcademicStage?: boolean;
+  strictCourseGroup?: boolean;
+  surveyOpenDate?: Date;
+  surveyCloseDate?: Date;
+  surveyUrl: string;
+  certificateTemplateUrl: string;
+}
+
+export interface ProgrammeYearResponseDto {
+  id: number;
   academicYear: string;
   programmeName?: string;
   programmeDescription?: string;

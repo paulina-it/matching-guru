@@ -7,7 +7,7 @@ import {
   fetchProgrammeById,
   fetchProgrammeYear,
 } from "@/app/api/programmes";
-import { ProgrammeDto, ProgrammeYearDto } from "@/app/types/programmes";
+import { ProgrammeDto, ProgrammeYearResponseDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
@@ -50,7 +50,7 @@ const ParticipantProgrammeDetails = () => {
   // };
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
-  const [programmeYear, setProgrammeYear] = useState<ProgrammeYearDto | null>(
+  const [programmeYear, setProgrammeYear] = useState<ProgrammeYearResponseDto | null>(
     null
   );
   const [matchDetails, setMatchDetails] = useState<any[]>([]);

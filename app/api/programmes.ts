@@ -6,6 +6,7 @@ import {
   ProgrammeUpdateDto,
   ProgrammeYearCreateDto,
   ProgrammeYearUpdateDto,
+  ProgrammeYearResponseDto,
   ProgrammeYearDto,
 } from "@/app/types/programmes";
 
@@ -176,7 +177,7 @@ export async function createProgrammeYear(
 export async function updateProgrammeYear(
   programmeYearId: number,
   updatedData: ProgrammeYearUpdateDto
-): Promise<ProgrammeYearDto> {
+): Promise<ProgrammeYearResponseDto> {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Authentication token is missing.");
 
@@ -204,7 +205,7 @@ export async function updateProgrammeYear(
 
 export async function fetchProgrammeYears(
   id: number
-): Promise<ProgrammeYearDto[]> {
+): Promise<ProgrammeYearResponseDto[]> {
   const token = localStorage.getItem("token");
 
   const response = await fetch(`${API_URL}/programme-years/programme/${id}`, {
@@ -220,13 +221,13 @@ export async function fetchProgrammeYears(
     throw new Error(error || "Failed to fetch programme years");
   }
 
-  const data: ProgrammeYearDto[] = await response.json();
+  const data: ProgrammeYearResponseDto[] = await response.json();
   return data;
 }
 
 export async function fetchProgrammeYear(
   id: number
-): Promise<ProgrammeYearDto> {
+): Promise<ProgrammeYearResponseDto> {
   const token = localStorage.getItem("token");
 
   const response = await fetch(`${API_URL}/programme-years/${id}`, {
@@ -242,7 +243,7 @@ export async function fetchProgrammeYear(
     throw new Error(error || "Failed to fetch programme year with ID: " + id);
   }
 
-  const data: ProgrammeYearDto = await response.json();
+  const data: ProgrammeYearResponseDto = await response.json();
 
   return data;
 }
@@ -360,4 +361,24 @@ export const downloadServerCertificate = async (
   link.click();
 
   window.URL.revokeObjectURL(url);
+};
+
+export const fetchLatestProgrammeYear = async (
+  programmeId: number
+): Promise<ProgrammeYearDto | null> => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(
+    `${API_URL}/programme-years/programmes/${programmeId}/latest-year`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    }
+  );
+
+  if (!res.ok) return null;
+  return await res.json();
 };
