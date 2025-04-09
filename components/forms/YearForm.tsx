@@ -213,6 +213,100 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
     setCertificateFile(file);
     setCertificatePreviewUrl(URL.createObjectURL(file));
   };
+  const applyPreset = (presetName: string) => {
+    switch (presetName) {
+      case "academicSupport":
+        setPreferredAlgorithm(AlgorithmType.GALE_SHAPLEY);
+        setStrictAcademicStage(true);
+        setStrictCourseGroup(true);
+        setApprovalType("MANUAL");
+        setCriteria([
+          { name: "Academic Field", weight: 30 },
+          { name: "Availability", weight: 25 },
+          { name: "Personality Fit", weight: 20 },
+          { name: "Skills", weight: 15 },
+          { name: "Gender", weight: 5 },
+          { name: "Age", weight: 5 },
+          { name: "Nationality", weight: 0 },
+          { name: "Living Arrangement", weight: 0 },
+        ]);
+        break;
+
+      case "careerMentoring":
+        setPreferredAlgorithm(AlgorithmType.BRACE);
+        setStrictAcademicStage(false);
+        setStrictCourseGroup(false);
+        setApprovalType("THRESHOLD");
+        setApprovalThreshold(70);
+        setCriteria([
+          { name: "Skills", weight: 30 },
+          { name: "Personality Fit", weight: 30 },
+          { name: "Availability", weight: 20 },
+          { name: "Academic Field", weight: 10 },
+          { name: "Age", weight: 5 },
+          { name: "Gender", weight: 5 },
+          { name: "Nationality", weight: 0 },
+          { name: "Living Arrangement", weight: 0 },
+        ]);
+        break;
+
+      case "buddyScheme":
+        setPreferredAlgorithm(AlgorithmType.GALE_SHAPLEY);
+        setStrictAcademicStage(false);
+        setStrictCourseGroup(false);
+        setApprovalType("AUTO");
+        setCriteria([
+          { name: "Nationality", weight: 30 },
+          { name: "Personality Fit", weight: 30 },
+          { name: "Age", weight: 20 },
+          { name: "Gender", weight: 10 },
+          { name: "Availability", weight: 10 },
+          { name: "Academic Field", weight: 0 },
+          { name: "Skills", weight: 0 },
+          { name: "Living Arrangement", weight: 0 },
+        ]);
+        break;
+
+      case "largeCohort":
+        setPreferredAlgorithm(AlgorithmType.BRACE);
+        setStrictAcademicStage(false);
+        setStrictCourseGroup(false);
+        setApprovalType("AUTO");
+        setCriteria([
+          { name: "Availability", weight: 30 },
+          { name: "Skills", weight: 25 },
+          { name: "Personality Fit", weight: 25 },
+          { name: "Academic Field", weight: 10 },
+          { name: "Gender", weight: 5 },
+          { name: "Age", weight: 5 },
+          { name: "Nationality", weight: 0 },
+          { name: "Living Arrangement", weight: 0 },
+        ]);
+        break;
+
+      case "highTouch":
+        setPreferredAlgorithm(AlgorithmType.GALE_SHAPLEY);
+        setStrictAcademicStage(true);
+        setStrictCourseGroup(true);
+        setApprovalType("MANUAL");
+        setCriteria([
+          { name: "Academic Field", weight: 35 },
+          { name: "Skills", weight: 25 },
+          { name: "Personality Fit", weight: 20 },
+          { name: "Availability", weight: 10 },
+          { name: "Age", weight: 5 },
+          { name: "Gender", weight: 5 },
+          { name: "Nationality", weight: 0 },
+          { name: "Living Arrangement", weight: 0 },
+        ]);
+        break;
+
+      default:
+        toast.error("Unknown preset selected");
+    }
+
+    toast.success("Preset applied! You can fine-tune the details below.");
+  };
 
   const uploadCertificateIfPresent = async (): Promise<string | null> => {
     if (!certificateFile) return certificateTemplateUrl ?? null;
@@ -250,7 +344,7 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       setLoading(false);
       return;
     }
-    
+
     const formattedCriteria = criteria.map((criterion) => ({
       name: criterion.name,
       criterionType: nameToCriterionTypeMap[criterion.name],
@@ -315,6 +409,66 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
       className="p-5 max-w-[90vw] lg:max-w-[60vw] lg:min-w-[60vw] my-[5em] lg:my-10 "
     >
       <Swiper onSwiper={setSwiperInstance} allowTouchMove={false} className="">
+        {/* Slide 0: Presets */}
+        {!editMode && (
+          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-white/30 rounded p-6">
+            <h2 className="text-2xl font-bold mb-4">
+              Would you like to choose a Preset?
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Select a preset to prefill common settings based on your programme
+              type or cohort size. You can always change the values later.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                onClick={() => applyPreset("academicSupport")}
+              >
+                🎓 Academic Peer Support
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => applyPreset("careerMentoring")}
+              >
+                💼 Professional Growth
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => applyPreset("buddyScheme")}
+              >
+                🌍 Buddy / Cultural Mingle
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => applyPreset("largeCohort")}
+              >
+                🚀 Large Cohort (Fast Matching)
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => applyPreset("highTouch")}
+              >
+                🤝 High Touch / Manual Matching
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-6">
+              Not sure? Select any option to explore and adjust it later or
+              skip.
+            </p>
+
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                goToNextSlide();
+              }}
+              className="mt-6 w-full"
+            >
+              Next
+            </Button>
+          </SwiperSlide>
+        )}
         {/* Slide 1: General Information */}
         <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-white/30 rounded p-6">
           <h2 className="text-2xl font-bold mb-4">
@@ -466,9 +620,20 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
               </Collapsible>
             </div>
           </div>
-          <Button type="button" onClick={goToNextSlide} className="mt-4 w-full">
-            Next
-          </Button>
+          <div className="flex justify-between">
+            {editMode && (
+              <Button
+                type="button"
+                onClick={() => goToPrevSlide()}
+                className="w-[48%]"
+              >
+                Back
+              </Button>
+            )}
+            <Button type="button" onClick={goToNextSlide} className="w-[48%]">
+              Next
+            </Button>
+          </div>
         </SwiperSlide>
 
         {/* Slide 2: Matching Criteria */}
@@ -599,16 +764,16 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
                 className="w-full border rounded px-4 py-2"
               />
             </div>
-          )}{" "}
-          <div className="flex justify-between items-center">
+          )}
+          <div className="flex justify-between">
             <Button
               type="button"
               onClick={() => goToPrevSlide()}
-              className="mr-2"
+              className="w-[48%]"
             >
               Back
             </Button>
-            <Button type="button" onClick={() => goToNextSlide()}>
+            <Button type="button" onClick={goToNextSlide} className="w-[48%]">
               Next
             </Button>
           </div>
@@ -669,15 +834,15 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
               </div>
             )}
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
             <Button
               type="button"
               onClick={() => goToPrevSlide()}
-              className="mr-2"
+              className="w-[48%]"
             >
               Back
             </Button>
-            <Button type="button" onClick={() => goToNextSlide()}>
+            <Button type="button" onClick={goToNextSlide} className="w-[48%]">
               Next
             </Button>
           </div>
@@ -699,7 +864,6 @@ const ProgrammeYearForm: React.FC<ProgrammeYearFormProps> = ({
             </h3>
             <Image
               src={
-                certificatePreviewUrl ||
                 "/assets/placeholders/certificate-template.png"
               }
               alt="Certificate Preview"
