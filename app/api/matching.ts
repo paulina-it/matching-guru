@@ -157,3 +157,24 @@ export async function updateMatchStatus(
     throw new Error(`Failed to update match status: ${response.statusText}`);
   }
 }
+
+export const deleteProgrammeYearMatches = async (programmeYearId: number) => {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(
+    `${API_URL}/api/matches/programmeYear/${programmeYearId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Failed to delete matches.");
+  }
+
+  return await response.text();
+};

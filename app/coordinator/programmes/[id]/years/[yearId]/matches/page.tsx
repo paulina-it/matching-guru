@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import {
+  deleteProgrammeYearMatches,
   fetchMatchesByProgrammeYearId,
   updateMatchStatus,
 } from "@/app/api/matching";
@@ -28,6 +29,7 @@ const ProgrammeYearMatches = () => {
   const [processing, setProcessing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("updatedAt");
@@ -159,6 +161,23 @@ const ProgrammeYearMatches = () => {
     }
   };
 
+  const handleResetMatches = async () => {
+    const toastId = toast.loading("Deleting matches...");
+    try {
+      await deleteProgrammeYearMatches(programmeYearId!);
+      toast.success("All matches deleted and participants reset.", {
+        id: toastId,
+      });
+      setShowConfirmReset(false);
+      setTimeout(() => window.location.reload(), 800);
+      setShowConfirmReset(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete matches.", {
+        id: toastId,
+      });
+    }
+  };
+
   return (
     <div className="lg:w-[70vw] w-[95vw] bg-light  dark:bg-dark dark:border dark:border-white/30  p-6 my-[5em] rounded shadow relative">
       <div className="flex lg:flex-row flex-col gap-6">
@@ -169,10 +188,47 @@ const ProgrammeYearMatches = () => {
         <Button variant="outline" onClick={handleDownloadCSV}>
           Download All in CSV
         </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowConfirmReset(true);
+          }}
+        >
+          🗑 Reset All Matches
+        </Button>
       </div>
+      {showConfirmReset && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-dark p-6 rounded shadow-lg max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4 text-center">
+              ⚠️ Confirm Reset
+            </h3>
+            <p className="text-sm text-muted-foreground mb-6 text-center">
+              This will delete all matches and reset participants for this
+              Programme Year. Are you sure?
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmReset(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  handleResetMatches();
+                }}
+              >
+                Yes, Delete All
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Approve & Decline Buttons */}
-      <div className="lg:flex hidden gap-4 mb-4 absolute top-5 right-5">
+      <div className="lg:flex hidden gap-4 mb-4 absolute top-10 right-5">
         <Button
           onClick={() => handleUpdateMatchStatus("APPROVED")}
           disabled={selectedMatches.size === 0 || processing}

@@ -78,9 +78,21 @@ const MatchDetails = () => {
 
       <div className="mt-4">
         <h3 className="h3">Match Information</h3>
-        <p>
-          <strong>Status:</strong> {match?.status || "Unknown"}
+        <p className="flex items-center gap-2">
+          <strong>Status:</strong>
+          <span
+            className={`px-2 py-1 text-xs rounded-full ${
+              match?.status === "APPROVED"
+                ? "bg-green-100 text-green-800"
+                : match?.status === "DECLINED"
+                ? "bg-red-100 text-red-800"
+                : "bg-yellow-100 text-yellow-800"
+            }`}
+          >
+            {match?.status}
+          </span>
         </p>
+
         <p>
           <strong>Created At:</strong>{" "}
           {match?.createdAt ? new Date(match.createdAt).toLocaleString() : "-"}
@@ -104,7 +116,7 @@ const MatchDetails = () => {
           </Button>
 
           <Button
-          variant={"outline"}
+            variant={"outline"}
             onClick={() => handleStatusUpdate("DECLINED")}
             disabled={updating || match?.status === "DECLINED"}
             className={`bg-accent text-white hover:bg-accent-hover ${
@@ -115,107 +127,177 @@ const MatchDetails = () => {
           </Button>
         </div>
       </div>
-      <div className="mt-6 grid lg:grid-cols-2 grid-cols-1 gap-6">
-        {/* Mentor Details */}
-        <div className="border p-4 rounded">
-          <h3 className="h3 font-bold">
-            Mentor Details (ID: {match.mentor.participantId})
-          </h3>
-          <p>
-            <strong>Name:</strong> {match?.mentor?.firstName}{" "}
-            {match?.mentor?.lastName}
-          </p>
-          <p>
-            <strong>Email:</strong> {match?.mentor?.email}
-          </p>
-          <p>
-            <strong>Academic Stage:</strong>{" "}
-            {formatText(match?.mentor?.academicStage)}
-          </p>
-          <p>
-            <strong>Course:</strong> {match?.mentor?.course}
-          </p>
-          <p>
-            <strong>Age Group:</strong>{" "}
-            {match?.mentor?.ageGroup?.replace("AGE_", "").replace(/_/g, "-")}
-          </p>
-          <p>
-            <strong>Gender:</strong> {formatText(match?.mentor?.gender)}
-          </p>
-          <p>
-            <strong>Living Arrangement:</strong>{" "}
-            {formatText(match?.mentor?.livingArrangement)}
-          </p>
-          <p>
-            <strong>Personality Type:</strong>{" "}
-            {formatText(match?.mentor?.personalityType)}
-          </p>
-          <p>
-            <strong>Home Country:</strong> {match?.mentor?.homeCountry}
-          </p>
-          <p>
-            <strong>Availability:</strong>{" "}
-            {match?.mentor?.availableDays?.map(formatText).join(", ") || "-"}
-          </p>
-          <p>
-            <strong>Time Preference:</strong>{" "}
-            {formatText(match?.mentor?.timePreference)}
-          </p>
-          <p>
-            <strong>Skills:</strong>{" "}
-            {match?.mentor?.skills?.map(formatText).join(", ") || "-"}
-          </p>
+      <div className="mt-6 grid lg:grid-cols-2 gap-6">
+        {/* Mentor Card */}
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold">👨‍🏫 Mentor</h3>
+            <span className="text-xs text-muted-foreground ">
+              ID: {match.mentor.participantId}
+            </span>
+          </div>
+
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <div className="flex justify-between">
+              <span  className="font-bold">Name</span>
+              <span>
+                {match.mentor.firstName} {match.mentor.lastName}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Email</span>
+              <span>{match.mentor.email}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Course</span>
+              <span>{match.mentor.course}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Academic Stage</span>
+              <span>{formatText(match.mentor.academicStage)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Gender</span>
+              <span>{formatText(match.mentor.gender)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Age Group</span>
+              <span>
+                {match.mentor.ageGroup?.replace("AGE_", "").replace(/_/g, "-")}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Home Country</span>
+              <span>{match.mentor.homeCountry}</span>
+            </div>
+          </div>
+
+          {/* Availability & Skills */}
+          <div className="mt-4">
+            <p className="text-sm font-bold text-muted-foreground mb-1">
+              Availability
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {match.mentor.availableDays?.length > 0 ? (
+                match.mentor.availableDays.map((day: string) => (
+                  <span
+                    key={day}
+                    className="bg-muted text-xs px-3 py-1 rounded-full"
+                  >
+                    {formatText(day)}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-muted-foreground italic">Not specified</span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <p className="text-sm font-bold text-muted-foreground mb-1">
+              Skills
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {match.mentor.skills?.length > 0 ? (
+                match.mentor.skills.map((skill: string) => (
+                  <span
+                    key={skill}
+                    className="bg-muted text-xs px-3 py-1 rounded-full"
+                  >
+                    {formatText(skill)}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-muted-foreground">None</span>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Mentee Details */}
-        <div className="border p-4 rounded">
-          <h3 className="h3 font-bold">
-            Mentee Details (ID: {match.mentee.participantId})
-          </h3>
-          <p>
-            <strong>Name:</strong> {match?.mentee?.firstName}{" "}
-            {match?.mentee?.lastName}
-          </p>
-          <p>
-            <strong>Email:</strong> {match?.mentee?.email}
-          </p>
-          <p>
-            <strong>Academic Stage:</strong>{" "}
-            {formatText(match?.mentee?.academicStage)}
-          </p>
-          <p>
-            <strong>Course:</strong> {match?.mentee?.course}
-          </p>
-          <p>
-            <strong>Age Group:</strong>{" "}
-            {match?.mentee?.ageGroup?.replace("AGE_", "").replace(/_/g, "-")}
-          </p>
-          <p>
-            <strong>Gender:</strong> {formatText(match?.mentee?.gender)}
-          </p>
-          <p>
-            <strong>Living Arrangement:</strong>{" "}
-            {formatText(match?.mentee?.livingArrangement)}
-          </p>
-          <p>
-            <strong>Personality Type:</strong>{" "}
-            {formatText(match?.mentee?.personalityType)}
-          </p>
-          <p>
-            <strong>Home Country:</strong> {match?.mentee?.homeCountry}
-          </p>
-          <p>
-            <strong>Availability:</strong>{" "}
-            {match?.mentee?.availableDays?.map(formatText).join(", ") || "-"}
-          </p>
-          <p>
-            <strong>Time Preference:</strong>{" "}
-            {formatText(match?.mentee?.timePreference)}
-          </p>
-          <p>
-            <strong>Skills:</strong>{" "}
-            {match?.mentee?.skills?.map(formatText).join(", ") || "-"}
-          </p>
+        {/* Mentee Card (same styling) */}
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold">🧑‍🎓 Mentee</h3>
+            <span className="text-xs text-muted-foreground">
+              ID: {match.mentee.participantId}
+            </span>
+          </div>
+
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <div className="flex justify-between">
+              <span className="font-bold">Name</span>
+              <span>
+                {match.mentee.firstName} {match.mentee.lastName}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Email</span>
+              <span>{match.mentee.email}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Course</span>
+              <span>{match.mentee.course}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Academic Stage</span>
+              <span>{formatText(match.mentee.academicStage)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Gender</span>
+              <span>{formatText(match.mentee.gender)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Age Group</span>
+              <span>
+                {match.mentee.ageGroup?.replace("AGE_", "").replace(/_/g, "-")}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Home Country</span>
+              <span>{match.mentee.homeCountry}</span>
+            </div>
+          </div>
+
+          {/* Availability & Skills */}
+          <div className="mt-4">
+            <p className="text-sm font-bold text-muted-foreground mb-1">
+              Availability
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {match.mentee.availableDays?.length > 0 ? (
+                match.mentee.availableDays.map((day: string) => (
+                  <span
+                    key={day}
+                    className="bg-muted text-xs px-3 py-1 rounded-full"
+                  >
+                    {formatText(day)}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-muted-foreground italic">Not specified</span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <p className="text-sm font-bold text-muted-foreground mb-1">
+              Skills
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {match.mentee.skills?.length > 0 ? (
+                match.mentee.skills.map((skill: string) => (
+                  <span
+                    key={skill}
+                    className="bg-muted text-xs px-3 py-1 rounded-full"
+                  >
+                    {formatText(skill)}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-muted-foreground">None</span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
