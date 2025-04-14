@@ -139,15 +139,15 @@ const JoinProgrammeForm: React.FC<{
   const [placementDescription, setPlacementDescription] = useState<string>("");
   const [placementInterest, setPlacementInterest] = useState<boolean>(false);
   const [eligibleCourses, setEligibleCourses] = useState<CourseDto[]>([]);
-  const [personalityType, setPersonalityType] = useState<string | undefined>(user?.personalityType as string);
-  const [ageGroup, setAgeGroup] = useState<string | undefined>(user?.ageGroup as string);
-  const [meetingFrequency, setMeetingFrequency] = useState<string>("");
   const [availableDays, setAvailableDays] = useState<string[]>([]);
-  const [availableTime, setAvailableTime] = useState<string>("");
   const [skills, setSkills] = useState<string[]>([]);
-  const [gender, setGender] = useState<string | undefined>(user?.gender as string);
-  const [livingArrangement, setLivingArrangement] = useState<string | undefined>(user?.livingArrangement as string);
-
+  const [personalityType, setPersonalityType] = useState<string>(user?.personalityType ?? "");
+  const [ageGroup, setAgeGroup] = useState<string>(user?.ageGroup ?? "");
+  const [gender, setGender] = useState<string>(user?.gender ?? "");
+  const [livingArrangement, setLivingArrangement] = useState<string>(user?.livingArrangement ?? "");
+  const [meetingFrequency, setMeetingFrequency] = useState<string>("");
+  const [availableTime, setAvailableTime] = useState<string>("");
+  
   const toggleSkillSelection = (skill: string) => {
     setSkills((prevSkills) =>
       prevSkills.includes(skill)
@@ -156,66 +156,6 @@ const JoinProgrammeForm: React.FC<{
     );
   };
   
-  useEffect(() => {
-    console.log("🔄 Role changed:", role);
-  }, [role]);
-
-  useEffect(() => {
-    console.log("🔄 Mentee limit changed:", menteeLimit);
-  }, [menteeLimit]);
-
-  useEffect(() => {
-    console.log("🔄 Academic stage changed:", academicStage);
-  }, [academicStage]);
-
-  useEffect(() => {
-    console.log("🔄 Course ID changed:", courseId);
-  }, [courseId]);
-
-  useEffect(() => {
-    console.log("🔄 Had placement changed:", hadPlacement);
-  }, [hadPlacement]);
-
-  useEffect(() => {
-    console.log("🔄 Placement description changed:", placementDescription);
-  }, [placementDescription]);
-
-  useEffect(() => {
-    console.log("🔄 Placement interest changed:", placementInterest);
-  }, [placementInterest]);
-
-  useEffect(() => {
-    console.log("🔄 Meeting frequency changed:", meetingFrequency);
-  }, [meetingFrequency]);
-
-  useEffect(() => {
-    console.log("🔄 Available days changed:", availableDays);
-  }, [availableDays]);
-
-  useEffect(() => {
-    console.log("🔄 Available time changed:", availableTime);
-  }, [availableTime]);
-
-  useEffect(() => {
-    console.log("🔄 Skills changed:", skills);
-  }, [skills]);
-
-  useEffect(() => {
-    console.log("🔄 Personality type changed:", personalityType);
-  }, [personalityType]);
-
-  useEffect(() => {
-    console.log("🔄 Age group changed:", ageGroup);
-  }, [ageGroup]);
-
-  useEffect(() => {
-    console.log("🔄 Gender changed:", gender);
-  }, [gender]);
-
-  useEffect(() => {
-    console.log("🔄 Eligible courses updated:", eligibleCourses);
-  }, [eligibleCourses]);
-  //
   useEffect(() => {
     const fetchData = async () => {
       try {

@@ -22,6 +22,7 @@ import {
   downloadServerCertificate,
   verifyFeedbackCode,
 } from "../api/programmes";
+import { PulseLoader } from "react-spinners";
 
 const ParticipantDashboard = () => {
   const [data, setData] = useState<ParticipantDashboardDto | null>(null);
@@ -32,12 +33,16 @@ const ParticipantDashboard = () => {
   const [openCodeDialog, setOpenCodeDialog] = useState(false);
   const [confirmationCodeInput, setConfirmationCodeInput] = useState("");
   const [codeIsValid, setCodeIsValid] = useState(false);
-  const [activeProgrammeYearId, setActiveProgrammeYearId] = useState<number | null>(null);
-  const [activeParticipantId, setActiveParticipantId] = useState<number | null>(null);
+  const [activeProgrammeYearId, setActiveProgrammeYearId] = useState<
+    number | null
+  >(null);
+  const [activeParticipantId, setActiveParticipantId] = useState<number | null>(
+    null
+  );
 
   const handleConfirmCode = async () => {
     if (!activeParticipantId || !activeProgrammeYearId) return;
-  
+
     try {
       const isValid = await verifyFeedbackCode(
         confirmationCodeInput,
@@ -48,14 +53,15 @@ const ParticipantDashboard = () => {
         toast.success("Code verified successfully.");
         setCodeIsValid(true);
       } else {
-        toast.error("Invalid confirmation code. Please double-check and try again.");
+        toast.error(
+          "Invalid confirmation code. Please double-check and try again."
+        );
       }
     } catch (error: any) {
       console.error("Verification failed:", error);
       toast.error("Something went wrong verifying the code.");
     }
   };
-  
 
   useEffect(() => {
     fetchParticipantDashboard()
@@ -70,13 +76,17 @@ const ParticipantDashboard = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Skeleton className="w-full h-80" />;
+  if (loading) return;
+  <div className="flex justify-center items-center h-screen">
+    <PulseLoader color="#ba5648" size={15} />
+  </div>;
+
   if (!data) return <p className="text-red-500">Failed to load dashboard</p>;
 
   console.log(data.activeParticipations);
   return (
-    <div className="grid grid-cols-2 gap-6 bg-white rounded max-w-[65vw] p-5">
-      <div className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded flex">
+    <div className="grid grid-cols-2 gap-6 bg-white dark:bg-dark dark:border-white dark:border rounded max-w-[65vw] p-5">
+      <div className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded flex dark:border-white dark:border ">
         {user?.profileImageUrl ? (
           <img
             src={user.profileImageUrl}
@@ -104,7 +114,7 @@ const ParticipantDashboard = () => {
 
       <div>
         {/* Warnings */}
-        <div className="col-span-2 bg-primary/5 dark:bg-dark rounded p-6">
+        <div className="col-span-2 bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border ">
           <h2 className="text-xl font-semibold mb-4">Next Steps</h2>
 
           {/* 🔔 Unconfirmed Matches */}
@@ -211,7 +221,7 @@ const ParticipantDashboard = () => {
                         setActiveProgrammeYearId(p.programmeYearId);
                         setActiveParticipantId(p.participantId);
                         setOpenCodeDialog(true);
-                      }}                      
+                      }}
                     >
                       Enter confirmation code
                     </Button>
@@ -260,14 +270,14 @@ const ParticipantDashboard = () => {
                           onClick={() =>
                             downloadServerCertificate(
                               `${user?.firstName} ${user?.lastName}`,
-                              p.role.toLowerCase(), 
+                              p.role.toLowerCase(),
                               p.programmeName,
                               p.academicYear,
                               new Date().toLocaleDateString("en-GB", {
                                 day: "numeric",
                                 month: "long",
                                 year: "numeric",
-                              }) 
+                              })
                             )
                           }
                         >
@@ -283,7 +293,7 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Match Summary */}
-      <div className="bg-primary/5 dark:bg-dark rounded p-6">
+      <div className="bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border ">
         <h2 className="text-xl font-semibold mb-4">Matches Overview</h2>
         {data.matches.length === 0 ? (
           <p>No matches yet.</p>
@@ -313,7 +323,7 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Participations */}
-      <div className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2">
+      <div className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2 dark:border-white dark:border ">
         <h2 className="text-xl font-semibold mb-4">Your Programmes</h2>
         {data.activeParticipations.map((p) => (
           <div key={p.programmeYearId} className="mb-3 flex justify-between">

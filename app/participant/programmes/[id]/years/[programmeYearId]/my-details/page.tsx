@@ -50,9 +50,8 @@ const ParticipantProgrammeDetails = () => {
   // };
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
-  const [programmeYear, setProgrammeYear] = useState<ProgrammeYearResponseDto | null>(
-    null
-  );
+  const [programmeYear, setProgrammeYear] =
+    useState<ProgrammeYearResponseDto | null>(null);
   const [matchDetails, setMatchDetails] = useState<any[]>([]);
   const [logsByMatchId, setLogsByMatchId] = useState<
     Record<number, CommunicationLogDto[]>
@@ -87,7 +86,7 @@ const ParticipantProgrammeDetails = () => {
       if (!programmeYearId || !user) return;
 
       try {
-        const [programmeData, matchArray] = await Promise.all([
+        const [programmeData, participantData] = await Promise.all([
           fetchProgrammeYear(programmeYearId),
           getParticipantInfoByUserIdAndProgrammeYearId(
             user.id,
@@ -96,23 +95,52 @@ const ParticipantProgrammeDetails = () => {
         ]);
 
         setProgrammeYear(programmeData);
-        setMatchDetails(matchArray);
-        setIsMentor(matchArray[0]?.mentor?.email === user.email);
-        const userIsMentor = matchArray[0]?.mentor?.email === user.email;
-        setIsMentor(userIsMentor);
+        console.log(participantData);
 
-        const selected = userIsMentor
-          ? { ...matchArray[0].mentor, role: "MENTOR" }
-          : { ...matchArray[0].mentee, role: "MENTEE" };
+        // Case 1: user has one or more matches
+        if (Array.isArray(participantData)) {
+          setMatchDetails(participantData);
 
-        setParticipant(selected);
+          const userIsMentor = participantData[0]?.mentor?.email === user.email;
+          setIsMentor(userIsMentor);
 
-        const logsObj: Record<number, CommunicationLogDto[]> = {};
-        for (const match of matchArray) {
-          const logs = await getLogsForMatch(match.id);
-          logsObj[match.id] = logs;
+          const selected = userIsMentor
+            ? { ...participantData[0].mentor, role: "MENTOR" }
+            : { ...participantData[0].mentee, role: "MENTEE" };
+
+          setParticipant(selected);
+
+          const logsObj: Record<number, CommunicationLogDto[]> = {};
+          for (const match of participantData) {
+            const logs = await getLogsForMatch(match.id);
+            logsObj[match.id] = logs;
+          }
+          setLogsByMatchId(logsObj);
         }
-        setLogsByMatchId(logsObj);
+
+        // Case 2: user has no matches, but is still a participant
+        else {
+          setMatchDetails([]);
+          setIsMentor(null);
+
+          const userInfo = participantData || {}; 
+          setParticipant({
+            role: participantData.role ?? "MENTOR",
+            firstName: participantData.userName?.split(" ")[0] || "",
+            lastName: participantData.userName?.split(" ")[1] || "",
+            email: participantData.userEmail,
+            course: participantData.userCourseName,
+            academicStage: participantData.academicStage,
+            skills: participantData.skills,
+            availableDays: participantData.availableDays,
+            personalityType: participantData.userPersonalityType,
+            gender: participantData.userGender,
+            livingArrangement: participantData.userLivingArrangement,
+            homeCountry: participantData.userHomeCountry,
+            hasSubmittedFeedback: participantData.hasSubmittedFeedback,
+          });
+          
+        }
       } catch (err) {
         toast.error("Error loading data");
       } finally {
@@ -125,7 +153,6 @@ const ParticipantProgrammeDetails = () => {
 
   useEffect(() => {
     const setSurveyDates = () => {
-
       setSurveyOpen(programmeYear?.surveyOpenDate);
       setSurveyClosed(programmeYear?.surveyCloseDate);
 
@@ -136,7 +163,6 @@ const ParticipantProgrammeDetails = () => {
 
     setSurveyDates();
   }, [programmeYear]);
-
 
   const getNextDateForDay = (dayName: string): string => {
     const daysOfWeek: Record<string, number> = {
@@ -278,13 +304,15 @@ const ParticipantProgrammeDetails = () => {
           Contact details: {programmeYear?.contactEmail}
         </p>
       )}
-      {canShowFeedbackBox && (
-        <FeedbackSubmissionBox
-          userId={user!.id}
-          programmeYearId={programmeYearId}
-          alreadySubmitted={participant?.hasSubmittedFeedback}
-        />
-      )}
+      {canShowFeedbackBox &&
+        matchDetails.some((m) => m.status === "APPROVED") && (
+          <FeedbackSubmissionBox
+            userId={user!.id}
+            programmeYearId={programmeYearId}
+            alreadySubmitted={participant?.hasSubmittedFeedback}
+          />
+        )}
+
       <div className="mt-6">
         {matchDetails.length === 1 && (
           <p className="bg-secondary dark:bg-secondary-dark text-white rounded p-2 w-fit absolute top-6 right-6">
@@ -347,7 +375,7 @@ const ParticipantProgrammeDetails = () => {
                 >
                   Download Certificate
                 </Button>
-              ) : (
+              ) : matchDetails.some((m) => m.status === "APPROVED") ? (
                 <Button
                   variant="secondary"
                   onClick={() =>
@@ -356,85 +384,84 @@ const ParticipantProgrammeDetails = () => {
                 >
                   Provide Feedback
                 </Button>
-              )}
+              ) : null}
             </div>
-
-            {!matchDetails?.length ? (
-              <p className="mt-3 text-gray-500 italic">No match found yet.</p>
-            ) : null}
           </div>
         )}
 
-        {matchDetails.map((match, idx) => {
-          const logs = logsByMatchId[match.id] || [];
+        {Array.isArray(matchDetails) && matchDetails.length > 0 ? (
+          matchDetails.map((match, idx) => {
+            const logs = logsByMatchId[match.id] || [];
 
-          console.log(participant);
-          const sortedLogs = [...logs].sort(
-            (a, b) =>
-              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-          );
-
-          const lastInteraction = sortedLogs.find(
-            (log) => log.status === CommunicationStatus.COMPLETED
-          );
-          const lastInteractionDate = lastInteraction
-            ? new Date(lastInteraction.timestamp)
-            : null;
-
-          const msInDay = 1000 * 60 * 60 * 24;
-          let daysSinceLastInteraction: number | null = null;
-          if (lastInteraction) {
-            daysSinceLastInteraction = Math.floor(
-              (now.getTime() - new Date(lastInteraction.timestamp).getTime()) /
-                msInDay
+            console.log(participant);
+            const sortedLogs = [...logs].sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime()
             );
-          } else if (match.updatedAt) {
-            daysSinceLastInteraction = Math.floor(
-              (now.getTime() - new Date(match.updatedAt).getTime()) / msInDay
+
+            const lastInteraction = sortedLogs.find(
+              (log) => log.status === CommunicationStatus.COMPLETED
             );
-          }
+            const lastInteractionDate = lastInteraction
+              ? new Date(lastInteraction.timestamp)
+              : null;
 
-          const shared = (() => {
-            const mentor = match.mentor;
-            const mentee = match.mentee;
+            const msInDay = 1000 * 60 * 60 * 24;
+            let daysSinceLastInteraction: number | null = null;
+            if (lastInteraction) {
+              daysSinceLastInteraction = Math.floor(
+                (now.getTime() -
+                  new Date(lastInteraction.timestamp).getTime()) /
+                  msInDay
+              );
+            } else if (match.updatedAt) {
+              daysSinceLastInteraction = Math.floor(
+                (now.getTime() - new Date(match.updatedAt).getTime()) / msInDay
+              );
+            }
 
-            if (!mentor || !mentee) return null;
+            const shared = (() => {
+              const mentor = match.mentor;
+              const mentee = match.mentee;
 
-            const mentorDays = mentor.availableDays || [];
-            const menteeDays = mentee.availableDays || [];
-            const sharedDays = mentorDays.filter((day: string) =>
-              menteeDays.includes(day)
-            );
-            if (!sharedDays.length) return null;
+              if (!mentor || !mentee) return null;
 
-            const formattedDay =
-              sharedDays[0].charAt(0).toUpperCase() +
-              sharedDays[0].slice(1).toLowerCase();
+              const mentorDays = mentor.availableDays || [];
+              const menteeDays = mentee.availableDays || [];
+              const sharedDays = mentorDays.filter((day: string) =>
+                menteeDays.includes(day)
+              );
+              if (!sharedDays.length) return null;
 
-            const mentorTime = mentor.timeRange || "ANYTIME";
-            const menteeTime = mentee.timeRange || "ANYTIME";
+              const formattedDay =
+                sharedDays[0].charAt(0).toUpperCase() +
+                sharedDays[0].slice(1).toLowerCase();
 
-            let timeSuggestion = "any time";
-            if (mentorTime === menteeTime)
-              timeSuggestion = mentorTime.toLowerCase();
-            else if (mentorTime === "ANYTIME")
-              timeSuggestion = menteeTime.toLowerCase();
-            else if (menteeTime === "ANYTIME")
-              timeSuggestion = mentorTime.toLowerCase();
+              const mentorTime = mentor.timeRange || "ANYTIME";
+              const menteeTime = mentee.timeRange || "ANYTIME";
 
-            return { day: formattedDay, time: timeSuggestion };
-          })();
+              let timeSuggestion = "any time";
+              if (mentorTime === menteeTime)
+                timeSuggestion = mentorTime.toLowerCase();
+              else if (mentorTime === "ANYTIME")
+                timeSuggestion = menteeTime.toLowerCase();
+              else if (menteeTime === "ANYTIME")
+                timeSuggestion = mentorTime.toLowerCase();
 
-          const nextDate =
-            shared && getNextDateForDay
-              ? getNextDateForDay(shared.day)
-              : "(next available)";
+              return { day: formattedDay, time: timeSuggestion };
+            })();
 
-          const emailBody = `Hi ${
-            isMentor
-              ? match.mentee?.firstName || "there"
-              : match.mentor?.firstName || "there"
-          },
+            const nextDate =
+              shared && getNextDateForDay
+                ? getNextDateForDay(shared.day)
+                : "(next available)";
+
+            const emailBody = `Hi ${
+              isMentor
+                ? match.mentee?.firstName || "there"
+                : match.mentor?.firstName || "there"
+            },
 
 I hope you're well! Since we’re matched for the mentoring programme, I’d love to schedule our first meeting.
 
@@ -445,216 +472,221 @@ Looking forward to connecting!
 Best regards,  
 ${user?.firstName}`;
 
-          return (
-            <div
-              key={match.id}
-              className="mt-8 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/30
+            return (
+              <div
+                key={match.id}
+                className="mt-8 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/30
               text-dark dark:text-white"
-            >
-              <h4 className="h4 text-lg mb-3">
-                Match #{idx + 1} –{" "}
-                {match.status === "APPROVED" ? "✅ Confirmed" : "⏳ Pending"}
-              </h4>
-              {match.status === "PENDING" ? (
-                <p className="text-yellow-600 mb-2">
-                  A match has been found for you, but coordinator approval is
-                  pending.
-                </p>
-              ) : match.status !== "APPROVED" ? (
-                <p className="italic mb-2">No match found yet.</p>
-              ) : null}
-
-              {/* Suggested Email */}
-              {match.status === "APPROVED" && (
-                <>
-                  {" "}
-                  {/* Matched person info */}
-                  {isMentor ? (
-                    <div
-                      key={match.mentee.id}
-                      className="mb-4 p-3 border rounded bg-white dark:bg-light/10"
-                    >
-                      <p>
-                        <strong>Name:</strong> {match.mentee.firstName}{" "}
-                        {match.mentee.lastName}
-                      </p>
-                      <p>
-                        <strong>Email:</strong> {match.mentee.email}
-                      </p>
-                      <p>
-                        <strong>Course:</strong> {match.mentee.course}
-                      </p>
-                      <p>
-                        <strong>Academic Stage:</strong>{" "}
-                        {formatText(match.mentee.academicStage)}
-                      </p>
-                      <p>
-                        <strong>Skills:</strong>{" "}
-                        {match.mentee.skills?.length
-                          ? match.mentee.skills.map(formatText).join(", ")
-                          : "None listed"}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mb-4 p-3 border rounded bg-white dark:bg-light/10">
-                      <p>
-                        <strong>Name:</strong> {match.mentor?.firstName}{" "}
-                        {match.mentor?.lastName}
-                      </p>
-                      <p>
-                        <strong>Email:</strong> {match.mentor?.email}
-                      </p>
-                      <p>
-                        <strong>Course:</strong> {match.mentor?.course}
-                      </p>
-                      <p>
-                        <strong>Academic Stage:</strong>{" "}
-                        {formatText(match.mentor?.academicStage)}
-                      </p>
-                      <p>
-                        <strong>Skills:</strong>{" "}
-                        {match.mentor?.skills?.length
-                          ? match.mentor.skills.map(formatText).join(", ")
-                          : "None listed"}
-                      </p>
-                    </div>
-                  )}
-                  <p className="mt-2">
-                    <strong>Compatibility Score:</strong>{" "}
-                    {match.compatibilityScore}%
+              >
+                <h4 className="h4 text-lg mb-3">
+                  Match #{idx + 1} –{" "}
+                  {match.status === "APPROVED" ? "✅ Confirmed" : "⏳ Pending"}
+                </h4>
+                {match.status === "PENDING" ? (
+                  <p className="text-yellow-600 mb-2">
+                    A match has been found for you, but coordinator approval is
+                    pending.
                   </p>
-                  {shared && (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      🕒 You're both available on <strong>{shared.day}</strong>{" "}
-                      at <strong>{shared.time}</strong>
-                    </p>
-                  )}
-                  {/* Contact Match */}
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="mt-4">
-                        Contact Your Match
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Suggested Email</DialogTitle>
-                      </DialogHeader>
-                      <Textarea
-                        value={emailBody}
-                        readOnly
-                        className="w-full min-h-[160px]"
-                      />
-                      <DialogFooter>
-                        <Button
-                          onClick={() => {
-                            const recipient = isMentor
-                              ? match.mentees?.[0]?.email
-                              : match.mentor?.email;
+                ) : match.status !== "APPROVED" ? (
+                  <p className="italic mb-2">No match found yet.</p>
+                ) : null}
 
-                            if (!recipient) {
-                              toast.error("Match email not found.");
-                              return;
-                            }
-
-                            const subject = encodeURIComponent(
-                              "Mentoring Programme: Let's schedule a meeting"
-                            );
-                            const bodyEncoded = encodeURIComponent(emailBody);
-                            window.location.href = `mailto:${recipient}?subject=${subject}&body=${bodyEncoded}`;
-                          }}
-                        >
-                          Send Email
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  {/* Log Interaction */}
-                  <Button
-                    variant="default"
-                    className="ml-5 mt-4"
-                    onClick={() => openNewLogDialog(match.id)}
-                  >
-                    Log Interaction
-                  </Button>
-                  {/* No logs message */}
-                  {logs.length === 0 && (
-                    <p className="text-sm mt-4 italic text-yellow-600">
-                      No interactions logged yet.
+                {/* Suggested Email */}
+                {match.status === "APPROVED" && (
+                  <>
+                    {" "}
+                    {/* Matched person info */}
+                    {isMentor ? (
+                      <div
+                        key={match.mentee.id}
+                        className="mb-4 p-3 border rounded bg-white dark:bg-light/10"
+                      >
+                        <p>
+                          <strong>Name:</strong> {match.mentee.firstName}{" "}
+                          {match.mentee.lastName}
+                        </p>
+                        <p>
+                          <strong>Email:</strong> {match.mentee.email}
+                        </p>
+                        <p>
+                          <strong>Course:</strong> {match.mentee.course}
+                        </p>
+                        <p>
+                          <strong>Academic Stage:</strong>{" "}
+                          {formatText(match.mentee.academicStage)}
+                        </p>
+                        <p>
+                          <strong>Skills:</strong>{" "}
+                          {match.mentee.skills?.length
+                            ? match.mentee.skills.map(formatText).join(", ")
+                            : "None listed"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mb-4 p-3 border rounded bg-white dark:bg-light/10">
+                        <p>
+                          <strong>Name:</strong> {match.mentor?.firstName}{" "}
+                          {match.mentor?.lastName}
+                        </p>
+                        <p>
+                          <strong>Email:</strong> {match.mentor?.email}
+                        </p>
+                        <p>
+                          <strong>Course:</strong> {match.mentor?.course}
+                        </p>
+                        <p>
+                          <strong>Academic Stage:</strong>{" "}
+                          {formatText(match.mentor?.academicStage)}
+                        </p>
+                        <p>
+                          <strong>Skills:</strong>{" "}
+                          {match.mentor?.skills?.length
+                            ? match.mentor.skills.map(formatText).join(", ")
+                            : "None listed"}
+                        </p>
+                      </div>
+                    )}
+                    <p className="mt-2">
+                      <strong>Compatibility Score:</strong>{" "}
+                      {match.compatibilityScore}%
                     </p>
-                  )}
-                  {/* Interaction History */}
-                  {daysSinceLastInteraction !== null &&
-                    daysSinceLastInteraction > 14 && (
-                      <p className="text-accent mt-2 font-medium italic text-sm">
-                        ⚠️ It's been over 2 weeks since your last logged
-                        interaction. Consider reaching out to your match!
+                    {shared && (
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        🕒 You're both available on{" "}
+                        <strong>{shared.day}</strong> at{" "}
+                        <strong>{shared.time}</strong>
                       </p>
                     )}
-                  {logs.length > 0 && (
-                    <div className="mt-4">
-                      <h5 className="font-semibold mb-1 text-sm">
-                        Interaction History
-                      </h5>
-                      <ul className="space-y-2">
-                        {logs
-                          .sort(
-                            (a, b) =>
-                              new Date(b.timestamp).getTime() -
-                              new Date(a.timestamp).getTime()
-                          )
-                          .map((log) => (
-                            <li
-                              key={log.id}
-                              className="text-sm border p-2 rounded flex justify-between"
-                            >
-                              <span>
-                                {new Date(log.timestamp).toLocaleString(
-                                  "en-GB"
-                                )}{" "}
-                                – <strong>{log.type.replace(/_/g, " ")}</strong>{" "}
-                                – <em>{log.status}</em>
-                              </span>
-                              <div className="flex items-center gap-2 ml-4">
-                                {log.status !==
-                                  CommunicationStatus.COMPLETED && (
+                    {/* Contact Match */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="mt-4">
+                          Contact Your Match
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Suggested Email</DialogTitle>
+                        </DialogHeader>
+                        <Textarea
+                          value={emailBody}
+                          readOnly
+                          className="w-full min-h-[160px]"
+                        />
+                        <DialogFooter>
+                          <Button
+                            onClick={() => {
+                              const recipient = isMentor
+                                ? match.mentees?.[0]?.email
+                                : match.mentor?.email;
+
+                              if (!recipient) {
+                                toast.error("Match email not found.");
+                                return;
+                              }
+
+                              const subject = encodeURIComponent(
+                                "Mentoring Programme: Let's schedule a meeting"
+                              );
+                              const bodyEncoded = encodeURIComponent(emailBody);
+                              window.location.href = `mailto:${recipient}?subject=${subject}&body=${bodyEncoded}`;
+                            }}
+                          >
+                            Send Email
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    {/* Log Interaction */}
+                    <Button
+                      variant="default"
+                      className="ml-5 mt-4"
+                      onClick={() => openNewLogDialog(match.id)}
+                    >
+                      Log Interaction
+                    </Button>
+                    {/* No logs message */}
+                    {logs.length === 0 && (
+                      <p className="text-sm mt-4 italic text-yellow-600">
+                        No interactions logged yet.
+                      </p>
+                    )}
+                    {/* Interaction History */}
+                    {daysSinceLastInteraction !== null &&
+                      daysSinceLastInteraction > 14 && (
+                        <p className="text-accent mt-2 font-medium italic text-sm">
+                          ⚠️ It's been over 2 weeks since your last logged
+                          interaction. Consider reaching out to your match!
+                        </p>
+                      )}
+                    {logs.length > 0 && (
+                      <div className="mt-4">
+                        <h5 className="font-semibold mb-1 text-sm">
+                          Interaction History
+                        </h5>
+                        <ul className="space-y-2">
+                          {logs
+                            .sort(
+                              (a, b) =>
+                                new Date(b.timestamp).getTime() -
+                                new Date(a.timestamp).getTime()
+                            )
+                            .map((log) => (
+                              <li
+                                key={log.id}
+                                className="text-sm border p-2 rounded flex justify-between"
+                              >
+                                <span>
+                                  {new Date(log.timestamp).toLocaleString(
+                                    "en-GB"
+                                  )}{" "}
+                                  –{" "}
+                                  <strong>{log.type.replace(/_/g, " ")}</strong>{" "}
+                                  – <em>{log.status}</em>
+                                </span>
+                                <div className="flex items-center gap-2 ml-4">
+                                  {log.status !==
+                                    CommunicationStatus.COMPLETED && (
+                                    <button
+                                      onClick={() =>
+                                        handleMarkCompleted(log, match.id)
+                                      }
+                                      className="text-green-600 hover:text-green-800"
+                                      title="Mark as Completed"
+                                    >
+                                      <CheckCircle size={16} />
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => openEditDialog(log)}
+                                    className="text-primary hover:text-primary-hover dark:text-primary-dark dark:hover:text-primary-darkHover"
+                                    title="Edit"
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
                                   <button
                                     onClick={() =>
-                                      handleMarkCompleted(log, match.id)
+                                      handleDeleteLog(log.id, match.id)
                                     }
-                                    className="text-green-600 hover:text-green-800"
-                                    title="Mark as Completed"
+                                    className="text-accent hover:text-accent-hover dark:text-accent-dark dark:hover:text-accent-darkHover"
+                                    title="Delete"
                                   >
-                                    <CheckCircle size={16} />
+                                    <Trash size={16} />
                                   </button>
-                                )}
-                                <button
-                                  onClick={() => openEditDialog(log)}
-                                  className="text-primary hover:text-primary-hover dark:text-primary-dark dark:hover:text-primary-darkHover"
-                                  title="Edit"
-                                >
-                                  <Pencil size={16} />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleDeleteLog(log.id, match.id)
-                                  }
-                                  className="text-accent hover:text-accent-hover dark:text-accent-dark dark:hover:text-accent-darkHover"
-                                  title="Delete"
-                                >
-                                  <Trash size={16} />
-                                </button>
-                              </div>
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          );
-        })}
+                                </div>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <p className="italic mt-4 text-gray-500">No match found yet.</p>
+        )}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
             <DialogHeader>
