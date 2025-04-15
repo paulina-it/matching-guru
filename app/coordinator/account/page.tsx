@@ -9,28 +9,8 @@ import { Toaster, toast } from "react-hot-toast";
 import { updateUser } from "@/app/api/users";
 import { uploadProfileImage } from "@/app/api/upload";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectInputLabel,
-  SelectValue,
-} from "@/components/ui/select";
-
-import {
   UserUpdateDto,
-  Gender,
-  UserRole,
-  PersonalityType,
-  LivingArrangement,
-  AgeGroup,
+  UserRole
 } from "@/app/types/auth";
 
 const Account = () => {
@@ -114,24 +94,27 @@ const Account = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsUpdating(true);
-
-    try {
-      let updatedProfileImageUrl = formData.profileImageUrl;
   
+    let updatedProfileImageUrl = formData.profileImageUrl;
+  
+    try {
       if (avatar) {
+        if (avatar.size >  1024 * 1024) {
+          toast.error("File is too large. Max size is 1MB.");
+          return; 
+        }
+  
         try {
-          updatedProfileImageUrl = await uploadProfileImage(avatar); 
+          updatedProfileImageUrl = await uploadProfileImage(avatar);
           toast.success("Profile image uploaded successfully!");
-        } catch (error) {
-          console.error("Image Upload Error:", error);
+        } catch (uploadError) {
+          console.error("Image Upload Error:", uploadError);
           toast.error("Image upload failed, but other details were updated.");
         }
       }
-      
-  
       await updateUser({
         ...formData,
-        profileImageUrl: updatedProfileImageUrl, 
+        profileImageUrl: updatedProfileImageUrl,
       });
   
       toast.success("Profile updated successfully!");
@@ -139,12 +122,14 @@ const Account = () => {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile.");
     } finally {
-      setIsUpdating(false);}
+      setIsUpdating(false);
+    }
   };
+  
   
 
   return (
-    <div className="max-w-[40em] min-w-[30em] mx-auto my-[5em] rounded-lg p-6 bg-white shadow-md">
+    <div className="max-w-[40em] min-w-[30em] mx-auto my-[5em] rounded p-6 bg-white shadow-md dark:bg-dark dark:border dark:border-white">
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
         <div className="flex justify-center items-center gap-10 mb-4 col-span-2">
           {preview && (

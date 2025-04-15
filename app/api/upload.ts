@@ -38,11 +38,30 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
     body: formData,
   });
 
-  const text = await response.text();
-  if (!response.ok) throw new Error(text || "Image upload failed");
+  let errorMessage = "Image upload failed";
 
-  return text;
+  try {
+    const text = await response.text();
+
+    if (!response.ok) {
+      try {
+        const json = JSON.parse(text);
+        errorMessage = json.message || json.error || errorMessage;
+      } catch {
+        errorMessage = text || response.statusText || errorMessage;
+      }
+
+      console.error("Image Upload Response Error:", errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    return text;
+  } catch (err) {
+    console.error("Error parsing upload response:", err);
+    throw err;
+  }
 };
+
 
 /**
  * Uploads an organisation logo image and returns the Cloudinary URL.
