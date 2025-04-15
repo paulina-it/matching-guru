@@ -18,6 +18,7 @@ import {
   Legend,
 } from "chart.js";
 import { useAuth } from "@/app/context/AuthContext";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 Chart.register(
   ArcElement,
@@ -33,6 +34,9 @@ const MatchRatesPage = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState<OrganisationMatchStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expandedProgrammes, setExpandedProgrammes] = useState<Set<number>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (!user?.organisationId) return;
@@ -52,6 +56,18 @@ const MatchRatesPage = () => {
     getStats();
   }, [user?.organisationId]);
 
+  const toggleProgramme = (index: number) => {
+    setExpandedProgrammes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -67,6 +83,7 @@ const MatchRatesPage = () => {
       </div>
     );
   }
+
   const orgMatchRateData = {
     labels: ["Matched", "Unmatched"],
     datasets: [
@@ -104,8 +121,8 @@ const MatchRatesPage = () => {
           <h2 className="text-2xl font-semibold mb-2">{stats.organisation}</h2>
           <p>Total Participants: {stats.totalParticipants}</p>
           <p>Total Matches: {stats.totalMatches}</p>
-          <p className="font-medium text-primary">
-            Average Match Rate: {stats.matchRatePercent.toFixed(2)}%
+          <p className="font-medium text-3xl text-primary">
+            Average Match Rate: <br /> {stats.matchRatePercent.toFixed(2)}%
           </p>
         </div>
         <div style={{ maxWidth: "250px", margin: "0 auto" }}>
@@ -116,7 +133,7 @@ const MatchRatesPage = () => {
         </div>
       </Card>
 
-      <div className="mb-8">
+      <div className="mb-8 bg-white rounded dark:bg-dark dark:border dark:border-white p-6">
         <h2 className="text-2xl font-semibold mb-4">Programme Match Rates</h2>
         <Bar
           data={programmeMatchRateData}
@@ -127,33 +144,59 @@ const MatchRatesPage = () => {
         />
       </div>
 
-      {stats.programmes.map((programme, index) => (
-        <Card
-          key={index}
-          className="mb-6 p-6 border border-muted dark:bg-dark dark:border dark:border-white/30 rounded"
-        >
-          <h3 className="text-xl font-semibold">{programme.programmeName}</h3>
-          <p>Total Participants: {programme.totalParticipants}</p>
-          <p>Total Matches: {programme.totalMatches}</p>
-          <p className="text-primary">
-            Match Rate: {programme.matchRate.toFixed(2)}%
-          </p>
+      <div className="grid grid-cols-2 gap-6">
+        {stats.programmes.map((programme, index) => {
+          const isExpanded = expandedProgrammes.has(index);
 
-          <div className="mt-4">
-            <h4 className="text-lg font-medium mb-2">Programme Years</h4>
-            <ul className="grid gap-2">
-              {programme.years.map((year, i) => (
-                <li key={i} className="border px-4 py-2 rounded bg-muted/10">
-                  <strong>{year.academicYear}:</strong> {year.matches} /{" "}
-                  {year.participants} matched (
-                  <span className="font-semibold">{year.rate.toFixed(2)}%</span>
-                  )
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Card>
-      ))}
+          return (
+            <Card
+              key={index}
+              className="mb-6 p-6 border border-muted dark:bg-dark dark:border dark:border-white/30 rounded"
+            >
+              <h3 className="text-xl font-semibold">
+                {programme.programmeName}
+              </h3>
+              <p>Total Participants: {programme.totalParticipants}</p>
+              <p>Total Matches: {programme.totalMatches}</p>
+              <p className="text-primary">
+                Match Rate: {programme.matchRate.toFixed(2)}%
+              </p>
+
+              <div className="mt-4">
+                <button
+                  onClick={() => toggleProgramme(index)}
+                  className="flex items-center gap-2 text-accent hover:underline"
+                >
+                  {isExpanded ? (
+                    <ChevronDown size={18} />
+                  ) : (
+                    <ChevronRight size={18} />
+                  )}
+                  {isExpanded ? "Hide Years" : "Show Years"}
+                </button>
+
+                {isExpanded && (
+                  <ul className="grid gap-2 mt-3">
+                    {programme.years.map((year, i) => (
+                      <li
+                        key={i}
+                        className="border px-4 py-2 rounded bg-muted/10"
+                      >
+                        <strong>{year.academicYear}:</strong> {year.matches} /{" "}
+                        {year.participants} matched (
+                        <span className="font-semibold">
+                          {year.rate.toFixed(2)}%
+                        </span>
+                        )
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 };
