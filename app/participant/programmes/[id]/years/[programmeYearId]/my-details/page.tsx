@@ -43,11 +43,6 @@ const ParticipantProgrammeDetails = () => {
   const programmeId = parseInt(params.id, 10);
   const programmeYearId = parseInt(params.programmeYearId, 10);
   const { user } = useAuth();
-  // const router = useRouter();
-  // const [meetingLink, setMeetingLink] = useState("");
-  // const saveMeetingLink = () => {
-  //   toast.success("Meeting link saved!");
-  // };
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
   const [programmeYear, setProgrammeYear] =
@@ -80,6 +75,33 @@ const ParticipantProgrammeDetails = () => {
   const [surveyOpen, setSurveyOpen] = useState<Date | null>();
   const [surveyClosed, setSurveyClosed] = useState<Date | null>();
   const [canShowFeedbackBox, setCanShowFeedbackBox] = useState<boolean>(false);
+
+  const weekDayOrder = {
+    MONDAY: 0,
+    TUESDAY: 1,
+    WEDNESDAY: 2,
+    THURSDAY: 3,
+    FRIDAY: 4,
+    SATURDAY: 5,
+    SUNDAY: 6,
+  };
+
+  const sortAvailableDays = (availableDays: string[]) => {
+    const splitDays = availableDays.flatMap((day: string) => {
+      return day.split(" ").map((d) => d.trim());
+    });
+
+    const validDays = splitDays.filter(
+      (day) => weekDayOrder[day as keyof typeof weekDayOrder] !== undefined
+    );
+
+    return validDays.sort((a, b) => {
+      const dayA = weekDayOrder[a as keyof typeof weekDayOrder];
+      const dayB = weekDayOrder[b as keyof typeof weekDayOrder];
+
+      return dayA - dayB;
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,7 +145,7 @@ const ParticipantProgrammeDetails = () => {
           setMatchDetails([]);
           setIsMentor(null);
 
-          const userInfo = participantData || {}; 
+          const userInfo = participantData || {};
           setParticipant({
             role: participantData.role ?? "MENTOR",
             firstName: participantData.userName?.split(" ")[0] || "",
@@ -139,7 +161,6 @@ const ParticipantProgrammeDetails = () => {
             homeCountry: participantData.userHomeCountry,
             hasSubmittedFeedback: participantData.hasSubmittedFeedback,
           });
-          
         }
       } catch (err) {
         toast.error("Error loading data");
@@ -351,7 +372,9 @@ const ParticipantProgrammeDetails = () => {
             <p>
               <strong>Available Days:</strong>{" "}
               {participant?.availableDays?.length
-                ? participant.availableDays.map(formatText).join(", ")
+                ? sortAvailableDays(participant.availableDays)
+                    .map(formatText)
+                    .join(", ")
                 : "None listed"}
             </p>
 
@@ -516,6 +539,14 @@ ${user?.firstName}`;
                           {formatText(match.mentee.academicStage)}
                         </p>
                         <p>
+                          <strong>Available Days:</strong>{" "}
+                          {match.mentee?.availableDays?.length
+                            ? sortAvailableDays(match.mentee?.availableDays)
+                                .map(formatText)
+                                .join(", ")
+                            : "None listed"}
+                        </p>
+                        <p>
                           <strong>Skills:</strong>{" "}
                           {match.mentee.skills?.length
                             ? match.mentee.skills.map(formatText).join(", ")
@@ -537,6 +568,14 @@ ${user?.firstName}`;
                         <p>
                           <strong>Academic Stage:</strong>{" "}
                           {formatText(match.mentor?.academicStage)}
+                        </p>
+                        <p>
+                          <strong>Available Days:</strong>{" "}
+                          {match.mentor?.availableDays?.length
+                            ? sortAvailableDays(match.mentor?.availableDays)
+                                .map(formatText)
+                                .join(", ")
+                            : "None listed"}
                         </p>
                         <p>
                           <strong>Skills:</strong>{" "}

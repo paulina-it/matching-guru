@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { fetchDetailedMatchById, updateMatchStatus } from "@/app/api/matching";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import { formatText } from "@/app/utils/text";
 const MatchDetails = () => {
   const params = useParams<{ matchId: string }>();
   const matchId = params.matchId ? parseInt(params.matchId, 10) : null;
-  const router = useRouter();
 
   const [match, setMatch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +69,34 @@ const MatchDetails = () => {
     return <div className="text-red-600 font-semibold">{error}</div>;
   }
 
-  console.table(match);
+  const weekDayOrder = {
+    MONDAY: 0,
+    TUESDAY: 1,
+    WEDNESDAY: 2,
+    THURSDAY: 3,
+    FRIDAY: 4,
+    SATURDAY: 5,
+    SUNDAY: 6,
+  };
+
+  console.log(match);
+
+  const sortAvailableDays = (availableDays: string[]) => {
+    const splitDays = availableDays.flatMap((day: string) => {
+      return day.split(" ").map((d) => d.trim());
+    });
+
+    const validDays = splitDays.filter(
+      (day) => weekDayOrder[day as keyof typeof weekDayOrder] !== undefined
+    );
+
+    return validDays.sort((a, b) => {
+      const dayA = weekDayOrder[a as keyof typeof weekDayOrder];
+      const dayB = weekDayOrder[b as keyof typeof weekDayOrder];
+
+      return dayA - dayB;
+    });
+  };
 
   return (
     <div className="lg:max-w-[65vw] max-w-[95vw] m-5 mt-[5em] bg-light  dark:bg-dark dark:border dark:border-white/30  p-6 rounded shadow relative">
@@ -139,7 +165,7 @@ const MatchDetails = () => {
 
           <div className="space-y-3 text-sm text-muted-foreground">
             <div className="flex justify-between">
-              <span  className="font-bold">Name</span>
+              <span className="font-bold">Name</span>
               <span>
                 {match.mentor.firstName} {match.mentor.lastName}
               </span>
@@ -178,12 +204,9 @@ const MatchDetails = () => {
               Availability
             </p>
             <div className="flex flex-wrap gap-2">
-              {match.mentor.availableDays?.length > 0 ? (
-                match.mentor.availableDays.map((day: string) => (
-                  <span
-                    key={day}
-                    className="bg-muted text-xs px-3 py-1 rounded-full"
-                  >
+            {match.mentor.availableDays?.length > 0 ? (
+                sortAvailableDays(match.mentor.availableDays).map((day: string) => (
+                  <span key={day} className="bg-muted text-xs px-3 py-1 rounded-full">
                     {formatText(day)}
                   </span>
                 ))
@@ -265,16 +288,20 @@ const MatchDetails = () => {
             </p>
             <div className="flex flex-wrap gap-2">
               {match.mentee.availableDays?.length > 0 ? (
-                match.mentee.availableDays.map((day: string) => (
-                  <span
-                    key={day}
-                    className="bg-muted text-xs px-3 py-1 rounded-full"
-                  >
-                    {formatText(day)}
-                  </span>
-                ))
+                sortAvailableDays(match.mentee.availableDays).map(
+                  (day: string) => (
+                    <span
+                      key={day}
+                      className="bg-muted text-xs px-3 py-1 rounded-full"
+                    >
+                      {formatText(day)}
+                    </span>
+                  )
+                )
               ) : (
-                <span className="text-xs text-muted-foreground italic">Not specified</span>
+                <span className="text-xs text-muted-foreground italic">
+                  Not specified
+                </span>
               )}
             </div>
           </div>
