@@ -13,11 +13,12 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { downloadCSV } from "@/app/api/export";
 
-const ITEMS_PER_PAGE = 20;
+// const ITEMS_PER_PAGE = 20;
 
 const ProgrammeYearMatches = () => {
   const params = useParams<{ id: string; yearId: string }>();
   const pathname = usePathname();
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const programmeYearId = params.yearId ? parseInt(params.yearId, 10) : null;
 
@@ -47,7 +48,7 @@ const ProgrammeYearMatches = () => {
           await fetchMatchesByProgrammeYearId(
             programmeYearId,
             currentPage - 1,
-            ITEMS_PER_PAGE,
+            itemsPerPage,
             submittedSearch,
             sortBy,
             sortOrder,
@@ -72,6 +73,7 @@ const ProgrammeYearMatches = () => {
     sortBy,
     sortOrder,
     statusFilter,
+    itemsPerPage
   ]);
 
   const handleSearchSubmit = () => {
@@ -128,7 +130,7 @@ const ProgrammeYearMatches = () => {
         await fetchMatchesByProgrammeYearId(
           programmeYearId!,
           currentPage - 1,
-          ITEMS_PER_PAGE,
+          itemsPerPage,
           submittedSearch,
           sortBy,
           sortOrder,
@@ -180,22 +182,24 @@ const ProgrammeYearMatches = () => {
 
   return (
     <div className="lg:w-[70vw] w-[95vw] bg-light  dark:bg-dark dark:border dark:border-white/30  p-6 my-[5em] rounded shadow relative">
-      <div className="flex lg:flex-row flex-col gap-6">
-        <h2 className="h2 font-bold mb-4">Programme Year Matches</h2>
-        <p className="lg:hidden text-center">
-          For full view, please open this page on a desktop.
-        </p>
-        <Button variant="outline" onClick={handleDownloadCSV}>
-          Download All in CSV
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setShowConfirmReset(true);
-          }}
-        >
-          🗑 Reset All Matches
-        </Button>
+      <div className="flex lg:flex-row justify-between flex-col gap-6">
+        <div>
+          <h2 className="h2 font-bold mb-4">Programme Year Matches</h2>
+          <p className="lg:hidden text-center">
+            For full view, please open this page on a desktop.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={handleDownloadCSV}>
+            📥 Download CSV
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => setShowConfirmReset(true)}
+          >
+            🗑 Reset All Matches
+          </Button>
+        </div>
       </div>
       {showConfirmReset && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
@@ -227,26 +231,27 @@ const ProgrammeYearMatches = () => {
         </div>
       )}
 
-      {/* Approve & Decline Buttons */}
-      <div className="lg:flex hidden gap-4 mb-4 absolute top-10 right-5">
-        <Button
-          onClick={() => handleUpdateMatchStatus("APPROVED")}
-          disabled={selectedMatches.size === 0 || processing}
-        >
-          Approve
-        </Button>
-        <Button
-          onClick={() => handleUpdateMatchStatus("DECLINED")}
-          variant="secondary"
-          disabled={selectedMatches.size === 0 || processing}
-        >
-          Decline
-        </Button>
-      </div>
-
       <div className="hidden lg:grid grid-cols-[1fr_4fr] gap-6">
         {/* 🎛 Search, Sort, and Filter Controls */}
         <div className="flex flex-col gap-4 mb-4">
+          {matches.length > 0 && (
+            <div className="flex flex-col gap-4 mb-4">
+              <Button
+                onClick={() => handleUpdateMatchStatus("APPROVED")}
+                disabled={selectedMatches.size === 0 || processing}
+              >
+                Approve Selected
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => handleUpdateMatchStatus("DECLINED")}
+                disabled={selectedMatches.size === 0 || processing}
+              >
+                Decline Selected
+              </Button>
+            </div>
+          )}
+          <h3 className="h3">Search and Filter:</h3>
           <input
             type="text"
             placeholder="Search by mentor/mentee..."
@@ -260,10 +265,11 @@ const ProgrammeYearMatches = () => {
             onChange={(e) => setSortBy(e.target.value)}
             className="border p-2 rounded"
           >
-            <option value="updatedAt">Updated At</option>
-            <option value="mentorName">Mentor Name</option>
-            <option value="menteeName">Mentee Name</option>
+            <option value="id">Match ID</option>
             <option value="compatibilityScore">Compatibility Score</option>
+            <option value="status">Status</option>
+            <option value="mentor.user.lastName">Mentor Last Name</option>
+            <option value="mentee.user.lastName">Mentee Last Name</option>
           </select>
           <select
             value={sortOrder}
@@ -283,6 +289,22 @@ const ProgrammeYearMatches = () => {
             <option value="PENDING">Pending</option>
             <option value="DECLINED">Declined</option>
           </select>
+          <label className="text-sm font-medium">Matches per page:</label>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border p-2 mt-[-1em] rounded"
+          >
+            {[10, 20, 30, 50, 100].map((num) => (
+              <option key={num} value={num}>
+                {num} per page
+              </option>
+            ))}
+          </select>
+
           <Button onClick={handleSearchSubmit}>Search</Button>
         </div>
 
@@ -318,34 +340,46 @@ const ProgrammeYearMatches = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {matches.map((match) => (
-                    <tr key={match.id} className="border-t">
-                      <td className=" py-4 flex justify-center h-full">
-                        <input
-                          type="checkbox"
-                          checked={selectedMatches.has(match.id)}
-                          onChange={() => toggleSelectMatch(match.id)}
-                          className="w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white 
-    checked:bg-accent checked:border-none checked:ring-2 checked:ring-accent-hover
-    focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all cursor-pointer
-    relative checked:before:content-['✔'] checked:before:absolute 
-    checked:before:top-1/2 checked:before:left-1/2 checked:before:-translate-x-1/2 
-    checked:before:-translate-y-1/2 checked:before:text-white checked:before:text-md"
-                        />
-                      </td>
-                      <td className="border p-2">
-                        {match.mentorName} ({match.mentorId})
-                      </td>
-                      <td className="border p-2">
-                        {match.menteeName} ({match.menteeId})
-                      </td>
-                      <td className="border p-2">{match.compatibilityScore}</td>
-                      <td className="border p-2">{match.status}</td>
-                      <td className="border p-2">
-                        <Link href={`${pathname}/${match.id}`}>View</Link>
-                      </td>
-                    </tr>
-                  ))}
+                  {matches.map((match) => {
+                    if (!match.id) console.warn("❌ Match missing ID:", match);
+
+                    return (
+                      <tr
+                        key={
+                          match.id ??
+                          `${match.mentorId}-${match.menteeId}-${match.compatibilityScore}`
+                        }
+                        className="border-t"
+                      >
+                        <td className="py-4 flex justify-center h-full">
+                          <input
+                            type="checkbox"
+                            checked={selectedMatches.has(match.id)}
+                            onChange={() => toggleSelectMatch(match.id)}
+                            className="w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white 
+checked:bg-accent checked:border-none checked:ring-2 checked:ring-accent-hover
+focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all cursor-pointer
+relative checked:before:content-['✔'] checked:before:absolute 
+checked:before:top-1/2 checked:before:left-1/2 checked:before:-translate-x-1/2 
+checked:before:-translate-y-1/2 checked:before:text-white checked:before:text-md"
+                          />
+                        </td>
+                        <td className="border p-2">
+                          {match.mentorName} ({match.mentorId})
+                        </td>
+                        <td className="border p-2">
+                          {match.menteeName} ({match.menteeId})
+                        </td>
+                        <td className="border p-2">
+                          {match.compatibilityScore}
+                        </td>
+                        <td className="border p-2">{match.status}</td>
+                        <td className="border p-2">
+                          <Link href={`${pathname}/${match.id}`}>View</Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
               {/* Pagination Controls */}
