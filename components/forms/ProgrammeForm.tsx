@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import InputField from "@/components/InputField";
 import { Button } from "@/components/ui/button";
 import { fetchCourseGroupsByOrganisationId } from "@/app/api/courses";
+import toast from "react-hot-toast";
 
 interface ProgrammeFormProps {
   user: any;
@@ -13,8 +14,11 @@ interface ProgrammeFormProps {
   setName: (name: string) => void;
   setDesc: (desc: string) => void;
   setSelectedCourseGroups: (groups: number[]) => void;
+  contactEmail: string;
+  setContactEmail: (email: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   error: string | null;
+  isEditMode: boolean;
 }
 
 const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
@@ -25,8 +29,11 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
   setName,
   setDesc,
   setSelectedCourseGroups,
+  contactEmail,
+  setContactEmail,
   onSubmit,
   error,
+  isEditMode,
 }) => {
   const [courseGroups, setCourseGroups] = useState<
     { id: number; name: string }[]
@@ -62,19 +69,33 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
   };
 
   const handleSelectAll = () => {
-    event?.preventDefault();
     const allGroupIds = courseGroups.map((group) => group.id);
     setSelectedCourseGroups(allGroupIds);
   };
 
   const handleDeselectAll = () => {
-    event?.preventDefault();
     setSelectedCourseGroups([]);
   };
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateEmail(contactEmail)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    } 
+
+    onSubmit(e);
+  };
+
   return (
-    <form onSubmit={onSubmit} className="w-full bg-light dark:bg-dark dark:border dark:border-white/30  rounded p-5">
-      <h2 className="text-2xl font-bold mb-4">Create Programme</h2>
+    <form onSubmit={handleSubmit} className="w-full bg-light dark:bg-dark dark:border dark:border-white/30 rounded p-5">
+      <h2 className="text-2xl font-bold mb-4">{isEditMode ? "Edit" : "Create"} Programme</h2>
       {error && <p className="text-red-500">{error}</p>}
 
       <InputField
@@ -86,7 +107,7 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
         required
       />
 
-      <div className="mb-4">
+      <div className="">
         <label htmlFor="desc" className="block font-medium text-gray-700 my-2">
           Programme Description
         </label>
@@ -101,7 +122,17 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
         />
       </div>
 
-      <div className="relative">
+      {/* Contact Email Field */}
+      <InputField
+        id="contactEmail"
+        label="Contact Email"
+        placeholder="e.g. contact@example.com"
+        value={contactEmail}
+        onChange={(e) => setContactEmail(e.target.value)}
+        required
+      />
+
+      <div className="relative mt-5">
         <label className="block font-bold mb-2">Select Course Groups</label>
         {courseGroups.length > 1 && (
           <div className="flex justify-end mb-2 absolute top-0 right-0">
@@ -127,12 +158,7 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
                 type="checkbox"
                 checked={selectedCourseGroups.includes(group.id)}
                 onChange={() => handleCourseGroupSelection(group.id)}
-                className="mx-3 w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white 
-  checked:bg-accent checked:border-none checked:ring-2 checked:ring-accent-hover
-  focus:outline-none focus:ring-2 focus:ring-accent-hover transition-all cursor-pointer
-  relative checked:before:content-['✔'] checked:before:absolute 
-  checked:before:top-1/2 checked:before:left-1/2 checked:before:-translate-x-1/2 
-  checked:before:-translate-y-1/2 checked:before:text-white checked:before:text-md"
+                className="mx-3 w-4 h-4 appearance-none border-2 border-gray-400 rounded bg-white checked:bg-accent"
               />
               <label>{group.name}</label>
             </div>
@@ -143,7 +169,7 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
       </div>
 
       <Button type="submit" className="mt-4">
-        Create Programme
+        {isEditMode ? "Update Programme" : "Create Programme"}
       </Button>
     </form>
   );

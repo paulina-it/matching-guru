@@ -1,23 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProgrammeForm from "@/components/forms/ProgrammeForm";
 import toast from "react-hot-toast";
 import { useAuth } from "@/app/context/AuthContext";
-import { createProgramme } from "@/app/api/programmes";
-import { ProgrammeCreateDto } from "@/app/types/programmes";
+import { fetchProgrammeById, updateProgramme } from "@/app/api/programmes";
+import { ProgrammeDto, ProgrammeCreateDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { useRouter } from "next/navigation";
 
-const CreateProgramme = () => {
+const EditProgramme = ({ programmeId }: { programmeId: number }) => {
+  const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
-  const [contactEmail, setContactEmail] = useState(""); 
+  const [contactEmail, setContactEmail] = useState("");
   const [selectedCourseGroups, setSelectedCourseGroups] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchProgramme = async () => {
+      try {
+        const data = await fetchProgrammeById(programmeId);
+        setProgramme(data);
+        setName(data.name);
+        setDesc(data.description);
+        setContactEmail(data.contactEmail); 
+        setSelectedCourseGroups(data.courseGroupIds);
+      } catch (error) {
+        toast.error("Failed to load programme details.");
+      }
+    };
+
+    fetchProgramme();
+  }, [programmeId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,18 +58,16 @@ const CreateProgramme = () => {
     };
 
     try {
-      const createdProgramme = await createProgramme(programmeData);
-      toast.success(
-        `Programme "${createdProgramme.name}" created successfully!`
-      );
-      router.push(`/coordinator/programmes/`);
+      const updatedProgramme = await updateProgramme(programmeId, programmeData);
+      toast.success(`Programme "${updatedProgramme.name}" updated successfully!`);
+      router.push(`/programmes/${programmeId}`);
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || "Failed to create programme.");
+      toast.error(error.message || "Failed to update programme.");
     }
   };
 
-  if (loading) {
+  if (loading || !programme) {
     return (
       <div className="flex justify-center items-center h-screen">
         <PulseLoader color="#ba5648" size={15} />
@@ -65,18 +81,18 @@ const CreateProgramme = () => {
         user={user}
         name={name}
         desc={desc}
-        contactEmail={contactEmail} 
+        contactEmail={contactEmail}
         selectedCourseGroups={selectedCourseGroups}
         setName={setName}
         setDesc={setDesc}
-        setContactEmail={setContactEmail}
+        setContactEmail={setContactEmail} 
         setSelectedCourseGroups={setSelectedCourseGroups}
         onSubmit={handleSubmit}
         error={error}
-        isEditMode={false}
+        isEditMode={true}
       />
     </div>
   );
 };
 
-export default CreateProgramme;
+export default EditProgramme;
