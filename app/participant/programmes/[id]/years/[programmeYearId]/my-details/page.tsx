@@ -218,6 +218,7 @@ const ParticipantProgrammeDetails = () => {
   const handleCreateLog = async () => {
     if (!selectedMatchId) return;
     try {
+      closeDialog();
       await createCommunicationLog({
         matchId: selectedMatchId,
         type,
@@ -225,8 +226,9 @@ const ParticipantProgrammeDetails = () => {
         timestamp,
       });
       toast.success("Interaction logged successfully!");
-      const updated = await getLogsForMatch(selectedMatchId);
-      setLogsByMatchId((prev) => ({ ...prev, [selectedMatchId]: updated }));
+
+      const updatedLogs = await getLogsForMatch(selectedMatchId);
+      setLogsByMatchId((prev) => ({ ...prev, [selectedMatchId]: updatedLogs }));
       closeDialog();
     } catch (err: any) {
       toast.error(err.message || "Failed to log interaction");
@@ -236,6 +238,7 @@ const ParticipantProgrammeDetails = () => {
   const handleUpdateLog = async () => {
     if (!editingLogId || !selectedMatchId) return;
     try {
+      closeDialog();
       await updateCommunicationLog(editingLogId, {
         matchId: selectedMatchId,
         type,
@@ -243,8 +246,9 @@ const ParticipantProgrammeDetails = () => {
         timestamp,
       });
       toast.success("Interaction updated!");
-      const updated = await getLogsForMatch(selectedMatchId);
-      setLogsByMatchId((prev) => ({ ...prev, [selectedMatchId]: updated }));
+
+      const updatedLogs = await getLogsForMatch(selectedMatchId);
+      setLogsByMatchId((prev) => ({ ...prev, [selectedMatchId]: updatedLogs }));
       closeDialog();
     } catch (err: any) {
       toast.error(err.message || "Failed to update log");
@@ -255,8 +259,8 @@ const ParticipantProgrammeDetails = () => {
     try {
       await deleteCommunicationLog(logId);
       toast.success("Interaction deleted");
-      const updated = await getLogsForMatch(matchId);
-      setLogs(updated);
+      const updatedLogs = await getLogsForMatch(matchId);
+      setLogsByMatchId((prev) => ({ ...prev, [matchId]: updatedLogs }));
     } catch (err) {
       toast.error("Failed to delete");
     }
@@ -274,8 +278,8 @@ const ParticipantProgrammeDetails = () => {
         timestamp: log.timestamp,
       });
       toast.success("Marked as completed!");
-      const updated = await getLogsForMatch(matchId);
-      setLogs(updated);
+      const updatedLogs = await getLogsForMatch(matchId);
+      setLogsByMatchId((prev) => ({ ...prev, [matchId]: updatedLogs }));
     } catch (err) {
       toast.error("Failed to complete log");
     }
