@@ -7,9 +7,12 @@ import { useAuth } from "@/app/context/AuthContext";
 import { fetchProgrammeById, updateProgramme } from "@/app/api/programmes";
 import { ProgrammeDto, ProgrammeCreateDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
-const EditProgramme = ({ programmeId }: { programmeId: number }) => {
+const EditProgramme = () => {
+  const { id } = useParams<{ id: string }>();
+  const programmeId = id ? parseInt(id, 10) : null; 
+
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
@@ -21,13 +24,18 @@ const EditProgramme = ({ programmeId }: { programmeId: number }) => {
   const router = useRouter();
 
   useEffect(() => {
+    if (!programmeId) {
+      setError("Invalid programme ID");
+      return;
+    }
+
     const fetchProgramme = async () => {
       try {
         const data = await fetchProgrammeById(programmeId);
         setProgramme(data);
         setName(data.name);
         setDesc(data.description);
-        setContactEmail(data.contactEmail); 
+        setContactEmail(data.contactEmail || ""); 
         setSelectedCourseGroups(data.courseGroupIds);
       } catch (error) {
         toast.error("Failed to load programme details.");
@@ -44,6 +52,7 @@ const EditProgramme = ({ programmeId }: { programmeId: number }) => {
 
     if (!name || !desc || !contactEmail || selectedCourseGroups.length === 0) {
       toast.error("All fields are required.");
+      setLoading(false);
       return;
     }
 
@@ -57,6 +66,8 @@ const EditProgramme = ({ programmeId }: { programmeId: number }) => {
       contactEmail: contactEmail,
     };
 
+    if (!programmeId) return;
+
     try {
       const updatedProgramme = await updateProgramme(programmeId, programmeData);
       toast.success(`Programme "${updatedProgramme.name}" updated successfully!`);
@@ -64,6 +75,8 @@ const EditProgramme = ({ programmeId }: { programmeId: number }) => {
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Failed to update programme.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,7 +98,7 @@ const EditProgramme = ({ programmeId }: { programmeId: number }) => {
         selectedCourseGroups={selectedCourseGroups}
         setName={setName}
         setDesc={setDesc}
-        setContactEmail={setContactEmail} 
+        setContactEmail={setContactEmail}
         setSelectedCourseGroups={setSelectedCourseGroups}
         onSubmit={handleSubmit}
         error={error}
