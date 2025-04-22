@@ -382,3 +382,20 @@ export const fetchLatestProgrammeYear = async (
   if (!res.ok) return null;
   return await res.json();
 };
+
+export async function deleteProgramme(programmeId: number): Promise<void> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/programmes/${programmeId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to delete programme");
+  }
+}

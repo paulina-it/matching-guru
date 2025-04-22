@@ -16,6 +16,9 @@ const Programmes = () => {
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+
   const handleRedirect = () => {
     redirect("programmes/create");
   };
@@ -47,6 +50,15 @@ const Programmes = () => {
     fetchData();
   }, [user?.organisationId]);
 
+  const indexOfLastProgramme = currentPage * itemsPerPage;
+  const indexOfFirstProgramme = indexOfLastProgramme - itemsPerPage;
+  const currentProgrammes = programmes.slice(
+    indexOfFirstProgramme,
+    indexOfLastProgramme
+  );
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -74,14 +86,16 @@ const Programmes = () => {
       >
         +
       </Button>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+
       <div>
-        {programmes.length > 0 ? (
-          programmes.map((programme, index) => (
+        {currentProgrammes.length > 0 ? (
+          currentProgrammes.map((programme, index) => (
             <Link href={`programmes/${programme.id}`} key={programme.id}>
               <div className="mb-4 p-4 bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow">
                 <h3 className="text-lg font-semibold">{programme.name}</h3>
-                <p className="text-gray-700 dark:text-light/80">{programme.description}</p>
+                <p className="text-gray-700 dark:text-light/80">
+                  {programme.description}
+                </p>
                 <p className="mt-5">Participants: {programme.participants}</p>
               </div>
             </Link>
@@ -90,6 +104,29 @@ const Programmes = () => {
           <p className="text-gray-500 italic">No programmes available.</p>
         )}
       </div>
+
+      {/* Pagination controls */}
+      {programmes.length > itemsPerPage && (
+        <div className="mt-4 flex justify-center gap-4">
+          {Array.from(
+            { length: Math.ceil(programmes.length / itemsPerPage) },
+            (_, index) => (
+              <Button
+                key={index + 1}
+                onClick={() => paginate(index + 1)}
+                variant="outline"
+                className={`px-4 py-2 ${
+                  currentPage === index + 1
+                    ? "bg-primary text-white"
+                    : "bg-white text-black"
+                }`}
+              >
+                {index + 1}
+              </Button>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 };
