@@ -13,12 +13,13 @@ const buttonVariants = cva(
           "bg-primary text-white hover:bg-primary-hover dark:bg-primary-dark dark:text-white dark:hover:bg-primary-darkHover",
         outline:
           "border border-accent/50 text-accent bg-background shadow-sm hover:bg-accent hover:text-white dark:border-zinc-700 dark:text-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white",
+        blueOutline:
+          "border border-primary/50 text-primary bg-background shadow-sm hover:bg-primary hover:text-white dark:border-zinc-700 dark:text-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white",
         secondary:
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-zinc-800 dark:hover:text-white",
-        link:
-          "text-primary underline-offset-4 hover:underline dark:text-zinc-300 dark:hover:text-white",
+        link: "text-primary underline-offset-4 hover:underline dark:text-zinc-300 dark:hover:text-white",
         destructive:
           "border border-red-600 text-red-600 bg-transparent hover:bg-red-600 hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white",
       },
@@ -36,7 +37,6 @@ const buttonVariants = cva(
     },
   }
 );
-
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,

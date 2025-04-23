@@ -2,32 +2,20 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 
-interface BackButtonProps {
-  fallbackRoute?: string; 
-  className: string;
-}
-
-const BackButton: React.FC<BackButtonProps> = ({ fallbackRoute = "/", className }) => {
+const GoBackButton = () => {
   const router = useRouter();
 
-  const handleBack = () => {
-    if (window.history.length > 2) {
-      router.back(); 
-    } else {
-      router.push(fallbackRoute); 
-    }
+  const handleGoBack = () => {
+    router.back(); 
   };
 
   return (
-    <Button
-      onClick={handleBack}
-      className={className}
-    >
-      ← Back
+    <Button variant="outline" onClick={handleGoBack} className="absolute top-5 left-5">
+      Go Back
     </Button>
   );
 };
 
-export default BackButton;
+export default GoBackButton;

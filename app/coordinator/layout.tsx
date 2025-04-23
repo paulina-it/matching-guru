@@ -8,6 +8,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { PulseLoader } from "react-spinners";
 import Logout from "@/components/Logout";
+import GoBackButton from "@/components/BackButton";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -55,6 +56,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       
       <main className={`w-full min-h-screen bg-primary/50 dark:bg-dark flex items-center justify-center relative ${collapsed ? "lg:ml-[4rem]" : "lg:ml-[15rem]"}`}>
+        <GoBackButton/>
         <Logout className=" absolute top-5 right-5 text-accent hover:text-white" />
         <PageTransition>{children}</PageTransition>
       </main>
