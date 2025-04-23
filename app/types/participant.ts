@@ -24,6 +24,7 @@ export interface ParticipantCreateDto {
   disability?: string | null;
   dbsCertificate?: boolean | null;
   ageGroup?: string | null;
+  genderPreference?: string | null; 
 }
 
 export type AcademicStage =
@@ -55,7 +56,9 @@ export interface ParticipantDto {
   placementDescription: string | null;
   motivation: string | null;
   isReturningParticipant: boolean;
+  genderPreference?: string | null; 
 }
+
 export type ParticipantResponseDto = {
   id: number;
   userId: number;
@@ -89,6 +92,7 @@ export type ParticipantResponseDto = {
   timeRange: string;
   meetingsFrequency: string;
   skills: string[];
+  genderPreference?: string | null; 
 };
 
 export type DayOfWeek =

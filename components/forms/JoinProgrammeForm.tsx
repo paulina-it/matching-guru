@@ -153,6 +153,13 @@ const JoinProgrammeForm: React.FC<{
   );
   const [meetingFrequency, setMeetingFrequency] = useState<string>("");
   const [availableTime, setAvailableTime] = useState<string>("");
+  const [genderPreference, setGenderPreference] = useState<string | null>(null);
+
+  const handleGenderPreferenceChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setGenderPreference(e.target.value);
+  };
 
   const toggleSkillSelection = (skill: string) => {
     setSkills((prevSkills) =>
@@ -298,6 +305,7 @@ const JoinProgrammeForm: React.FC<{
       ageGroup: ageGroup || null,
       gender: gender || null,
       livingArrangement: livingArrangement || null,
+      genderPreference: genderPreference,
     };
 
     if (!userProp.courseId) {
@@ -568,7 +576,7 @@ const JoinProgrammeForm: React.FC<{
               Gender (Weight: {criterion.weight}%)
             </label>
             <p className="text-sm text-black/70 dark:text-light/70">
-              Specify your preferred gender.
+              Specify your gender.
             </p>
             <select
               id={`criterion-${criterion.id}`}
@@ -676,7 +684,6 @@ const JoinProgrammeForm: React.FC<{
           slidesPerView={1}
           className="h-full"
         >
-          
           {/* Slide 1: Role and Academic Stage */}
           <SwiperSlide
             aria-labelledby="step-1-heading"
@@ -894,6 +901,23 @@ const JoinProgrammeForm: React.FC<{
                   {renderInput(criterion)}
                 </div>
               ))}
+            {/* Gender Preference */}
+            <div className="mb-4">
+              <label className="block text-md font-bold">
+                Who do you feel more comfortable working with?
+              </label>
+              <select
+                value={genderPreference ?? ""}
+                onChange={handleGenderPreferenceChange}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="Prefer not to say">No preference</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Non-binary">Non-binary</option>
+              </select>
+            </div>
+
             <div className="flex items-center justify-between gap-6">
               <Button
                 onClick={goToPrevSlide}
@@ -971,6 +995,10 @@ const JoinProgrammeForm: React.FC<{
               </li>
               <li>
                 <strong>Living Arrangement:</strong> {livingArrangement}
+              </li>
+              <li>
+                <strong>Preferred Gender:</strong>{" "}
+                {genderPreference || "No preference"}
               </li>
             </ul>
 
