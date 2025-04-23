@@ -199,7 +199,7 @@ const ParticipantDashboard = () => {
         {/* 📝 Pending Feedback */}
         {data.activeParticipations
           .filter(
-            (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
+            (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate && p.isMatched
           )
           .map((p) => (
             <div
@@ -222,16 +222,19 @@ const ParticipantDashboard = () => {
               </p>
               <Button
                 aria-label="Open feedback survey"
-                variant="link"
-                className="w-full sm:w-fit mt-2 sm:mt-0"
-                onClick={() => window.open(p.surveyUrl, "_blank")}
+                variant="blueOutline"
+                className="w-full sm:w-fit my-2 sm:mt-0"
+                onClick={() => {
+                  window.open(p.surveyUrl, "_blank");
+                  setOpenCodeDialog(true);
+                }}
               >
                 Fill out feedback survey
               </Button>
               <Dialog open={openCodeDialog} onOpenChange={setOpenCodeDialog}>
                 <DialogTrigger asChild>
-                  <Button
-                    variant="link"
+                  {/* <Button
+                    variant="outline"
                     className="w-full sm:w-fit mt-2 sm:mt-0"
                     onClick={() => {
                       setActiveProgrammeYearId(p.programmeYearId);
@@ -241,7 +244,7 @@ const ParticipantDashboard = () => {
                     aria-label="Open dialog to enter confirmation code"
                   >
                     Enter confirmation code
-                  </Button>
+                  </Button> */}
                 </DialogTrigger>
                 <DialogContent
                   className="rounded"
@@ -323,7 +326,7 @@ const ParticipantDashboard = () => {
                 Date.now() - 14 * 24 * 60 * 60 * 1000)
         ).length === 0 &&
           data.activeParticipations.filter(
-            (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
+            (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate && p.isMatched
           ).length === 0 && (
             <div className="text-center mt-6 text-muted-foreground">
               <p className="text-md mb-2">You're all caught up!</p>
@@ -372,7 +375,10 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Participations */}
-      <div  aria-label="Your programmes" className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2 dark:border-white dark:border">
+      <div
+        aria-label="Your programmes"
+        className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2 dark:border-white dark:border"
+      >
         <h2 className="text-xl font-semibold mb-4">Your Programmes</h2>
         {data.matches.length === 0 ? (
           <p>You have not participated in any programmes yet.</p>
