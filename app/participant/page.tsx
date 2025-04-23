@@ -115,7 +115,7 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Warnings */}
-      <div className="col-span-2 bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border ">
+      <div className="lg:col-span-1 col-span-2 bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border ">
         <h2 className="text-xl font-semibold mb-4">Next Steps</h2>
         {/* 🔔 Unconfirmed Matches */}
         {Object.entries(
@@ -316,7 +316,7 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Match Summary */}
-      <div className="bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border ">
+      <div className="bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border w-full lg:col-span-1 col-span-2">
         <h2 className="text-xl font-semibold mb-4">Matches Overview</h2>
         {data.matches.length === 0 ? (
           <p>No matches yet.</p>
@@ -352,7 +352,10 @@ const ParticipantDashboard = () => {
           <p>You have not participated in any programmes yet.</p>
         ) : (
           data.activeParticipations.map((p) => (
-            <div key={p.programmeYearId} className="mb-3 flex flex-col lg:flex-row justify-between">
+            <div
+              key={p.programmeYearId}
+              className="mb-3 flex flex-col lg:flex-row justify-between"
+            >
               <div>
                 <p className="font-bold">
                   {p.programmeName} ({p.academicYear})
