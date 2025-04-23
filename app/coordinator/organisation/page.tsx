@@ -17,6 +17,7 @@ import { redirect } from "next/navigation";
 import { fetchCourseGroupsByOrganisationId } from "@/app/api/courses";
 import { OrganisationResponseDto } from "@/app/types/organisation";
 import { uploadOrganisationLogo } from "@/app/api/upload";
+import OrganisationForm from "@/components/forms/OrganisationForm";
 
 interface Course {
   id: number;

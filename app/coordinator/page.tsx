@@ -38,9 +38,13 @@ const CoordinatorDashboard = () => {
         {/* Recent Activity */}
         <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 lg:col-span-2">
           <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-          <ul className="text-gray-600 dark:text-light/90">
-            {dashboardData?.recentActivity?.length ? (
-              dashboardData?.recentActivity.map((activity, index) => (
+          {!user?.organisationId ? (
+            <p className="text-gray-500 dark:text-light/70 italic">
+              Join or create an organisation to start seeing activity here.
+            </p>
+          ) : dashboardData?.recentActivity?.length ? (
+            <ul className="text-gray-600 dark:text-light/90 space-y-2">
+              {dashboardData.recentActivity.map((activity, index) => (
                 <li key={index}>
                   <Link href={activity.link}>
                     {activity.description} —{" "}
@@ -49,11 +53,11 @@ const CoordinatorDashboard = () => {
                     </span>
                   </Link>
                 </li>
-              ))
-            ) : (
-              <p className="text-gray-500">No recent activity</p>
-            )}
-          </ul>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No recent activity</p>
+          )}
         </div>
 
         {/* Queries & Notifications */}
@@ -88,63 +92,83 @@ const CoordinatorDashboard = () => {
         </div>
       </div>
 
-      {/* Active Programmes */}
-      <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Recent Programmes</h2>
+      {!user?.organisationId ? (
+        <div className="bg-white dark:bg-yellow-900/20 dark:border dark:border-yellow-600 text-yellow-800 dark:text-yellow-300 rounded shadow p-6 col-span-3 text-center my-4">
+          <h3 className="text-lg font-semibold mb-2">
+            You're not linked to an organisation yet.
+          </h3>
+          <p className="mb-4">
+            To start managing programmes and matches, please create your
+            organisation profile.
+          </p>
           <Button
-            variant="link"
-            className="text-accent"
-            onClick={() => router.push("/coordinator/programmes")}
+            onClick={() => router.push("/coordinator/organisation")}
+            className="bg-yellow-600 text-white hover:bg-yellow-700 dark:bg-yellow-500 dark:hover:bg-yellow-400"
           >
-            View all
+            Create Organisation
           </Button>
         </div>
-        <div className="space-y-3">
-          {dashboardData?.activeProgrammeYears?.length ? (
-            dashboardData.activeProgrammeYears.map((programme) => (
-              <ProgrammeCard
-                key={programme.id}
-                id={programme.id}
-                programmeId={programme.programmeId}
-                name={programme.name}
-                participantsCount={programme.participantsCount}
-                matchesCount={programme.matchesCount}
-                status={programme.isActive ? "Active" : "Inactive"}
-              />
-            ))
-          ) : (
-            <p className="text-gray-500">No active programmes</p>
-          )}
-        </div>
-      </div>
+      ) : (
+        <>
+          {/* Active Programmes */}
+          <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Recent Programmes</h2>
+              <Button
+                variant="link"
+                className="text-accent"
+                onClick={() => router.push("/coordinator/programmes")}
+              >
+                View all
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {dashboardData?.activeProgrammeYears?.length ? (
+                dashboardData.activeProgrammeYears.map((programme) => (
+                  <ProgrammeCard
+                    key={programme.id}
+                    id={programme.id}
+                    programmeId={programme.programmeId}
+                    name={programme.name}
+                    participantsCount={programme.participantsCount}
+                    matchesCount={programme.matchesCount}
+                    status={programme.isActive ? "Active" : "Inactive"}
+                  />
+                ))
+              ) : (
+                <p className="text-gray-500">No active programmes</p>
+              )}
+            </div>
+          </div>
 
-      {/* Stats */}
-      <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Link
-          href={`/coordinator/stats/match-rates`}
-          className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
-        >
-          <span className="text-4xl">📊</span>
-          <p className="mt-2">Match Rates</p>
-        </Link>
+          {/* Stats */}
+          <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Link
+              href={`/coordinator/stats/match-rates`}
+              className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+            >
+              <span className="text-4xl">📊</span>
+              <p className="mt-2">Match Rates</p>
+            </Link>
 
-        <Link
-          href={`/coordinator/stats/engagement`}
-          className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
-        >
-          <span className="text-4xl">📈</span>
-          <p className="mt-2">Engagement</p>
-        </Link>
+            <Link
+              href={`/coordinator/stats/engagement`}
+              className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+            >
+              <span className="text-4xl">📈</span>
+              <p className="mt-2">Engagement</p>
+            </Link>
 
-        <Link
-          href={`/coordinator/stats/drop-off`}
-          className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
-        >
-          <span className="text-4xl">📉</span>
-          <p className="mt-2">Drop-off Rate</p>
-        </Link>
-      </div>
+            <Link
+              href={`/coordinator/stats/drop-off`}
+              className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+            >
+              <span className="text-4xl">📉</span>
+              <p className="mt-2">Drop-off Rate</p>
+            </Link>
+          </div>
+        </>
+      )}
     </div>
   );
 };
