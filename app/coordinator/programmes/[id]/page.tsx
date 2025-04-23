@@ -119,7 +119,7 @@ const ProgrammeDetails = () => {
       )}
       {/* Add Year Button */}
       <div className="absolute right-5 flex gap-2">
-        <Button onClick={handleEditProgramme} variant="secondary">
+        <Button onClick={handleEditProgramme} variant="blueOutline">
           Edit
         </Button>
         <Button onClick={handleOpenModal} variant="destructive">

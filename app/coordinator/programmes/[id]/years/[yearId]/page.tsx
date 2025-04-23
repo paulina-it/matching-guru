@@ -11,6 +11,12 @@ import toast from "react-hot-toast";
 import { Progress } from "@/components/ui/progress";
 import { formatText } from "@/app/utils/text";
 import { Copy, Pencil } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 const ProgrammeYearPage = () => {
   const params = useParams<{ id: string; yearId: string }>();
@@ -21,9 +27,8 @@ const ProgrammeYearPage = () => {
   const programmeYearId = parseInt(params.yearId, 10);
 
   const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
-  const [programmeYear, setProgrammeYear] = useState<ProgrammeYearResponseDto | null>(
-    null
-  );
+  const [programmeYear, setProgrammeYear] =
+    useState<ProgrammeYearResponseDto | null>(null);
   const [loadingProgramme, setLoadingProgramme] = useState(true);
   const [matchable, setMatchable] = useState(false);
 
@@ -254,19 +259,30 @@ const ProgrammeYearPage = () => {
               </Button>
             </>
           ) : (
-            <Button
-              onClick={() =>
-                handleMatchParticipants(
-                  programmeYearId,
-                  !programmeYear?.initialMatchingIsDone,
-                  programmeYear!.preferredAlgorithm
-                )
-              }
-              variant="outline"
-              disabled={matchable}
-            >
-              Match
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Button
+                      onClick={() =>
+                        handleMatchParticipants(
+                          programmeYearId,
+                          !programmeYear?.initialMatchingIsDone,
+                          programmeYear?.preferredAlgorithm
+                        )
+                      }
+                      variant="outline"
+                      disabled={matchable}
+                    >
+                      Match
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {matchable ? "Not enough participants" : "Ready for matching"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
         {/* Feedback Survey Info */}
