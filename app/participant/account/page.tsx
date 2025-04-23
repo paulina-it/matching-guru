@@ -180,8 +180,8 @@ const Account = () => {
   }
 
   return (
-    <div className="min-w-[40em] mx-auto my-[5em] p-6 bg-white dark:bg-zinc-900 text-black dark:text-white shadow-md transition-colors dark:border dark:border-white/30 rounded">
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+    <div className="max-w-[90vw] min-w-[60vw] mx-auto my-[5em] p-6 bg-white dark:bg-zinc-900 text-black dark:text-white shadow-md transition-colors dark:border dark:border-white/30 rounded">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="flex justify-center items-center flex-col gap-4 mb-6 col-span-2 transition-colors duration-300">
           {preview && (
             <img

@@ -89,7 +89,7 @@ const ParticipantDashboard = () => {
 
   // console.log(data.activeParticipations);
   return (
-    <div className="grid grid-cols-2 gap-6 bg-white dark:bg-dark dark:border-white dark:border rounded max-w-[65vw] p-5 min-w-[60vw]">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white dark:bg-dark dark:border-white dark:border rounded p-4 mt-[5em] sm:p-6 lg:p-8 w-full max-w-[90%] mx-auto">
       <div className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded flex dark:border-white dark:border ">
         {user?.profileImageUrl ? (
           <img
@@ -114,206 +114,205 @@ const ParticipantDashboard = () => {
         </div>
       </div>
 
-      <div>
-        {/* Warnings */}
-        <div className="col-span-2 bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border ">
-          <h2 className="text-xl font-semibold mb-4">Next Steps</h2>
+      {/* Warnings */}
+      <div className="col-span-2 bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border ">
+        <h2 className="text-xl font-semibold mb-4">Next Steps</h2>
+        {/* 🔔 Unconfirmed Matches */}
+        {Object.entries(
+          data.matches
+            .filter((m) => m.status.toUpperCase() === "PENDING")
+            .reduce((acc, m) => {
+              const key = `${m.programmeId}-${m.programmeYearId}`;
+              if (!acc[key]) acc[key] = { ...m, count: 1 };
+              else acc[key].count += 1;
+              return acc;
+            }, {} as Record<string, MatchSummaryDto & { count: number }>)
+        ).map(([key, group]) => (
+          <div key={key} className="mb-2">
+            <p>
+              🔔 You have <span className="font-bold">{group.count}</span>{" "}
+              unconfirmed match
+              {group.count > 1 ? "es" : ""} in{" "}
+              <span className="font-medium">
+                {group.programmeName} ({group.academicYear})
+              </span>
+            </p>
+            <span className="text-sm text-dark/70 italic">
+              Please wait for a coordinator to approve them.
+            </span>
+            <Button
+              variant="link"
+              className="w-full sm:w-fit mt-2 sm:mt-0"
+              onClick={() =>
+                router.push(
+                  `/participant/programmes/${group.programmeId}/years/${group.programmeYearId}/my-details`
+                )
+              }
+            >
+              View match details
+            </Button>
+          </div>
+        ))}
 
-          {/* 🔔 Unconfirmed Matches */}
-          {Object.entries(
-            data.matches
-              .filter((m) => m.status.toUpperCase() === "PENDING")
-              .reduce((acc, m) => {
-                const key = `${m.programmeId}-${m.programmeYearId}`;
-                if (!acc[key]) acc[key] = { ...m, count: 1 };
-                else acc[key].count += 1;
-                return acc;
-              }, {} as Record<string, MatchSummaryDto & { count: number }>)
-          ).map(([key, group]) => (
-            <div key={key} className="mb-2">
+        {/* Communication Logs */}
+        {data.matches
+          .filter(
+            (m) =>
+              m.status.toUpperCase() === "APPROVED" &&
+              m.lastInteractionDate &&
+              new Date(m.lastInteractionDate).getTime() <
+                Date.now() - 14 * 24 * 60 * 60 * 1000
+          )
+          .map((m) => (
+            <div key={m.matchId} className="mb-2">
               <p>
-                🔔 You have <span className="font-bold">{group.count}</span>{" "}
-                unconfirmed match
-                {group.count > 1 ? "es" : ""} in{" "}
+                💬 It's been over 2 weeks since you logged communication in{" "}
                 <span className="font-medium">
-                  {group.programmeName} ({group.academicYear})
+                  {m.programmeName} ({m.academicYear})
                 </span>
               </p>
-              <span className="text-sm text-dark/70 italic">
-                Please wait for a coordinator to approve them.
-              </span>
               <Button
                 variant="link"
-                className="px-0 text-sm"
+                className="w-full sm:w-fit mt-2 sm:mt-0"
                 onClick={() =>
                   router.push(
-                    `/participant/programmes/${group.programmeId}/years/${group.programmeYearId}/my-details`
+                    `/participant/programmes/${m.programmeId}/years/${m.programmeYearId}/my-details`
                   )
                 }
               >
-                View match details
+                Log interaction
               </Button>
             </div>
           ))}
 
-          {/* Communication Logs */}
-          {data.matches
-            .filter(
-              (m) =>
-                m.status.toUpperCase() === "APPROVED" &&
-                m.lastInteractionDate &&
-                new Date(m.lastInteractionDate).getTime() <
-                  Date.now() - 14 * 24 * 60 * 60 * 1000
-            )
-            .map((m) => (
-              <div key={m.matchId} className="mb-2">
-                <p>
-                  💬 It's been over 2 weeks since you logged communication in{" "}
-                  <span className="font-medium">
-                    {m.programmeName} ({m.academicYear})
-                  </span>
-                </p>
-                <Button
-                  variant="link"
-                  className="px-0 text-sm"
-                  onClick={() =>
-                    router.push(
-                      `/participant/programmes/${m.programmeId}/years/${m.programmeYearId}/my-details`
-                    )
-                  }
-                >
-                  Log interaction
-                </Button>
-              </div>
-            ))}
+        {/* 📝 Pending Feedback */}
+        {data.activeParticipations
+          .filter(
+            (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
+          )
+          .map((p) => (
+            <div key={p.programmeYearId} className="mb-2">
+              <p>
+                📝 Feedback pending for{" "}
+                <span className="font-medium">
+                  {p.programmeName} ({p.academicYear})
+                </span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Please complete the survey by{" "}
+                <strong>
+                  {new Date(p.surveyCloseDate!).toLocaleDateString()}
+                </strong>{" "}
+                to receive your certificate of participation.
+              </p>
+              <Button
+                variant="link"
+                className="w-full sm:w-fit mt-2 sm:mt-0"
+                onClick={() => window.open(p.surveyUrl, "_blank")}
+              >
+                Fill out feedback survey
+              </Button>
+              <Dialog open={openCodeDialog} onOpenChange={setOpenCodeDialog}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="link"
+                    className="w-full sm:w-fit mt-2 sm:mt-0"
+                    onClick={() => {
+                      setActiveProgrammeYearId(p.programmeYearId);
+                      setActiveParticipantId(p.participantId);
+                      setOpenCodeDialog(true);
+                    }}
+                  >
+                    Enter confirmation code
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="rounded">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {codeIsValid
+                        ? "✅ Code Verified"
+                        : "Enter Confirmation Code"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {codeIsValid ? (
+                        <p className="text-green-600 font-medium mt-2">
+                          Thank you! The code is valid.
+                          <br />
+                          You can now access your certificate below.
+                        </p>
+                      ) : (
+                        "Paste the code you received after completing the feedback survey."
+                      )}
+                    </DialogDescription>
+                  </DialogHeader>
 
-          {/* 📝 Pending Feedback */}
-          {data.activeParticipations
-            .filter(
-              (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
-            )
-            .map((p) => (
-              <div key={p.programmeYearId} className="mb-2">
-                <p>
-                  📝 Feedback pending for{" "}
-                  <span className="font-medium">
-                    {p.programmeName} ({p.academicYear})
-                  </span>
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Please complete the survey by{" "}
-                  <strong>
-                    {new Date(p.surveyCloseDate!).toLocaleDateString()}
-                  </strong>{" "}
-                  to receive your certificate of participation.
-                </p>
-                <Button
-                  variant="link"
-                  className="px-0 text-sm"
-                  onClick={() => window.open(p.surveyUrl, "_blank")}
-                >
-                  Fill out feedback survey
-                </Button>
-                <Dialog open={openCodeDialog} onOpenChange={setOpenCodeDialog}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="link"
-                      className="px-0 ml-3 text-sm text-accent/70"
-                      onClick={() => {
-                        setActiveProgrammeYearId(p.programmeYearId);
-                        setActiveParticipantId(p.participantId);
-                        setOpenCodeDialog(true);
-                      }}
-                    >
-                      Enter confirmation code
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="rounded">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {codeIsValid
-                          ? "✅ Code Verified"
-                          : "Enter Confirmation Code"}
-                      </DialogTitle>
-                      <DialogDescription>
-                        {codeIsValid ? (
-                          <p className="text-green-600 font-medium mt-2">
-                            Thank you! The code is valid.
-                            <br />
-                            You can now access your certificate below.
-                          </p>
-                        ) : (
-                          "Paste the code you received after completing the feedback survey."
-                        )}
-                      </DialogDescription>
-                    </DialogHeader>
+                  {!codeIsValid ? (
+                    <>
+                      <Input
+                        value={confirmationCodeInput}
+                        onChange={(e) =>
+                          setConfirmationCodeInput(e.target.value)
+                        }
+                        placeholder="e.g. 6e152370-1111-4888-a27d-c93b1f09efaf"
+                        className="mt-4"
+                      />
 
-                    {!codeIsValid ? (
-                      <>
-                        <Input
-                          value={confirmationCodeInput}
-                          onChange={(e) =>
-                            setConfirmationCodeInput(e.target.value)
-                          }
-                          placeholder="e.g. 6e152370-1111-4888-a27d-c93b1f09efaf"
-                          className="mt-4"
-                        />
-
-                        <DialogFooter>
-                          <Button onClick={() => handleConfirmCode()}>
-                            Confirm Code
-                          </Button>
-                        </DialogFooter>
-                      </>
-                    ) : (
-                      <div className="mt-4 flex justify-center">
-                        <Button
-                          variant="default"
-                          onClick={() =>
-                            downloadServerCertificate(
-                              `${user?.firstName} ${user?.lastName}`,
-                              p.role.toLowerCase(),
-                              p.programmeName,
-                              p.academicYear,
-                              new Date().toLocaleDateString("en-GB", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })
-                            )
-                          }
-                        >
-                          Download Certificate
+                      <DialogFooter>
+                        <Button onClick={() => handleConfirmCode()}>
+                          Confirm Code
                         </Button>
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
-              </div>
-            ))}
+                      </DialogFooter>
+                    </>
+                  ) : (
+                    <div className="mt-4 flex justify-center">
+                      <Button
+                        variant="default"
+                        className="w-full sm:w-fit mt-2 sm:mt-0"
+                        onClick={() =>
+                          downloadServerCertificate(
+                            `${user?.firstName} ${user?.lastName}`,
+                            p.role.toLowerCase(),
+                            p.programmeName,
+                            p.academicYear,
+                            new Date().toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                          )
+                        }
+                      >
+                        Download Certificate
+                      </Button>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
+          ))}
 
-          {data.matches.filter(
-            (m) =>
-              m.status.toUpperCase() === "PENDING" ||
-              (m.status.toUpperCase() === "APPROVED" &&
-                m.lastInteractionDate &&
-                new Date(m.lastInteractionDate).getTime() <
-                  Date.now() - 14 * 24 * 60 * 60 * 1000)
-          ).length === 0 &&
-            data.activeParticipations.filter(
-              (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
-            ).length === 0 && (
-              <div className="text-center mt-6 text-muted-foreground">
-                <p className="text-md mb-2">You're all caught up!</p>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/participant/programmes")}
-                >
-                  Browse available programmes
-                </Button>
-              </div>
-            )}
-        </div>
+        {data.matches.filter(
+          (m) =>
+            m.status.toUpperCase() === "PENDING" ||
+            (m.status.toUpperCase() === "APPROVED" &&
+              m.lastInteractionDate &&
+              new Date(m.lastInteractionDate).getTime() <
+                Date.now() - 14 * 24 * 60 * 60 * 1000)
+        ).length === 0 &&
+          data.activeParticipations.filter(
+            (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
+          ).length === 0 && (
+            <div className="text-center mt-6 text-muted-foreground">
+              <p className="text-md mb-2">You're all caught up!</p>
+              <Button
+                variant="outline"
+                className="w-full sm:w-fit mt-2 sm:mt-0"
+                onClick={() => router.push("/participant/programmes")}
+              >
+                Browse available programmes
+              </Button>
+            </div>
+          )}
       </div>
 
       {/* Match Summary */}
@@ -347,13 +346,13 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Participations */}
-      <div className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2 dark:border-white dark:border ">
+      <div className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2 dark:border-white dark:border">
         <h2 className="text-xl font-semibold mb-4">Your Programmes</h2>
         {data.matches.length === 0 ? (
           <p>You have not participated in any programmes yet.</p>
         ) : (
           data.activeParticipations.map((p) => (
-            <div key={p.programmeYearId} className="mb-3 flex justify-between">
+            <div key={p.programmeYearId} className="mb-3 flex flex-col lg:flex-row justify-between">
               <div>
                 <p className="font-bold">
                   {p.programmeName} ({p.academicYear})
@@ -364,6 +363,7 @@ const ParticipantDashboard = () => {
                 </p>
               </div>
               <Button
+                className="w-full sm:w-fit mt-2 sm:mt-0"
                 onClick={() => {
                   router.push(
                     `participant/programmes/${p.programmeId}/years/${p.programmeYearId}/my-details`

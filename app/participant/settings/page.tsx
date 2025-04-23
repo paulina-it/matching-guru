@@ -69,7 +69,7 @@ export default function SettingsPanel() {
   };
 
   return (
-    <div className="min-w-[60vw] bg-light dark:bg-zinc-900 text-black dark:text-white rounded mx-auto p-6 space-y-10 transition-colors dark:border dark:border-white/30">
+    <div className="min-w-[60vw] mt-[5em] bg-light dark:bg-zinc-900 text-black dark:text-white rounded mx-auto p-6 space-y-10 transition-colors dark:border dark:border-white/30">
       <h2 className="text-2xl font-bold">Settings</h2>
 
       {/* Theme & Accessibility */}

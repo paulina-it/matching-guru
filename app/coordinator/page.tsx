@@ -33,7 +33,7 @@ const CoordinatorDashboard = () => {
   }, [user?.organisationId]);
 
   return (
-    <div className="min-w-[60vw] bg-light m-5 dark:bg-dark dark:border dark:border-white/30 r py-10 px-6 lg:px-16">
+    <div className="min-w-[60vw] mt-[5em] bg-light m-5 dark:bg-dark dark:border dark:border-white/30 r py-10 px-6 lg:px-16">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Recent Activity */}
         <div className="bg-white dark:bg-dark dark:border dark:border-white/30 rounded shadow p-6 lg:col-span-2">

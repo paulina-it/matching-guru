@@ -316,7 +316,7 @@ const ParticipantProgrammeDetails = () => {
   }
 
   return (
-    <div className="max-w-[55vw] bg-light p-6 rounded shadow relative dark:bg-dark dark:border dark:border-white/30 text-light">
+    <div className="w-full max-w-[90%] mx-auto px-4 py-6 sm:px-6 lg:px-8 bg-light p-4 sm:p-6 rounded shadow dark:bg-dark dark:border dark:border-white/30 text-light mt-[5em] relative">
       <h2 className="h2 font-bold mb-4 text-dark dark:text-light">
         {programmeYear?.programmeName ?? "N/A"} |{" "}
         {programmeYear?.academicYear ?? "N/A"}
@@ -338,15 +338,15 @@ const ParticipantProgrammeDetails = () => {
           />
         )}
 
-      <div className="mt-6">
-        {matchDetails.length === 1 && (
+      <section className="mt-8 space-y-6">
+        {/* {matchDetails.length === 1 && (
           <p className="bg-secondary dark:bg-secondary-dark text-white rounded p-2 w-fit absolute top-6 right-6">
             Status:{" "}
             {matchDetails[0].status === "APPROVED"
               ? "✅ Match Confirmed"
               : "⏳ Match Pending"}
           </p>
-        )}
+        )} */}
 
         {participant && (
           <div className="mt-6 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/20 text-dark dark:text-light">
@@ -505,18 +505,20 @@ ${user?.firstName}`;
                 className="mt-8 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/30
               text-dark dark:text-white"
               >
-                <h4 className="h4 text-lg mb-3">
-                  Match #{idx + 1} –{" "}
-                  {match.status === "APPROVED" ? "✅ Confirmed" : "⏳ Pending"}
+                <h4 className="h4 text-lg mb-3 flex justify-between items-center">
+                  Match #{idx + 1}
+                  <span
+                    className={`text-sm px-3 py-1 rounded font-medium ${
+                      match.status === "APPROVED"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {match.status === "APPROVED"
+                      ? "✅ Match Confirmed"
+                      : "⏳ Match Pending"}
+                  </span>
                 </h4>
-                {match.status === "PENDING" ? (
-                  <p className="text-yellow-600 mb-2">
-                    A match has been found for you, but coordinator approval is
-                    pending.
-                  </p>
-                ) : match.status !== "APPROVED" ? (
-                  <p className="italic mb-2">No match found yet.</p>
-                ) : null}
 
                 {/* Suggested Email */}
                 {match.status === "APPROVED" && (
@@ -526,7 +528,7 @@ ${user?.firstName}`;
                     {isMentor ? (
                       <div
                         key={match.mentee.id}
-                        className="mb-4 p-3 border rounded bg-white dark:bg-light/10"
+                        className="mb-4 p-3 border rounded bg-white dark:bg-light/10 flex flex-col gap-2 sm:gap-3"
                       >
                         <p>
                           <strong>Name:</strong> {match.mentee.firstName}{" "}
@@ -558,7 +560,7 @@ ${user?.firstName}`;
                         </p>
                       </div>
                     ) : (
-                      <div className="mb-4 p-3 border rounded bg-white dark:bg-light/10">
+                      <div className="mb-4 p-3 border rounded bg-white dark:bg-light/10 flex flex-col gap-2 sm:gap-3">
                         <p>
                           <strong>Name:</strong> {match.mentor?.firstName}{" "}
                           {match.mentor?.lastName}
@@ -603,7 +605,10 @@ ${user?.firstName}`;
                     {/* Contact Match */}
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" className="mt-4">
+                        <Button
+                          variant="outline"
+                          className="w-full sm:w-auto mt-2 sm:mt-0"
+                        >
                           Contact Your Match
                         </Button>
                       </DialogTrigger>
@@ -614,7 +619,7 @@ ${user?.firstName}`;
                         <Textarea
                           value={emailBody}
                           readOnly
-                          className="w-full min-h-[160px]"
+                          className="w-full min-h-[20em]"
                         />
                         <DialogFooter>
                           <Button
@@ -634,6 +639,7 @@ ${user?.firstName}`;
                               const bodyEncoded = encodeURIComponent(emailBody);
                               window.location.href = `mailto:${recipient}?subject=${subject}&body=${bodyEncoded}`;
                             }}
+                            className="w-full sm:w-auto mt-2 sm:mt-0"
                           >
                             Send Email
                           </Button>
@@ -643,7 +649,7 @@ ${user?.firstName}`;
                     {/* Log Interaction */}
                     <Button
                       variant="default"
-                      className="ml-5 mt-4"
+                      className="w-full sm:w-auto mt-2 sm:mt-0 lg:ml-3 lg:mt-4"
                       onClick={() => openNewLogDialog(match.id)}
                     >
                       Log Interaction
@@ -664,10 +670,10 @@ ${user?.firstName}`;
                       )}
                     {logs.length > 0 && (
                       <div className="mt-4">
-                        <h5 className="font-semibold mb-1 text-sm">
+                        <h3 className="font-semibold text-start mb-1 h3">
                           Interaction History
-                        </h5>
-                        <ul className="space-y-2">
+                        </h3>
+                        <ul className="space-y-2 overflow-x-auto">
                           {logs
                             .sort(
                               (a, b) =>
@@ -791,7 +797,7 @@ ${user?.firstName}`;
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </section>
     </div>
   );
 };

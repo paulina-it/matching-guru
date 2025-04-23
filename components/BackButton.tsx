@@ -8,11 +8,15 @@ const GoBackButton = () => {
   const router = useRouter();
 
   const handleGoBack = () => {
-    router.back(); 
+    router.back();
   };
 
   return (
-    <Button variant="outline" onClick={handleGoBack} className="absolute top-5 left-5">
+    <Button
+      variant="outline"
+      onClick={handleGoBack}
+      className="absolute top-5 left-5 hidden lg:inline-flex"
+    >
       Go Back
     </Button>
   );

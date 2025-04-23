@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { redirect } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import {
   fetchActiveProgrammesByOrganisationId,
@@ -11,12 +10,14 @@ import {
 import toast from "react-hot-toast";
 import { PulseLoader } from "react-spinners";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const Programmes = () => {
   const [programmes, setProgrammes] = useState<any[]>([]);
   const [userProgrammes, setUserProgrammes] = useState<any[]>([]);
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,18 +62,29 @@ const Programmes = () => {
   }
 
   return (
-    <div className="bg-light dark:bg-zinc-900 text-black dark:text-white p-4 rounded w-[50vw] transition-colors duration-300 dark:border dark:border-white/30">
+    <div className="bg-light dark:bg-zinc-900 text-black dark:text-white p-4 sm:p-6 lg:p-8 rounded w-full max-w-screen-md mx-auto transition-colors duration-300 dark:border dark:border-white/30">
       <div>
         <h2 className="h2 mb-4">My Programmes</h2>
         <div>
           {userProgrammes.length > 0 ? (
             userProgrammes.map((programme, index) => (
               <Link href={`programmes/${programme.id}`} key={index}>
-                <div className="mb-4 p-4 bg-white dark:bg-zinc-800 rounded shadow transition-colors">
-                  <h3 className="text-lg font-semibold">{programme.name}</h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    {programme.description}
-                  </p>
+                <div className="mb-6 p-4 bg-white dark:bg-zinc-800 rounded shadow transition-colors flex flex-col gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">{programme.name}</h3>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {programme.description}
+                    </p>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-fit"
+                      onClick={() => router.push(`/programmes/${programme.id}`)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
                 </div>
               </Link>
             ))
@@ -91,14 +103,22 @@ const Programmes = () => {
           {availableProgrammes.length > 0 ? (
             availableProgrammes.map((programme, index) => (
               <Link href={`programmes/${programme.id}`} key={index}>
-                <div className="mb-4 p-4 bg-white dark:bg-zinc-800 rounded shadow transition-colors">
-                  <h3 className="text-lg font-semibold">{programme.name}</h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    {programme.description}
-                  </p>
-                  <p className="mt-5 text-sm text-gray-600 dark:text-gray-400">
-                    Participants: {programme.participants}
-                  </p>
+                <div className="mb-6 p-4 bg-white dark:bg-zinc-800 rounded shadow transition-colors flex flex-col gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">{programme.name}</h3>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {programme.description}
+                    </p>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-fit"
+                      onClick={() => router.push(`/programmes/${programme.id}`)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
                 </div>
               </Link>
             ))

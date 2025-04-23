@@ -4,10 +4,7 @@ import InputField from "@/components/InputField";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
-import {
-  fetchOrganisation,
-  joinOrganisation,
-} from "@/app/api/organisation";
+import { fetchOrganisation, joinOrganisation } from "@/app/api/organisation";
 import { useAuth } from "@/app/context/AuthContext";
 import { PulseLoader } from "react-spinners";
 import { toast, Toaster } from "react-hot-toast";
@@ -16,7 +13,8 @@ import { OrganisationResponseDto } from "@/app/types/organisation";
 import { Input } from "@/components/ui/input";
 
 const OrganisationPage = () => {
-  const [organisation, setOrganisation] = useState<OrganisationResponseDto | null>(null);
+  const [organisation, setOrganisation] =
+    useState<OrganisationResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [joinCode, setJoinCode] = useState("");
   const [isJoining, setIsJoining] = useState(false);
@@ -70,11 +68,11 @@ const OrganisationPage = () => {
   }
 
   return (
-    <div className="w-full max-w-[80%] m-auto h-full flex items-center justify-center">
+    <div className="w-full max-w-screen-lg mx-auto px-4 py-10 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen">
       <Toaster position="top-right" />
       {organisation ? (
-        <div className="bg-light dark:bg-dark dark:border dark:border-white/30 my-[10vh] p-12 rounded-[10px]">
-          <div className="flex justify-between gap-[3em]">
+        <div className="bg-light  dark:bg-dark dark:border dark:border-white/30  my-[10vh] p-5 lg:p-12 rounded-[10px]">
+          <div className="flex lg:flex-row flex-col-reverse justify-between gap-[3em]">
             <div>
               <h1 className="h1 mb-4">{organisation.name}</h1>
               <p className="mb-5">{organisation.description}</p>
@@ -89,7 +87,7 @@ const OrganisationPage = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-light dark:bg-dark dark:border dark:border-white/30 my-[10vh] p-10 rounded-[10px] w-full min-w-[40vw] text-dark dark:text-light">
+        <div className="bg-light dark:bg-dark dark:border dark:border-white/30 p-6 sm:p-8 lg:p-10 rounded-xl w-full max-w-xl text-dark dark:text-light shadow-md">
           <h2 className="text-xl font-semibold mb-4">Join an Organisation</h2>
           <label htmlFor="joinCode" className="block mb-2 text-sm font-medium">
             Enter Organisation Join Code

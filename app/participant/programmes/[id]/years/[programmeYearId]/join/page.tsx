@@ -89,7 +89,7 @@ const JoinProgrammePage = ({
   console.log(user)
 
   return (
-    <div className="max-w-xl mx-auto mt-10">
+    <div className="max-w-[90vw] mx-auto mt-[5em]">
       <h1 className="text-2xl font-bold mb-4">Join Mentoring Programme</h1>
       <JoinProgrammeForm
         programmeYearId={programmeYearId}

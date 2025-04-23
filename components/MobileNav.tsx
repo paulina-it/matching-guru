@@ -31,7 +31,7 @@ const coordinatorLinks = [
   { route: "/coordinator/programmes", name: "Programmes", icon: <RiProjectorLine /> },
   { route: "/coordinator/reports", name: "Reports", icon: <AiOutlineFileText /> },
   { route: "/coordinator/account", name: "Account", icon: <FiUser /> },
-  { route: "/coordinator/account/settings", name: "Settings", icon: <FiSettings /> },
+  { route: "/coordinator/settings", name: "Settings", icon: <FiSettings /> },
 ];
 
 const participantLinks = [
@@ -39,7 +39,7 @@ const participantLinks = [
   { route: "/participant/organisation", name: "Organisation", icon: <FaBuilding /> },
   { route: "/participant/programmes", name: "Programmes", icon: <RiProjectorLine /> },
   { route: "/participant/account", name: "Account", icon: <FiUser /> },
-  { route: "/participant/account/settings", name: "Settings", icon: <FiSettings /> },
+  { route: "/participant/settings", name: "Settings", icon: <FiSettings /> },
 ];
 
 const MobileNav = ({ type }: Props) => {
@@ -57,10 +57,10 @@ const MobileNav = ({ type }: Props) => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger className="fixed top-5 left-5 z-50 p-2 rounded-md">
-        <CiMenuFries className="text-white text-[32px]" />
+        <CiMenuFries className="text-accent text-[32px]" />
       </SheetTrigger>
 
-      <SheetContent className="flex flex-col items-center text-center bg-light" side="left">
+      <SheetContent className="flex flex-col items-center text-center bg-light dark:bg-black dark:border-none" side="left">
         {/* Logo & Theme Toggle */}
         <div className="mt-5 mb-10 flex flex-col items-center">
           <Image
@@ -81,7 +81,7 @@ const MobileNav = ({ type }: Props) => {
               href={!link.disabled ? link.route : "#"}
               className={`flex items-center gap-3 w-full px-5 py-3 rounded text-lg transition-colors ${
                 pathname === link.route
-                  ? "bg-primary text-white"
+                  ? "bg-primary dark:bg-primary-dark text-white"
                   : link.disabled
                   ? "text-gray-400 cursor-not-allowed"
                   : "hover:bg-primary/20"
