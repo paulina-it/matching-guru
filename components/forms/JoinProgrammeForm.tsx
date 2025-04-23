@@ -32,8 +32,8 @@ const predefinedAcademicStages = [
   "Placement Year",
   "Final Year Undergraduate",
   "Graduate",
-  "Postgraduate Masters", 
-  "Postgraduate PhD",     
+  "Postgraduate Masters",
+  "Postgraduate PhD",
 ];
 
 const predefinedSkills = [
@@ -134,20 +134,26 @@ const JoinProgrammeForm: React.FC<{
   const [academicStage, setAcademicStage] = useState<string>(
     "First Year Undergraduate"
   );
-  const [courseId, setCourseId] = useState<number | null | undefined>(user?.courseId);
+  const [courseId, setCourseId] = useState<number | null | undefined>(
+    user?.courseId
+  );
   const [hadPlacement, setHadPlacement] = useState<boolean>(false);
   const [placementDescription, setPlacementDescription] = useState<string>("");
   const [placementInterest, setPlacementInterest] = useState<boolean>(false);
   const [eligibleCourses, setEligibleCourses] = useState<CourseDto[]>([]);
   const [availableDays, setAvailableDays] = useState<string[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
-  const [personalityType, setPersonalityType] = useState<string>(user?.personalityType ?? "");
+  const [personalityType, setPersonalityType] = useState<string>(
+    user?.personalityType ?? ""
+  );
   const [ageGroup, setAgeGroup] = useState<string>(user?.ageGroup ?? "");
   const [gender, setGender] = useState<string>(user?.gender ?? "");
-  const [livingArrangement, setLivingArrangement] = useState<string>(user?.livingArrangement ?? "");
+  const [livingArrangement, setLivingArrangement] = useState<string>(
+    user?.livingArrangement ?? ""
+  );
   const [meetingFrequency, setMeetingFrequency] = useState<string>("");
   const [availableTime, setAvailableTime] = useState<string>("");
-  
+
   const toggleSkillSelection = (skill: string) => {
     setSkills((prevSkills) =>
       prevSkills.includes(skill)
@@ -155,7 +161,7 @@ const JoinProgrammeForm: React.FC<{
         : [...prevSkills, skill]
     );
   };
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -188,6 +194,86 @@ const JoinProgrammeForm: React.FC<{
     if (swiperInstance) swiperInstance.slidePrev();
   };
 
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+    let firstErrorSlideIndex = -1;
+  
+    const addError = (message: string, slideIndex: number) => {
+      errors.push(message);
+      if (firstErrorSlideIndex === -1) {
+        firstErrorSlideIndex = slideIndex;
+      }
+    };
+  
+    if (role === "MENTOR" && (!menteeLimit || menteeLimit < 1)) {
+      addError("Please specify how many mentees you are willing to take.", 0);
+    }
+    if (!academicStage) {
+      addError("Please select your academic stage.", 0);
+    }
+  
+    for (const criterion of matchingCriteria.filter(c => c.weight > 0)) {
+      switch (criterion.criterionType) {
+        case "FIELD":
+          if (!userProp.courseId && !courseId) {
+            addError("Please select your academic course.", 1);
+          }
+          break;
+        case "AVAILABILITY":
+          if (!meetingFrequency) {
+            addError("Please select your meeting frequency.", 1);
+          }
+          if (availableDays.length === 0) {
+            addError("Please select your available days.", 1);
+          }
+          if (!availableTime) {
+            addError("Please select your available time.", 1);
+          }
+          break;
+        case "PERSONALITY":
+          if (!userProp.personalityType && !personalityType) {
+            addError("Please select your personality type.", 1);
+          }
+          break;
+        case "LIVING_ARRANGEMENT":
+          if (!userProp.livingArrangement && !livingArrangement) {
+            addError("Please select your living arrangement.", 1);
+          }
+          break;
+        case "SKILLS":
+          if (skills.length === 0) {
+            addError("Please select at least one skill.", 1);
+          }
+          break;
+        case "GENDER":
+          if (!userProp.gender && !gender) {
+            addError("Please select your gender.", 1);
+          }
+          break;
+        case "AGE":
+          if (!userProp.ageGroup && !ageGroup) {
+            addError("Please select your age group.", 1);
+          }
+          break;
+        case "NATIONALITY":
+          if (!userProp.nationality) {
+            addError("Please select your nationality.", 1);
+          }
+          break;
+      }
+    }
+  
+    errors.forEach(msg => toast.error(msg));
+  
+    if (firstErrorSlideIndex !== -1 && swiperInstance) {
+      swiperInstance.slideTo(firstErrorSlideIndex);
+      return false;
+    }
+  
+    return true;
+  };
+   
+
   const handleSubmit = async () => {
     const participantData: ParticipantCreateDto = {
       userId: user!.id,
@@ -218,6 +304,8 @@ const JoinProgrammeForm: React.FC<{
     if (!userProp.courseId) {
       participantData.courseId = courseId ?? null;
     }
+
+    if (!validateForm()) return;
 
     console.log("Submitting participant data:", participantData);
 
@@ -405,7 +493,7 @@ const JoinProgrammeForm: React.FC<{
 
       case "LIVING_ARRANGEMENT":
         if (userProp.livingArrangement != null) {
-          return null; 
+          return null;
         }
         return (
           <div>
@@ -567,6 +655,12 @@ const JoinProgrammeForm: React.FC<{
   };
 
   console.table(matchingCriteria);
+
+  const getCourseName = (id: number | null | undefined) => {
+    if (!id) return "Not selected";
+    const course = eligibleCourses.find((c) => c.id === id);
+    return course ? course.name : `Course ID: ${id}`;
+  };
 
   return (
     <div className="max-w-lg mx-auto ">
@@ -793,10 +887,85 @@ const JoinProgrammeForm: React.FC<{
                 <BsArrowLeft className="text-xl text-gray-700 hover:text-black" />
               </Button>
               <Button
+                onClick={goToNextSlide}
+                className="w-full uppercase font-bold"
+              >
+                Review
+              </Button>
+            </div>
+          </SwiperSlide>
+
+          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded">
+            <h2 className="text-xl font-bold mb-4">Review Your Details</h2>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Please confirm your information before submitting.
+            </p>
+
+            <ul className="space-y-2 text-sm">
+              <li>
+                <strong>Role:</strong> {role}
+              </li>
+              {role === "MENTOR" && (
+                <li>
+                  <strong>Number of Mentees:</strong> {menteeLimit}
+                </li>
+              )}
+              <li>
+                <strong>Academic Stage:</strong> {academicStage}
+              </li>
+              <li>
+                <strong>Course:</strong> {getCourseName(courseId)}
+              </li>
+              {placementInterest !== null && (
+                <li>
+                  <strong>Interested in Placement:</strong>{" "}
+                  {placementInterest ? "Yes" : "No"}
+                </li>
+              )}
+              {placementDescription && (
+                <li>
+                  <strong>Placement Description:</strong> {placementDescription}
+                </li>
+              )}
+              <li>
+                <strong>Meeting Frequency:</strong> {meetingFrequency}
+              </li>
+              <li>
+                <strong>Available Days:</strong> {availableDays.join(", ")}
+              </li>
+              <li>
+                <strong>Available Time:</strong> {availableTime}
+              </li>
+              <li>
+                <strong>Personality Type:</strong> {personalityType}
+              </li>
+              <li>
+                <strong>Skills:</strong> {skills.join(", ")}
+              </li>
+              <li>
+                <strong>Age Group:</strong> {ageGroup}
+              </li>
+              <li>
+                <strong>Gender:</strong> {gender}
+              </li>
+              <li>
+                <strong>Living Arrangement:</strong> {livingArrangement}
+              </li>
+            </ul>
+
+            <div className="flex items-center justify-between gap-6 mt-6">
+              <Button
+                onClick={goToPrevSlide}
+                className="flex items-center space-x-2"
+                variant="outline"
+              >
+                <BsArrowLeft className="text-xl text-gray-700 hover:text-black" />
+              </Button>
+              <Button
                 onClick={handleSubmit}
                 className="w-full uppercase font-bold"
               >
-                Submit
+                Confirm & Submit
               </Button>
             </div>
           </SwiperSlide>
