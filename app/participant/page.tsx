@@ -64,6 +64,10 @@ const ParticipantDashboard = () => {
   };
 
   useEffect(() => {
+    if (!user?.id) return;
+
+    console.log(user);
+
     fetchParticipantDashboard()
       .then((data) => {
         setData(data);
@@ -74,7 +78,7 @@ const ParticipantDashboard = () => {
       })
       .catch((e) => console.error(e))
       .finally(() => setLoading(false));
-  }, []);
+  }, [user?.id]);
 
   if (loading) return;
   <div className="flex justify-center items-center h-screen">
@@ -83,9 +87,9 @@ const ParticipantDashboard = () => {
 
   if (!data) return <p className="text-red-500">Failed to load dashboard</p>;
 
-  console.log(data.activeParticipations);
+  // console.log(data.activeParticipations);
   return (
-    <div className="grid grid-cols-2 gap-6 bg-white dark:bg-dark dark:border-white dark:border rounded max-w-[65vw] p-5">
+    <div className="grid grid-cols-2 gap-6 bg-white dark:bg-dark dark:border-white dark:border rounded max-w-[65vw] p-5 min-w-[60vw]">
       <div className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded flex dark:border-white dark:border ">
         {user?.profileImageUrl ? (
           <img
@@ -100,11 +104,9 @@ const ParticipantDashboard = () => {
           </div>
         )}
         <div>
-          <h1 className="text-2xl font-bold">
-            Welcome, {data.participantName}
-          </h1>
+          <h1 className="text-2xl font-bold">Welcome, {user?.firstName}</h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Organisation: <strong>{data.organisationName}</strong>
+            Organisation: <strong>{user?.organisationName}</strong>
           </p>
           <p className="text-sm mt-2 text-muted-foreground">
             Last updated: {new Date(data.lastUpdated).toLocaleString()}
@@ -289,6 +291,28 @@ const ParticipantDashboard = () => {
                 </Dialog>
               </div>
             ))}
+
+          {data.matches.filter(
+            (m) =>
+              m.status.toUpperCase() === "PENDING" ||
+              (m.status.toUpperCase() === "APPROVED" &&
+                m.lastInteractionDate &&
+                new Date(m.lastInteractionDate).getTime() <
+                  Date.now() - 14 * 24 * 60 * 60 * 1000)
+          ).length === 0 &&
+            data.activeParticipations.filter(
+              (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
+            ).length === 0 && (
+              <div className="text-center mt-6 text-muted-foreground">
+                <p className="text-md mb-2">You're all caught up!</p>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/participant/programmes")}
+                >
+                  Browse available programmes
+                </Button>
+              </div>
+            )}
         </div>
       </div>
 
@@ -325,28 +349,32 @@ const ParticipantDashboard = () => {
       {/* Participations */}
       <div className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2 dark:border-white dark:border ">
         <h2 className="text-xl font-semibold mb-4">Your Programmes</h2>
-        {data.activeParticipations.map((p) => (
-          <div key={p.programmeYearId} className="mb-3 flex justify-between">
-            <div>
-              <p className="font-bold">
-                {p.programmeName} ({p.academicYear})
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Role: {p.role}, Matched: {p.matched ? "✅" : "❌"} <br />
-                {/* Feedback:{" "} {p.feedbackSubmitted ? "✅" : "❌"} */}
-              </p>
+        {data.matches.length === 0 ? (
+          <p>You have not participated in any programmes yet.</p>
+        ) : (
+          data.activeParticipations.map((p) => (
+            <div key={p.programmeYearId} className="mb-3 flex justify-between">
+              <div>
+                <p className="font-bold">
+                  {p.programmeName} ({p.academicYear})
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Role: {p.role}, Matched: {p.matched ? "✅" : "❌"} <br />
+                  {/* Feedback:{" "} {p.feedbackSubmitted ? "✅" : "❌"} */}
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  router.push(
+                    `participant/programmes/${p.programmeId}/years/${p.programmeYearId}/my-details`
+                  );
+                }}
+              >
+                View Details
+              </Button>
             </div>
-            <Button
-              onClick={() => {
-                router.push(
-                  `participant/programmes/${p.programmeId}/years/${p.programmeYearId}/my-details`
-                );
-              }}
-            >
-              View Details
-            </Button>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

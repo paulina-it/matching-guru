@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -37,6 +37,7 @@ const Signup: React.FC = () => {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
+  const swiperRef = useRef<any>(null);
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -61,11 +62,11 @@ const Signup: React.FC = () => {
   };
 
   const goToNextStep = () => {
-    if (swiperInstance) swiperInstance.slideNext();
+    swiperRef.current?.slideNext();
   };
 
   const goToPrevSlide = () => {
-    if (swiperInstance) swiperInstance.slidePrev();
+    swiperRef.current?.slidePrev();
   };
 
   const handleRoleSelection = (selectedRole: UserRole) => {
@@ -76,18 +77,23 @@ const Signup: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
     if (name === "confirmPassword") {
       setConfirmPassword(value);
     } else {
-      setFormData({
-        ...formData,
-        [name]: name === "studentNumber" ? Number(value) : value,
-      });
-    }
+      const parsedValue = name === "studentNumber" ? Number(value) : value;
+      setFormData((prev) => ({ ...prev, [name]: parsedValue }));
+    }    
   };
+
+  const showErrors = (messages: string[]) =>
+    messages.forEach((msg) => toast.error(msg));
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     const errors: string[] = [];
     const invalids: string[] = [];
@@ -129,17 +135,18 @@ const Signup: React.FC = () => {
     }
 
     if (role === UserRole.USER && !formData.joinCode?.trim()) {
-      errors.push("Organisation join code is required.");
+      errors.push("Join code is required. Ask your university's mentoring coordinator.");
       invalids.push("joinCode");
     }
 
     setInvalidFields(invalids);
 
     if (errors.length > 0) {
-      errors.forEach((err) => toast.error(err));
+      showErrors(errors);
+      setIsSubmitting(false);
       return;
     }
-
+    
     try {
       setIsSubmitting(true);
       const userResponse = await register(formData);
@@ -191,7 +198,10 @@ const Signup: React.FC = () => {
           <Card className="lg:w-full w-[95vw] lg:max-w-[50vw] p-4 shadow-md">
             <CardHeader />
             <CardContent className="">
-              <Swiper onSwiper={setSwiperInstance} allowTouchMove={false}>
+              <Swiper
+                onSwiper={(swiper) => (swiperRef.current = swiper)}
+                allowTouchMove={false}
+              >
                 <SwiperSlide className="m-auto h-full">
                   <div className="text-center mx-auto">
                     <h2 className="text-xl font-bold mb-4">Select Your Role</h2>
@@ -215,7 +225,6 @@ const Signup: React.FC = () => {
                       </p>
                     </Link>
                   </div>
-                  
                 </SwiperSlide>
 
                 <SwiperSlide>
@@ -250,7 +259,7 @@ const Signup: React.FC = () => {
                       invalidFields={invalidFields}
                     />
                   )}
-                  {error && <p className="text-red-500 mt-4">{error}</p>}
+                  {error && <p className="text-red-500 mt-4 mx-auto">{error}</p>}
                 </SwiperSlide>
               </Swiper>
             </CardContent>
@@ -280,7 +289,7 @@ const ParticipantForm: React.FC<FormProps> = ({
   handleImageChange,
   previewUrl,
   isSubmitting,
-  invalidFields
+  invalidFields,
 }) => (
   <form
     className="grid grid-cols-1 md:grid-cols-2 gap-4 gap-y-8"
@@ -329,14 +338,14 @@ const ParticipantForm: React.FC<FormProps> = ({
     />
     <InputField
       id="email"
-      label="Main Email*"
+      label="Email*"
       value={formData.email}
       onChange={onChange}
       required={true}
-      placeholder="Enter your main email"
+      placeholder="e.g. abc123@university.ac.uk"
       hasError={invalidFields.includes("email")}
     />
-    <InputField
+    {/* <InputField
       id="uniEmail"
       label="University Email"
       value={formData.uniEmail || ""}
@@ -344,7 +353,12 @@ const ParticipantForm: React.FC<FormProps> = ({
       required={false}
       placeholder="Enter your university email"
       hasError={invalidFields.includes("uniEmail")}
-    />
+    /> */}
+    <p className="text-sm text-gray-500 mt-2">
+      Use your university email if you have one — otherwise, a personal email is
+      fine.
+    </p>
+
     <InputField
       id="password"
       label="Password*"
@@ -365,9 +379,12 @@ const ParticipantForm: React.FC<FormProps> = ({
       placeholder="Confirm your password"
       hasError={invalidFields.includes("confirmPassword")}
     />
+    <p className="text-sm text-gray-500 -mt-6 col-span-2">
+      Must include uppercase, lowercase and a number. Min 8 characters.
+    </p>
     <InputField
       id="studentNumber"
-      label="Student Number"
+      label="Student Number (If Available)"
       value={formData.studentNumber?.toString() || ""}
       onChange={onChange}
       required={false}
@@ -376,11 +393,11 @@ const ParticipantForm: React.FC<FormProps> = ({
     />
     <InputField
       id="joinCode"
-      label="Organisation Join Code"
+      label="Join Code*"
       value={formData.joinCode?.toString() || ""}
       onChange={onChange}
       required={true}
-      placeholder="Enter your organisation join code"
+      placeholder="Ask your mentoring coordinator"
       hasError={invalidFields.includes("joinCode")}
     />
     <Button type="submit" className="w-full h-12 text-xl col-span-2">
@@ -397,7 +414,7 @@ const CoordinatorForm: React.FC<FormProps> = ({
   handleImageChange,
   previewUrl,
   isSubmitting,
-  invalidFields
+  invalidFields,
 }) => {
   const [orgExists, setOrgExists] = useState("yes");
   const [confirmEmail, setConfirmEmail] = useState<string>("");
@@ -412,10 +429,16 @@ const CoordinatorForm: React.FC<FormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (formData.email !== confirmEmail) {
+    if (formData.email.toLowerCase() !== confirmEmail.toLowerCase()) {
       toast.error("Emails do not match.");
       return;
+    }
+    if (
+      formData.role === UserRole.ADMIN &&
+      orgExists === "yes" &&
+      !formData.joinCode?.trim()
+    ) {
+      toast.error("Join code is required for existing organisations.");
     }
 
     onSubmit(e);
@@ -467,11 +490,11 @@ const CoordinatorForm: React.FC<FormProps> = ({
       />
       <InputField
         id="email"
-        label="University Email*"
+        label="University/Work Email*"
         value={formData.email}
         onChange={onChange}
         required={true}
-        placeholder="Enter your university/work email"
+        placeholder="e.g. name@university.ac.uk"
         hasError={invalidFields.includes("email")}
       />
       <InputField
@@ -503,6 +526,9 @@ const CoordinatorForm: React.FC<FormProps> = ({
         placeholder="Confirm your password"
         hasError={invalidFields.includes("confirmPassword")}
       />
+      <p className="text-sm text-gray-500 -mt-6 col-span-2">
+        Must include uppercase, lowercase and a number. Min 8 characters.
+      </p>
       <div className="col-span-2 md:col-span-1">
         <p className="text-gray-700 mb-2">
           Does your organisation already exist in the system?
