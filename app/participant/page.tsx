@@ -87,18 +87,26 @@ const ParticipantDashboard = () => {
 
   if (!data) return <p className="text-red-500">Failed to load dashboard</p>;
 
-  // console.log(data.activeParticipations);
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white dark:bg-dark dark:border-white dark:border rounded p-4 mt-[5em] sm:p-6 lg:p-8 w-full max-w-[90%] mx-auto">
-      <div className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded flex dark:border-white dark:border ">
+    <div
+      aria-label="Participant Dashboard"
+      className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white dark:bg-dark dark:border-white dark:border rounded p-4 mt-[5em] sm:p-6 lg:p-8 w-full max-w-[90%] mx-auto"
+    >
+      <div
+        aria-label="Profile Overview"
+        className="col-span-2 p-6 bg-primary/5 dark:bg-dark rounded flex dark:border-white dark:border "
+      >
         {user?.profileImageUrl ? (
           <img
             src={user.profileImageUrl}
-            alt="Profile"
+            alt={`${user.firstName} ${user.lastName} profile photo`}
             className="w-24 h-24 rounded-full object-cover shadow-md mr-10"
           />
         ) : (
-          <div className="bg-gray-200 rounded-full w-24 h-24 flex items-center justify-center text-3xl font-semibold mr-10">
+          <div
+            aria-hidden="true"
+            className="bg-gray-200 rounded-full w-24 h-24 flex items-center justify-center text-3xl font-semibold mr-10"
+          >
             {user?.firstName.charAt(0)}
             {user?.lastName.charAt(0)}
           </div>
@@ -115,7 +123,10 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Warnings */}
-      <div className="lg:col-span-1 col-span-2 bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border ">
+      <div
+        aria-label="Notifications"
+        className="lg:col-span-1 col-span-2 bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border "
+      >
         <h2 className="text-xl font-semibold mb-4">Next Steps</h2>
         {/* 🔔 Unconfirmed Matches */}
         {Object.entries(
@@ -164,7 +175,7 @@ const ParticipantDashboard = () => {
                 Date.now() - 14 * 24 * 60 * 60 * 1000
           )
           .map((m) => (
-            <div key={m.matchId} className="mb-2">
+            <div key={m.matchId} className="mb-2" aria-label="Call to action">
               <p>
                 💬 It's been over 2 weeks since you logged communication in{" "}
                 <span className="font-medium">
@@ -191,7 +202,11 @@ const ParticipantDashboard = () => {
             (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate
           )
           .map((p) => (
-            <div key={p.programmeYearId} className="mb-2">
+            <div
+              key={p.programmeYearId}
+              className="mb-2"
+              aria-label="Pending Feedback"
+            >
               <p>
                 📝 Feedback pending for{" "}
                 <span className="font-medium">
@@ -206,6 +221,7 @@ const ParticipantDashboard = () => {
                 to receive your certificate of participation.
               </p>
               <Button
+                aria-label="Open feedback survey"
                 variant="link"
                 className="w-full sm:w-fit mt-2 sm:mt-0"
                 onClick={() => window.open(p.surveyUrl, "_blank")}
@@ -222,11 +238,18 @@ const ParticipantDashboard = () => {
                       setActiveParticipantId(p.participantId);
                       setOpenCodeDialog(true);
                     }}
+                    aria-label="Open dialog to enter confirmation code"
                   >
                     Enter confirmation code
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="rounded">
+                <DialogContent
+                  className="rounded"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="Feedback Confirmation Code Entry"
+                  aria-describedby="Paste the code you received after completing the feedback survey."
+                >
                   <DialogHeader>
                     <DialogTitle>
                       {codeIsValid
@@ -316,7 +339,10 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Match Summary */}
-      <div className="bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border w-full lg:col-span-1 col-span-2">
+      <div
+        aria-label="Confirmed Matches"
+        className="bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border w-full lg:col-span-1 col-span-2"
+      >
         <h2 className="text-xl font-semibold mb-4">Matches Overview</h2>
         {data.matches.length === 0 ? (
           <p>No matches yet.</p>
@@ -346,7 +372,7 @@ const ParticipantDashboard = () => {
       </div>
 
       {/* Participations */}
-      <div className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2 dark:border-white dark:border">
+      <div  aria-label="Your programmes" className="bg-primary/5 dark:bg-dark rounded p-6 col-span-2 dark:border-white dark:border">
         <h2 className="text-xl font-semibold mb-4">Your Programmes</h2>
         {data.matches.length === 0 ? (
           <p>You have not participated in any programmes yet.</p>

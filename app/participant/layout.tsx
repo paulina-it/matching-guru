@@ -31,6 +31,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }
   }, [isAuthenticated, loading, isAuthPage, router]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem("fontScale");
+    if (saved) {
+      document.documentElement.classList.remove(
+        "text-sm",
+        "text-base",
+        "text-lg",
+        "text-xl",
+        "text-2xl"
+      );
+      document.documentElement.classList.add(
+        saved === "small"
+          ? "text-sm"
+          : saved === "large"
+          ? "text-lg"
+          : saved === "extraLarge"
+          ? "text-2xl"
+          : "text-base"
+      );
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center w-full h-screen">
@@ -40,18 +62,30 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen flex bg-white text-black dark:bg-black dark:text-white transition-colors duration-300 relative">
+    <div
+      role="presentation"
+      className="min-h-screen flex bg-white text-black dark:bg-black dark:text-white transition-colors duration-300 relative"
+    >
       {/* Desktop Sidebar (Hidden on smaller screens) */}
-      <aside className={`hidden lg:flex bg-primary/50`}>
+      <aside
+        role="complementary"
+        aria-label="Sidebar Navigation"
+        className={`hidden lg:flex bg-primary/50`}
+      >
         <DashboardNav type="participant" onCollapse={setCollapsed} />
       </aside>
 
       {/* Mobile Navigation (Visible on smaller screens) */}
-      <div className="lg:hidden w-full absolute">
+      <div
+        role="navigation"
+        aria-label="Mobile Navigation"
+        className="lg:hidden w-full absolute"
+      >
         <MobileNav type="participant" />
       </div>
 
       <main
+        role="main"
         className={`w-full min-h-screen bg-primary/50 dark:bg-dark flex items-center justify-center relative ${
           collapsed ? "lg:ml-[4rem]" : "lg:ml-[15rem]"
         }`}

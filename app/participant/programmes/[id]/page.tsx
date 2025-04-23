@@ -41,7 +41,6 @@ const ProgrammeDetails = () => {
         setProgrammeYears(yearsData);
 
         const joinedIds: number[] = [];
-
         await Promise.all(
           yearsData.map(async (year) => {
             try {
@@ -61,7 +60,6 @@ const ProgrammeDetails = () => {
             }
           })
         );
-
         setJoinedProgrammeYearIds(joinedIds);
       } catch (err) {
         console.error("Error fetching programme details:", err);
@@ -105,7 +103,11 @@ const ProgrammeDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div
+        className="flex justify-center items-center h-screen"
+        role="status"
+        aria-live="polite"
+      >
         <PulseLoader color="#ba5648" size={15} />
       </div>
     );
@@ -113,51 +115,79 @@ const ProgrammeDetails = () => {
 
   if (error) {
     return (
-      <p className="text-red-500 dark:text-red-400 text-center">{error}</p>
+      <p className="text-red-500 dark:text-red-400 text-center" role="alert">
+        {error}
+      </p>
     );
   }
 
   return (
-    <div className="w-full max-w-screen-md mx-auto px-4 py-6 sm:px-6 lg:px-8 bg-light dark:bg-zinc-900 text-black dark:text-white rounded shadow transition-colors duration-300 dark:border dark:border-white/30">
-      <h2 className="text-2xl sm:text-3xl font-bold mb-4">{programme?.name}</h2>
-      <p className="text-gray-700 dark:text-gray-300">{programme?.description}</p>
+    <main
+      className="w-full max-w-screen-md mx-auto px-4 py-6 sm:px-6 lg:px-8 bg-light dark:bg-zinc-900 text-black dark:text-white rounded shadow transition-colors duration-300 dark:border dark:border-white/30"
+      role="main"
+      aria-labelledby="programme-title"
+    >
+      <header>
+        <h1
+          id="programme-title"
+          className="text-2xl sm:text-3xl font-bold mb-4"
+        >
+          {programme?.name}
+        </h1>
+        <p className="text-gray-700 dark:text-gray-300">
+          {programme?.description}
+        </p>
+      </header>
 
-      <h3 className="text-lg font-semibold mt-6 mb-3">Programme Years</h3>
+      <section className="mt-8" aria-labelledby="years-heading">
+        <h2 id="years-heading" className="text-lg font-semibold mb-3">
+          Programme Years
+        </h2>
 
-      <div className="mt-6">
-        {programmeYears && programmeYears.length > 0 ? (
-          programmeYears.map((year) => (
-            <div
-              key={year.id}
-              className="mb-4 p-4 bg-white dark:bg-zinc-800 rounded shadow flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 transition-colors"
-            >
-              <div>
-                <p className="text-gray-700 dark:text-gray-300">
-                  Year: {year.academicYear}
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Status: {year.isActive ? "🟢 Active" : "⚪ Inactive"}
-                </p>
-              </div>
-              {programmeId !== null && (
-                <Button
-                  onClick={() => handleJoinRedirect(year.id)}
-                  className="w-full sm:w-auto"
-                >
-                  {joinedProgrammeYearIds.includes(year.id)
-                    ? "View Your Details"
-                    : "Join this Programme Year"}
-                </Button>
-              )}
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500 dark:text-gray-400">
-            No programme years available.
-          </p>
-        )}
-      </div>
-    </div>
+        <div>
+          {programmeYears && programmeYears.length > 0 ? (
+            programmeYears.map((year) => (
+              <article
+                key={year.id}
+                aria-labelledby={`programme-year-${year.id}`}
+                className="mb-4 p-4 bg-white dark:bg-zinc-800 rounded shadow flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
+              >
+                <div>
+                  <h3 id={`programme-year-${year.id}`} className="sr-only">
+                    Programme Year {year.academicYear}
+                  </h3>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    Year: {year.academicYear}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Status: {year.isActive ? "🟢 Active" : "⚪ Inactive"}
+                  </p>
+                </div>
+                {programmeId !== null && (
+                  <Button
+                    onClick={() => handleJoinRedirect(year.id)}
+                    className="w-full sm:w-auto"
+                    aria-label={
+                      joinedProgrammeYearIds.includes(year.id)
+                        ? `View your details for academic year ${year.academicYear}`
+                        : `Join programme year ${year.academicYear}`
+                    }
+                  >
+                    {joinedProgrammeYearIds.includes(year.id)
+                      ? "View Your Details"
+                      : "Join this Programme Year"}
+                  </Button>
+                )}
+              </article>
+            ))
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400" role="note">
+              No programme years available.
+            </p>
+          )}
+        </div>
+      </section>
+    </main>
   );
 };
 

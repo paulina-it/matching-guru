@@ -181,27 +181,47 @@ const Account = () => {
 
   return (
     <div className="max-w-[90vw] min-w-[60vw] mx-auto my-[5em] p-6 bg-white dark:bg-zinc-900 text-black dark:text-white shadow-md transition-colors dark:border dark:border-white/30 rounded">
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+        role="form"
+        aria-labelledby="account-form-heading"
+      >
+        <div role="status" aria-live="polite" className="sr-only">
+          {isUpdating ? "Updating profile..." : ""}
+        </div>
+
+        <h1 id="account-form-heading" className="sr-only">
+          Update Account Information
+        </h1>
+
         <div className="flex justify-center items-center flex-col gap-4 mb-6 col-span-2 transition-colors duration-300">
           {preview && (
             <img
               src={preview}
-              alt="Profile Preview"
+              alt="Profile image preview"
               className="w-32 h-32 object-cover rounded-full shadow-md border border-gray-300  transition-colors duration-300"
             />
           )}
           <Button
             variant="outline"
             type="button"
+            aria-label="Update profile picture"
             onClick={() => setImageDialogOpen(true)}
           >
             Update Profile Picture
           </Button>
         </div>
         <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
-          <DialogContent>
+          <DialogContent
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dialog-title"
+          >
             <DialogHeader>
-              <DialogTitle>Update Profile Picture</DialogTitle>
+              <DialogTitle id="dialog-title">
+                Update Profile Picture
+              </DialogTitle>
             </DialogHeader>
 
             {/* File Upload */}

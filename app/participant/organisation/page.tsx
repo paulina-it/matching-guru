@@ -23,7 +23,7 @@ const OrganisationPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.organisationId) {
-        setLoading(false); // Still stop loading even if no org
+        setLoading(false);
         return;
       }
 
@@ -61,55 +61,90 @@ const OrganisationPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div
+        className="flex justify-center items-center h-screen"
+        role="status"
+        aria-label="Loading organisation details"
+      >
         <PulseLoader color="#ba5648" size={15} />
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-screen-lg mx-auto px-4 py-10 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen">
+    <main
+      className="w-full max-w-screen-lg mx-auto px-4 py-10 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen"
+      role="main"
+    >
       <Toaster position="top-right" />
       {organisation ? (
-        <div className="bg-light  dark:bg-dark dark:border dark:border-white/30  my-[10vh] p-5 lg:p-12 rounded-[10px]">
+        <section
+          aria-labelledby="org-heading"
+          className="bg-light dark:bg-dark dark:border dark:border-white/30 my-[10vh] p-5 lg:p-12 rounded-[10px]"
+        >
           <div className="flex lg:flex-row flex-col-reverse justify-between gap-[3em]">
             <div>
-              <h1 className="h1 mb-4">{organisation.name}</h1>
-              <p className="mb-5">{organisation.description}</p>
+              <h1 id="org-heading" className="h1 mb-4">
+                {organisation.name}
+              </h1>
+              <p>{organisation.description}</p>
             </div>
             <Image
               src={organisation.logoUrl}
               width={200}
               height={200}
-              alt="Logo"
+              alt={`${organisation.name} Logo`}
               className="m-auto"
+              role="img"
             />
           </div>
-        </div>
+        </section>
       ) : (
-        <div className="bg-light dark:bg-dark dark:border dark:border-white/30 p-6 sm:p-8 lg:p-10 rounded-xl w-full max-w-xl text-dark dark:text-light shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Join an Organisation</h2>
-          <label htmlFor="joinCode" className="block mb-2 text-sm font-medium">
-            Enter Organisation Join Code
-          </label>
-          <Input
-            id="joinCode"
-            type="text"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
-            placeholder="Enter code..."
-            className="mb-4"
-          />
-          <Button
-            onClick={handleJoinOrganisation}
-            disabled={isJoining}
-            className="w-full"
+        <section
+          aria-labelledby="join-heading"
+          className="bg-light dark:bg-dark dark:border dark:border-white/30 p-6 sm:p-8 lg:p-10 rounded-xl w-full max-w-xl text-dark dark:text-light shadow-md"
+        >
+          <h2 id="join-heading" className="text-xl font-semibold mb-4">
+            Join an Organisation
+          </h2>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleJoinOrganisation();
+            }}
+            aria-describedby="join-desc"
           >
-            {isJoining ? "Joining..." : "Join Organisation"}
-          </Button>
-        </div>
+            <label
+              htmlFor="joinCode"
+              className="block mb-2 text-sm font-medium"
+            >
+              Enter Organisation Join Code
+            </label>
+            <Input
+              id="joinCode"
+              type="text"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+              placeholder="Enter code..."
+              className="mb-4"
+              aria-required="true"
+            />
+            <p id="join-desc" className="sr-only">
+              Type the code provided by your university or organisation to join
+            </p>
+            <Button
+              type="submit"
+              disabled={isJoining}
+              className="w-full"
+              aria-disabled={isJoining}
+              aria-busy={isJoining}
+            >
+              {isJoining ? "Joining..." : "Join Organisation"}
+            </Button>
+          </form>
+        </section>
       )}
-    </div>
+    </main>
   );
 };
 

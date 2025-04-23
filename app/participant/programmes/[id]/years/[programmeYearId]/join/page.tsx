@@ -4,10 +4,7 @@ import React, { useEffect, useState } from "react";
 import JoinProgrammeForm from "@/components/forms/JoinProgrammeForm";
 import { useAuth } from "@/app/context/AuthContext";
 
-const validateParams = (params: {
-  programmeYearId?: string;
-  id?: string;
-}) => {
+const validateParams = (params: { programmeYearId?: string; id?: string }) => {
   console.log(params);
   if (!params.programmeYearId || !params.id) {
     throw new Error("Missing required parameters.");
@@ -81,12 +78,22 @@ const JoinProgrammePage = ({
   }
 
   if (!validatedParams) {
-    return <p>Loading parameters...</p>;
+    return (
+      <div
+        className="flex justify-center items-center h-screen"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <span className="sr-only">Loading...</span>
+        <div className="loader" aria-hidden="true"></div>
+      </div>
+    );
   }
 
   const { programmeYearId, programmeId } = validatedParams;
 
-  console.log(user)
+  console.log(user);
 
   return (
     <div className="max-w-[90vw] mx-auto mt-[5em]">

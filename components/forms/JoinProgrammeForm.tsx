@@ -197,22 +197,22 @@ const JoinProgrammeForm: React.FC<{
   const validateForm = (): boolean => {
     const errors: string[] = [];
     let firstErrorSlideIndex = -1;
-  
+
     const addError = (message: string, slideIndex: number) => {
       errors.push(message);
       if (firstErrorSlideIndex === -1) {
         firstErrorSlideIndex = slideIndex;
       }
     };
-  
+
     if (role === "MENTOR" && (!menteeLimit || menteeLimit < 1)) {
       addError("Please specify how many mentees you are willing to take.", 0);
     }
     if (!academicStage) {
       addError("Please select your academic stage.", 0);
     }
-  
-    for (const criterion of matchingCriteria.filter(c => c.weight > 0)) {
+
+    for (const criterion of matchingCriteria.filter((c) => c.weight > 0)) {
       switch (criterion.criterionType) {
         case "FIELD":
           if (!userProp.courseId && !courseId) {
@@ -262,17 +262,16 @@ const JoinProgrammeForm: React.FC<{
           break;
       }
     }
-  
-    errors.forEach(msg => toast.error(msg));
-  
+
+    errors.forEach((msg) => toast.error(msg));
+
     if (firstErrorSlideIndex !== -1 && swiperInstance) {
       swiperInstance.slideTo(firstErrorSlideIndex);
       return false;
     }
-  
+
     return true;
   };
-   
 
   const handleSubmit = async () => {
     const participantData: ParticipantCreateDto = {
@@ -468,7 +467,7 @@ const JoinProgrammeForm: React.FC<{
                 href={personalityTestLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 underline"
+                className="text-secondary underline"
               >
                 here
               </a>
@@ -541,6 +540,7 @@ const JoinProgrammeForm: React.FC<{
                 <button
                   key={skill}
                   type="button"
+                  aria-pressed={skills.includes(skill)}
                   className={`px-3 py-2 border rounded text-sm transition duration-300 ease-in-out ${
                     skills.includes(skill)
                       ? "bg-accent text-white shadow-lg"
@@ -663,7 +663,7 @@ const JoinProgrammeForm: React.FC<{
   };
 
   return (
-    <div className="max-w-lg mx-auto ">
+    <div className="max-w-lg mx-auto" role="form">
       {loading ? (
         <div className="flex justify-center items-center w-full h-screen">
           <PulseLoader color="#3498db" size={15} />
@@ -676,9 +676,15 @@ const JoinProgrammeForm: React.FC<{
           slidesPerView={1}
           className="h-full"
         >
+          
           {/* Slide 1: Role and Academic Stage */}
-          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded">
-            <h2 className="text-xl font-bold mb-4">Step 1</h2>
+          <SwiperSlide
+            aria-labelledby="step-1-heading"
+            className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
+          >
+            <h2 className="text-xl font-bold mb-4" id="step-1-heading">
+              Step 1
+            </h2>
             <div className="mb-4">
               <label className="block text-md font-bold">Select Role</label>
               <p className="text-black/70 dark:text-light/70 text-sm">
@@ -750,8 +756,13 @@ const JoinProgrammeForm: React.FC<{
           {((academicStage === "Second Year Undergraduate" &&
             role.toUpperCase() == "MENTEE") ||
             academicStage === "Final Year Undergraduate") && (
-            <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded">
-              <h2 className="text-xl font-bold mb-4">Placement Information</h2>
+            <SwiperSlide
+              aria-labelledby="step-2-heading"
+              className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
+            >
+              <h2 id="step-2-heading" className="text-xl font-bold mb-4">
+                Placement Information
+              </h2>
               {academicStage === "Final Year Undergraduate" && (
                 <div className="mb-4">
                   <label className="block text-md font-bold">
@@ -869,8 +880,13 @@ const JoinProgrammeForm: React.FC<{
           )}
 
           {/* Slide 3: Criteria Based */}
-          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded">
-            <h2 className="text-xl font-bold mb-4">Step 2</h2>
+          <SwiperSlide
+            aria-labelledby="step-3-heading"
+            className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
+          >
+            <h2 id="step-3-heading" className="text-xl font-bold mb-4">
+              Step 2
+            </h2>
             {matchingCriteria
               .filter((criterion) => criterion.weight > 0)
               .map((criterion, index) => (
@@ -895,8 +911,13 @@ const JoinProgrammeForm: React.FC<{
             </div>
           </SwiperSlide>
 
-          <SwiperSlide className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded">
-            <h2 className="text-xl font-bold mb-4">Review Your Details</h2>
+          <SwiperSlide
+            aria-labelledby="step-4-heading"
+            className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
+          >
+            <h2 id="step-4-heading" className="text-xl font-bold mb-4">
+              Review Your Details
+            </h2>
             <p className="mb-4 text-sm text-muted-foreground">
               Please confirm your information before submitting.
             </p>

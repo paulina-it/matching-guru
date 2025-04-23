@@ -316,8 +316,15 @@ const ParticipantProgrammeDetails = () => {
   }
 
   return (
-    <div className="w-full max-w-[90%] mx-auto px-4 py-6 sm:px-6 lg:px-8 bg-light p-4 sm:p-6 rounded shadow dark:bg-dark dark:border dark:border-white/30 text-light mt-[5em] relative">
-      <h2 className="h2 font-bold mb-4 text-dark dark:text-light">
+    <div
+      aria-labelledby="programme-title"
+      className="w-full max-w-[90%] mx-auto px-4 py-6 sm:px-6 lg:px-8 bg-light p-4 sm:p-6 rounded shadow dark:bg-dark dark:border dark:border-white/30 text-light mt-[5em] relative"
+    >
+      <h1 className="sr-only">Participant Programme Details</h1>
+      <h2
+        id="programme-title"
+        className="h2 font-bold mb-4 text-dark dark:text-light"
+      >
         {programmeYear?.programmeName ?? "N/A"} |{" "}
         {programmeYear?.academicYear ?? "N/A"}
       </h2>
@@ -331,14 +338,17 @@ const ParticipantProgrammeDetails = () => {
       )}
       {canShowFeedbackBox &&
         matchDetails.some((m) => m.status === "APPROVED") && (
-          <FeedbackSubmissionBox
-            userId={user!.id}
-            programmeYearId={programmeYearId}
-            alreadySubmitted={participant?.hasSubmittedFeedback}
-          />
+          <section aria-labelledby="feedback-heading">
+            <h3 id="feedback-heading">Feedback</h3>
+            <FeedbackSubmissionBox
+              userId={user!.id}
+              programmeYearId={programmeYearId}
+              alreadySubmitted={participant?.hasSubmittedFeedback}
+            />
+          </section>
         )}
 
-      <section className="mt-8 space-y-6">
+      <section aria-labelledby="profile-heading" className="mt-8 space-y-6">
         {/* {matchDetails.length === 1 && (
           <p className="bg-secondary dark:bg-secondary-dark text-white rounded p-2 w-fit absolute top-6 right-6">
             Status:{" "}
@@ -350,7 +360,9 @@ const ParticipantProgrammeDetails = () => {
 
         {participant && (
           <div className="mt-6 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/20 text-dark dark:text-light">
-            <h3 className="h3">Your Profile</h3>
+            <h3 id="profile-heading" className="h3">
+              Your Profile
+            </h3>
             <p>
               <strong>Role:</strong> {formatText(participant?.role)}
             </p>
@@ -430,9 +442,6 @@ const ParticipantProgrammeDetails = () => {
             const lastInteraction = sortedLogs.find(
               (log) => log.status === CommunicationStatus.COMPLETED
             );
-            const lastInteractionDate = lastInteraction
-              ? new Date(lastInteraction.timestamp)
-              : null;
 
             const msInDay = 1000 * 60 * 60 * 24;
             let daysSinceLastInteraction: number | null = null;
@@ -612,9 +621,15 @@ ${user?.firstName}`;
                           Contact Your Match
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="suggested-email"
+                      >
                         <DialogHeader>
-                          <DialogTitle>Suggested Email</DialogTitle>
+                          <DialogTitle id="suggested-email">
+                            Suggested Email
+                          </DialogTitle>
                         </DialogHeader>
                         <Textarea
                           value={emailBody}
@@ -702,6 +717,7 @@ ${user?.firstName}`;
                                       }
                                       className="text-green-600 hover:text-green-800"
                                       title="Mark as Completed"
+                                      aria-label="Mark log as completed"
                                     >
                                       <CheckCircle size={16} />
                                     </button>
@@ -710,6 +726,7 @@ ${user?.firstName}`;
                                     onClick={() => openEditDialog(log)}
                                     className="text-primary hover:text-primary-hover dark:text-primary-dark dark:hover:text-primary-darkHover"
                                     title="Edit"
+                                    aria-label="Edit interaction log"
                                   >
                                     <Pencil size={16} />
                                   </button>
@@ -719,6 +736,7 @@ ${user?.firstName}`;
                                     }
                                     className="text-accent hover:text-accent-hover dark:text-accent-dark dark:hover:text-accent-darkHover"
                                     title="Delete"
+                                    aria-label="Delete interaction log"
                                   >
                                     <Trash size={16} />
                                   </button>
@@ -737,9 +755,13 @@ ${user?.firstName}`;
           <p className="italic mt-4 text-gray-500">No match found yet.</p>
         )}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
+          <DialogContent
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="log-title"
+          >
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle id="log-title">
                 {editingLogId ? "Edit" : "Log"} Interaction
               </DialogTitle>
             </DialogHeader>
@@ -777,13 +799,16 @@ ${user?.firstName}`;
                 </select>
               </label>
 
-              <label className="block">
+              <label htmlFor="timestamp" className="block">
                 Timestamp:
                 <input
                   type="datetime-local"
                   value={timestamp}
                   onChange={(e) => setTimestamp(e.target.value)}
                   className="w-full border rounded px-3 py-2 mt-1"
+                  id="timestamp"
+                  aria-labelledby="timestamp-label"
+                  aria-required="true"
                 />
               </label>
             </div>
