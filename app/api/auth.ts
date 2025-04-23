@@ -52,3 +52,33 @@ export async function loginUser(request: UserLoginDto): Promise<LoginResponse> {
 
   return response.json();
 }
+
+/**
+ * Update password.
+ */
+export async function updatePassword(request: {
+  oldPassword: string;
+  newPassword: string;
+}): Promise<string> {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    toast.error("Authentication error: No token found. Please log in.");
+    throw new Error("No token found");
+  }
+
+  const response = await fetch(`${API_URL}/auth/change-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    await handleApiError(response);
+  }
+
+  return response.json();
+}

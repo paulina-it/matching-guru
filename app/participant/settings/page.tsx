@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
+import { updatePassword } from "@/app/api/auth";
 
 const Label = ({
   htmlFor,
@@ -50,7 +51,13 @@ export default function SettingsPanel() {
 
   const applyFontScale = (scale: string) => {
     const html = document.documentElement;
-    html.classList.remove("text-sm", "text-base", "text-lg", "text-xl", "text-2xl");
+    html.classList.remove(
+      "text-sm",
+      "text-base",
+      "text-lg",
+      "text-xl",
+      "text-2xl"
+    );
 
     const classToAdd =
       scale === "small"
@@ -70,25 +77,33 @@ export default function SettingsPanel() {
     setTheme(checked ? "dark" : "light");
   };
 
-  const updatePassword = () => {
+  const handleUpdatePassword = async () => {
     if (!currentPassword || !newPassword) {
       toast.error("Please fill in both fields.");
       return;
     }
 
-    toast.success("Password updated!");
-    setCurrentPassword("");
-    setNewPassword("");
-  };
-
-  const deactivateAccount = () => {
-    if (deactivateConfirm === "DEACTIVATE") {
-      toast.success("Account deactivated (soft delete)");
-      setDeactivateConfirm("");
-    } else {
-      toast.error("Please type DEACTIVATE to confirm");
+    try {
+      const message = await updatePassword({
+        oldPassword: currentPassword,
+        newPassword,
+      });
+      toast.success(message); 
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (error) {
+      toast.error("Failed to update password. Please try again.");
     }
   };
+
+  // const deactivateAccount = () => {
+  //   if (deactivateConfirm === "DEACTIVATE") {
+  //     toast.success("Account deactivated (soft delete)");
+  //     setDeactivateConfirm("");
+  //   } else {
+  //     toast.error("Please type DEACTIVATE to confirm");
+  //   }
+  // };
 
   return (
     <div
@@ -96,11 +111,15 @@ export default function SettingsPanel() {
       role="region"
       aria-labelledby="settings-heading"
     >
-      <h2 id="settings-heading" className="text-2xl font-bold">Settings</h2>
+      <h2 id="settings-heading" className="text-2xl font-bold">
+        Settings
+      </h2>
 
       {/* Theme & Accessibility */}
       <section aria-labelledby="appearance-heading" className="space-y-4">
-        <h3 id="appearance-heading" className="font-semibold">Appearance & Accessibility</h3>
+        <h3 id="appearance-heading" className="font-semibold">
+          Appearance & Accessibility
+        </h3>
 
         <div className="flex items-center justify-between gap-4">
           <Label htmlFor="dark-mode">Dark Mode</Label>
@@ -137,7 +156,9 @@ export default function SettingsPanel() {
 
       {/* Notifications */}
       <section aria-labelledby="notifications-heading" className="space-y-4">
-        <h3 id="notifications-heading" className="font-semibold">Email Notifications</h3>
+        <h3 id="notifications-heading" className="font-semibold">
+          Email Notifications
+        </h3>
 
         <div className="flex items-center justify-between gap-4">
           <Label>Match Status Updates</Label>
@@ -190,7 +211,9 @@ export default function SettingsPanel() {
 
       {/* Update Password */}
       <section aria-labelledby="password-heading" className="space-y-2">
-        <h3 id="password-heading" className="font-semibold">Update Password</h3>
+        <h3 id="password-heading" className="font-semibold">
+          Update Password
+        </h3>
         <Label htmlFor="current-password">Current Password</Label>
         <Input
           id="current-password"
@@ -209,7 +232,7 @@ export default function SettingsPanel() {
           onChange={(e) => setNewPassword(e.target.value)}
           aria-required="true"
         />
-        <Button variant="outline" onClick={updatePassword}>
+        <Button variant="outline" onClick={handleUpdatePassword}>
           Update Password
         </Button>
       </section>
