@@ -3,26 +3,16 @@
 import { useEffect, useState } from "react";
 import { fetchParticipantDashboard } from "@/app/api/dashboard";
 import { MatchSummaryDto, ParticipantDashboardDto } from "../types/dashboard";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
-import {
-  downloadServerCertificate,
-  verifyFeedbackCode,
-} from "../api/programmes";
+import { verifyFeedbackCode } from "../api/programmes";
 import { PulseLoader } from "react-spinners";
+import UnconfirmedMatchNotice from "@/components/dashboards/UnconfirmedMatchNotice";
+import CommunicationLogReminder from "@/components/dashboards/CommunicationLogReminder";
+import FeedbackReminder from "@/components/dashboards/FeebackReminder";
+import MatchApprovalPrompt from "@/components/dashboards/MatchApprovalPrompt";
 
 const ParticipantDashboard = () => {
   const [data, setData] = useState<ParticipantDashboardDto | null>(null);
@@ -139,194 +129,70 @@ const ParticipantDashboard = () => {
               return acc;
             }, {} as Record<string, MatchSummaryDto & { count: number }>)
         ).map(([key, group]) => (
-          <div key={key} className="mb-2">
-            <p>
-              🔔 You have <span className="font-bold">{group.count}</span>{" "}
-              unconfirmed match
-              {group.count > 1 ? "es" : ""} in{" "}
-              <span className="font-medium">
-                {group.programmeName} ({group.academicYear})
-              </span>
-            </p>
-            <span className="text-sm text-dark/70 italic">
-              Please wait for a coordinator to approve them.
-            </span>
-            <Button
-              variant="link"
-              className="w-full sm:w-fit mt-2 sm:mt-0"
-              onClick={() =>
-                router.push(
-                  `/participant/programmes/${group.programmeId}/years/${group.programmeYearId}/my-details`
-                )
-              }
-            >
-              View match details
-            </Button>
-          </div>
+          <UnconfirmedMatchNotice key={key} group={group} />
         ))}
+
+        {/* Accept or Reject Match */}
+        {data.matches
+          .filter((m) => m.status.toUpperCase() === "APPROVED")
+          .map((match) => (
+            <MatchApprovalPrompt key={match.matchId} match={match} />
+          ))}
 
         {/* Communication Logs */}
         {data.matches
           .filter(
             (m) =>
-              m.status.toUpperCase() === "APPROVED" &&
+              m.status.toUpperCase() === "ACCEPTED" &&
               m.lastInteractionDate &&
               new Date(m.lastInteractionDate).getTime() <
                 Date.now() - 14 * 24 * 60 * 60 * 1000
           )
-          .map((m) => (
-            <div key={m.matchId} className="mb-2" aria-label="Call to action">
-              <p>
-                💬 It's been over 2 weeks since you logged communication in{" "}
-                <span className="font-medium">
-                  {m.programmeName} ({m.academicYear})
-                </span>
-              </p>
-              <Button
-                variant="link"
-                className="w-full sm:w-fit mt-2 sm:mt-0"
-                onClick={() =>
-                  router.push(
-                    `/participant/programmes/${m.programmeId}/years/${m.programmeYearId}/my-details`
-                  )
-                }
-              >
-                Log interaction
-              </Button>
-            </div>
+          .map((match) => (
+            <CommunicationLogReminder key={match.matchId} match={match} />
           ))}
 
         {/* 📝 Pending Feedback */}
         {data.activeParticipations
           .filter(
-            (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate && p.isMatched
+            (p) =>
+              !p.feedbackSubmitted &&
+              p.surveyUrl &&
+              p.surveyCloseDate &&
+              p.isMatched
           )
           .map((p) => (
-            <div
+            <FeedbackReminder
               key={p.programmeYearId}
-              className="mb-2"
-              aria-label="Pending Feedback"
-            >
-              <p>
-                📝 Feedback pending for{" "}
-                <span className="font-medium">
-                  {p.programmeName} ({p.academicYear})
-                </span>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Please complete the survey by{" "}
-                <strong>
-                  {new Date(p.surveyCloseDate!).toLocaleDateString()}
-                </strong>{" "}
-                to receive your certificate of participation.
-              </p>
-              <Button
-                aria-label="Open feedback survey"
-                variant="blueOutline"
-                className="w-full sm:w-fit my-2 sm:mt-0"
-                onClick={() => {
-                  window.open(p.surveyUrl, "_blank");
-                  setOpenCodeDialog(true);
-                }}
-              >
-                Fill out feedback survey
-              </Button>
-              <Dialog open={openCodeDialog} onOpenChange={setOpenCodeDialog}>
-                <DialogTrigger asChild>
-                  {/* <Button
-                    variant="outline"
-                    className="w-full sm:w-fit mt-2 sm:mt-0"
-                    onClick={() => {
-                      setActiveProgrammeYearId(p.programmeYearId);
-                      setActiveParticipantId(p.participantId);
-                      setOpenCodeDialog(true);
-                    }}
-                    aria-label="Open dialog to enter confirmation code"
-                  >
-                    Enter confirmation code
-                  </Button> */}
-                </DialogTrigger>
-                <DialogContent
-                  className="rounded"
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby="Feedback Confirmation Code Entry"
-                  aria-describedby="Paste the code you received after completing the feedback survey."
-                >
-                  <DialogHeader>
-                    <DialogTitle>
-                      {codeIsValid
-                        ? "✅ Code Verified"
-                        : "Enter Confirmation Code"}
-                    </DialogTitle>
-                    <DialogDescription>
-                      {codeIsValid ? (
-                        <p className="text-green-600 font-medium mt-2">
-                          Thank you! The code is valid.
-                          <br />
-                          You can now access your certificate below.
-                        </p>
-                      ) : (
-                        "Paste the code you received after completing the feedback survey."
-                      )}
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  {!codeIsValid ? (
-                    <>
-                      <Input
-                        value={confirmationCodeInput}
-                        onChange={(e) =>
-                          setConfirmationCodeInput(e.target.value)
-                        }
-                        placeholder="e.g. 6e152370-1111-4888-a27d-c93b1f09efaf"
-                        className="mt-4"
-                      />
-
-                      <DialogFooter>
-                        <Button onClick={() => handleConfirmCode()}>
-                          Confirm Code
-                        </Button>
-                      </DialogFooter>
-                    </>
-                  ) : (
-                    <div className="mt-4 flex justify-center">
-                      <Button
-                        variant="default"
-                        className="w-full sm:w-fit mt-2 sm:mt-0"
-                        onClick={() =>
-                          downloadServerCertificate(
-                            `${user?.firstName} ${user?.lastName}`,
-                            p.role.toLowerCase(),
-                            p.programmeName,
-                            p.academicYear,
-                            new Date().toLocaleDateString("en-GB", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })
-                          )
-                        }
-                      >
-                        Download Certificate
-                      </Button>
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
-            </div>
+              participation={p}
+              user={user!}
+              openCodeDialog={openCodeDialog}
+              setOpenCodeDialog={setOpenCodeDialog}
+              codeIsValid={codeIsValid}
+              setCodeIsValid={setCodeIsValid}
+              confirmationCodeInput={confirmationCodeInput}
+              setConfirmationCodeInput={setConfirmationCodeInput}
+              handleConfirmCode={handleConfirmCode}
+              setActiveParticipantId={setActiveParticipantId}
+              setActiveProgrammeYearId={setActiveProgrammeYearId}
+            />
           ))}
 
         {data.matches.filter(
           (m) =>
             m.status.toUpperCase() === "PENDING" ||
+            m.status.toUpperCase() === "APPROVED" ||
             (m.status.toUpperCase() === "APPROVED" &&
               m.lastInteractionDate &&
               new Date(m.lastInteractionDate).getTime() <
                 Date.now() - 14 * 24 * 60 * 60 * 1000)
         ).length === 0 &&
           data.activeParticipations.filter(
-            (p) => !p.feedbackSubmitted && p.surveyUrl && p.surveyCloseDate && p.isMatched
+            (p) =>
+              !p.feedbackSubmitted &&
+              p.surveyUrl &&
+              p.surveyCloseDate &&
+              p.isMatched
           ).length === 0 && (
             <div className="text-center mt-6 text-muted-foreground">
               <p className="text-md mb-2">You're all caught up!</p>
@@ -347,26 +213,41 @@ const ParticipantDashboard = () => {
         className="bg-primary/5 dark:bg-dark rounded p-6 dark:border-white dark:border w-full lg:col-span-1 col-span-2"
       >
         <h2 className="text-xl font-semibold mb-4">Matches Overview</h2>
+
         {data.matches.length === 0 ? (
           <p>No matches yet.</p>
         ) : (
           data.matches
-            .filter((m) => m.status == "APPROVED")
+            .filter((m) =>
+              ["APPROVED", "ACCEPTED"].includes(m.status?.toUpperCase())
+            )
             .map((m) => (
               <div key={m.matchId} className="mb-4 border-b pb-2">
                 <p className="font-semibold">
-                  {m.mentor ? "Mentor to" : "Mentee of"} {m.matchWithName} (
-                  {m.matchWithEmail})
+                  {m.mentor ? "Mentor to" : "Mentee of"}{" "}
+                  {m.matchWithName || "Unknown"} (
+                  {m.matchWithEmail || "No email"})
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Programme: {m.programmeName} ({m.academicYear})<br />
-                  Status: {m.status} | Compatibility:{" "}
-                  {m.compatibilityScore || "N/A"}
+                  Programme: {m.programmeName || "N/A"} (
+                  {m.academicYear || "Unknown"})<br />
+                  Status:{" "}
+                  <span className="capitalize">
+                    {m.status?.toLowerCase() || "unknown"}
+                  </span>{" "}
+                  | Compatibility: {m.compatibilityScore ?? "N/A"}%
                 </p>
                 {m.lastInteractionDate && (
                   <p className="text-xs text-gray-500">
                     Last Interaction:{" "}
-                    {new Date(m.lastInteractionDate).toLocaleDateString()}
+                    {new Date(m.lastInteractionDate).toLocaleDateString(
+                      "en-GB",
+                      {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      }
+                    )}
                   </p>
                 )}
               </div>
