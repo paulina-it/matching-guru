@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { getParticipantInfoByUserIdAndProgrammeYearId } from "@/app/api/participant";
 import { useAuth } from "@/app/context/AuthContext";
-import { Pencil, Trash, CheckCircle } from "lucide-react";
 import { formatText } from "@/app/utils/text";
 import {
   Dialog,
@@ -22,7 +21,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import {
   CommunicationStatus,
   CommunicationType,
@@ -36,6 +34,7 @@ import {
 } from "@/app/api/communicationLogs";
 import FeedbackSubmissionBox from "@/components/FeedbackSubmissionBox";
 import { submitMatchDecision } from "@/app/api/matching";
+import MatchCard from "@/components/MatchCard";
 
 const ParticipantProgrammeDetails = () => {
   const params = useParams() as { id: string; programmeYearId: string };
@@ -54,7 +53,6 @@ const ParticipantProgrammeDetails = () => {
   const [isMentor, setIsMentor] = useState<boolean | null>(null);
   const [participant, setParticipant] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [participantInfoList, setParticipantInfoList] = useState<any[]>([]);
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
   const [type, setType] = useState<CommunicationType>(
     CommunicationType.VIDEO_CALL
@@ -65,15 +63,11 @@ const ParticipantProgrammeDetails = () => {
   const [timestamp, setTimestamp] = useState(
     new Date().toISOString().slice(0, 16)
   );
-  const [logs, setLogs] = useState<CommunicationLogDto[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
-  const [feedbackCode, setFeedbackCode] = useState("");
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const now = new Date();
   const [surveyOpen, setSurveyOpen] = useState<Date | null>();
   const [surveyClosed, setSurveyClosed] = useState<Date | null>();
   const [canShowFeedbackBox, setCanShowFeedbackBox] = useState<boolean>(false);
-  const [hasDecided, setHasDecided] = useState(false);
 
   const weekDayOrder = {
     MONDAY: 0,
@@ -100,33 +94,6 @@ const ParticipantProgrammeDetails = () => {
 
       return dayA - dayB;
     });
-  };
-
-  const matchStatusInfo: Record<string, { label: string; style: string }> = {
-    PENDING: {
-      label: "⏳ Pending Coordinator Review",
-      style: "bg-yellow-100 text-yellow-800",
-    },
-    APPROVED: {
-      label: "✅ Match Approved by Coordinator",
-      style: "bg-green-100 text-green-800",
-    },
-    DECLINED: {
-      label: "❌ Declined by Coordinator",
-      style: "bg-red-100 text-red-800",
-    },
-    ACCEPTED: {
-      label: "👍 You Accepted the Match",
-      style: "bg-blue-100 text-blue-800",
-    },
-    REJECTED: {
-      label: "👎 You Rejected the Match",
-      style: "bg-gray-200 text-gray-600",
-    },
-    NOTIFIED: {
-      label: "🔔 The other participant has been notified",
-      style: "bg-blue-50 text-blue-700",
-    },    
   };
 
   useEffect(() => {
@@ -342,7 +309,7 @@ const ParticipantProgrammeDetails = () => {
       if (!participantId) {
         toast.error("Participant ID missing.");
         return;
-      }      
+      }
 
       await submitMatchDecision({ matchId, decision, participantId });
       toast.success(
@@ -556,288 +523,31 @@ Best regards,
 ${user?.firstName}`;
 
             return (
-              <div
+              <MatchCard
                 key={match.id}
-                className="mt-8 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/30
-              text-dark dark:text-white"
-              >
-                <h4 className="h4 text-lg mb-3 flex justify-between items-center">
-                  Match #{idx + 1}
-                  <span
-                    className={`text-sm px-3 py-1 rounded font-medium ${
-                      matchStatusInfo[match.status]?.style ||
-                      "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {matchStatusInfo[match.status]?.label || "Unknown Status"}
-                  </span>
-                </h4>
-
-                {(match.status === "APPROVED" ||
-                  match.status === "ACCEPTED") && (
-                  <>
-                    {" "}
-                    {/* Matched person info */}
-                    {isMentor ? (
-                      <div
-                        key={match.mentee.id}
-                        className="mb-4 p-3 border rounded bg-white dark:bg-light/10 flex flex-col gap-2 sm:gap-3"
-                      >
-                        <p>
-                          <strong>Name:</strong> {match.mentee.firstName}{" "}
-                          {match.mentee.lastName}
-                        </p>
-                        <p>
-                          <strong>Email:</strong> {match.mentee.email}
-                        </p>
-                        <p>
-                          <strong>Course:</strong> {match.mentee.course}
-                        </p>
-                        <p>
-                          <strong>Academic Stage:</strong>{" "}
-                          {formatText(match.mentee.academicStage)}
-                        </p>
-                        <p>
-                          <strong>Available Days:</strong>{" "}
-                          {match.mentee?.availableDays?.length
-                            ? sortAvailableDays(match.mentee?.availableDays)
-                                .map(formatText)
-                                .join(", ")
-                            : "None listed"}
-                        </p>
-                        <p>
-                          <strong>Skills:</strong>{" "}
-                          {match.mentee.skills?.length
-                            ? match.mentee.skills.map(formatText).join(", ")
-                            : "None listed"}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="mb-4 p-3 border rounded bg-white dark:bg-light/10 flex flex-col gap-2 sm:gap-3">
-                        <p>
-                          <strong>Name:</strong> {match.mentor?.firstName}{" "}
-                          {match.mentor?.lastName}
-                        </p>
-                        <p>
-                          <strong>Email:</strong> {match.mentor?.email}
-                        </p>
-                        <p>
-                          <strong>Course:</strong> {match.mentor?.course}
-                        </p>
-                        <p>
-                          <strong>Academic Stage:</strong>{" "}
-                          {formatText(match.mentor?.academicStage)}
-                        </p>
-                        <p>
-                          <strong>Available Days:</strong>{" "}
-                          {match.mentor?.availableDays?.length
-                            ? sortAvailableDays(match.mentor?.availableDays)
-                                .map(formatText)
-                                .join(", ")
-                            : "None listed"}
-                        </p>
-                        <p>
-                          <strong>Skills:</strong>{" "}
-                          {match.mentor?.skills?.length
-                            ? match.mentor.skills.map(formatText).join(", ")
-                            : "None listed"}
-                        </p>
-                      </div>
-                    )}
-                    <p className="mt-2">
-                      <strong>Compatibility Score:</strong>{" "}
-                      {match.compatibilityScore}%
-                    </p>
-                    {match.status === "APPROVED" && (
-                      <>
-                        <div className="flex justify-center gap-4 mt-4">
-                          <Button
-                            size="xl"
-                            onClick={() =>
-                              handleMatchDecision(
-                                match.id,
-                                participant?.id,
-                                "ACCEPTED"
-                              )
-                            }
-                            aria-label="Accept match"
-                          >
-                            Accept Match
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="xl"
-                            onClick={() =>
-                              handleMatchDecision(
-                                match.id,
-                                participant?.id,
-                                "REJECTED"
-                              )
-                            }
-                            aria-label="Reject match"
-                          >
-                            Reject Match
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                    {match.status === "ACCEPTED" && (
-                      <>
-                        {shared && (
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            🕒 You're both available on{" "}
-                            <strong>{shared.day}</strong> at{" "}
-                            <strong>{shared.time}</strong>
-                          </p>
-                        )}
-
-                        {/* Contact Match */}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full sm:w-auto mt-2 sm:mt-0"
-                            >
-                              Contact Your Match
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="suggested-email"
-                          >
-                            <DialogHeader>
-                              <DialogTitle id="suggested-email">
-                                Suggested Email
-                              </DialogTitle>
-                            </DialogHeader>
-                            <Textarea
-                              value={emailBody}
-                              readOnly
-                              className="w-full min-h-[20em]"
-                            />
-                            <DialogFooter>
-                              <Button
-                                onClick={() => {
-                                  const recipient = isMentor
-                                    ? match.mentes?.email
-                                    : match.mentor?.email;
-
-                                  if (!recipient) {
-                                    toast.error("Match email not found.");
-                                    return;
-                                  }
-
-                                  const subject = encodeURIComponent(
-                                    "Mentoring Programme: Let's schedule a meeting"
-                                  );
-                                  const bodyEncoded =
-                                    encodeURIComponent(emailBody);
-                                  window.location.href = `mailto:${recipient}?subject=${subject}&body=${bodyEncoded}`;
-                                }}
-                                className="w-full sm:w-auto mt-2 sm:mt-0"
-                              >
-                                Send Email
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-
-                        {/* Log Interaction */}
-                        <Button
-                          variant="default"
-                          className="w-full sm:w-auto mt-2 sm:mt-0 lg:ml-3 lg:mt-4"
-                          onClick={() => openNewLogDialog(match.id)}
-                        >
-                          Log Interaction
-                        </Button>
-
-                        {/* No logs message */}
-                        {logs.length === 0 && (
-                          <p className="text-sm mt-4 italic text-yellow-600">
-                            No interactions logged yet.
-                          </p>
-                        )}
-
-                        {/* Interaction History */}
-                        {daysSinceLastInteraction !== null &&
-                          daysSinceLastInteraction > 14 && (
-                            <p className="text-accent mt-2 font-medium italic text-sm">
-                              ⚠️ It's been over 2 weeks since your last logged
-                              interaction. Consider reaching out to your match!
-                            </p>
-                          )}
-
-                        {logs.length > 0 && (
-                          <div className="mt-4">
-                            <h3 className="font-semibold text-start mb-1 h3">
-                              Interaction History
-                            </h3>
-                            <ul className="space-y-2 overflow-x-auto">
-                              {logs
-                                .sort(
-                                  (a, b) =>
-                                    new Date(b.timestamp).getTime() -
-                                    new Date(a.timestamp).getTime()
-                                )
-                                .map((log) => (
-                                  <li
-                                    key={log.id}
-                                    className="text-sm border p-2 rounded flex justify-between"
-                                  >
-                                    <span>
-                                      {new Date(log.timestamp).toLocaleString(
-                                        "en-GB"
-                                      )}{" "}
-                                      –{" "}
-                                      <strong>
-                                        {log.type.replace(/_/g, " ")}
-                                      </strong>{" "}
-                                      – <em>{log.status}</em>
-                                    </span>
-                                    <div className="flex items-center gap-2 ml-4">
-                                      {log.status !==
-                                        CommunicationStatus.COMPLETED && (
-                                        <button
-                                          onClick={() =>
-                                            handleMarkCompleted(log, match.id)
-                                          }
-                                          className="text-green-600 hover:text-green-800"
-                                          title="Mark as Completed"
-                                          aria-label="Mark log as completed"
-                                        >
-                                          <CheckCircle size={16} />
-                                        </button>
-                                      )}
-                                      <button
-                                        onClick={() => openEditDialog(log)}
-                                        className="text-primary hover:text-primary-hover dark:text-primary-dark dark:hover:text-primary-darkHover"
-                                        title="Edit"
-                                        aria-label="Edit interaction log"
-                                      >
-                                        <Pencil size={16} />
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          handleDeleteLog(log.id, match.id)
-                                        }
-                                        className="text-accent hover:text-accent-hover dark:text-accent-dark dark:hover:text-accent-darkHover"
-                                        title="Delete"
-                                        aria-label="Delete interaction log"
-                                      >
-                                        <Trash size={16} />
-                                      </button>
-                                    </div>
-                                  </li>
-                                ))}
-                            </ul>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
+                match={match}
+                index={idx}
+                isMentor={isMentor!}
+                participant={participant}
+                user={user}
+                logs={logsByMatchId[match.id] || []}
+                sortAvailableDays={sortAvailableDays}
+                getNextDateForDay={getNextDateForDay}
+                shared={shared}
+                emailBody={emailBody}
+                daysSinceLastInteraction={daysSinceLastInteraction}
+                onAccept={() =>
+                  handleMatchDecision(match.id, participant?.id, "ACCEPTED")
+                }
+                onReject={() =>
+                  handleMatchDecision(match.id, participant?.id, "REJECTED")
+                }
+                onLogCreate={() => openNewLogDialog(match.id)}
+                onLogEdit={(log) => openEditDialog(log)}
+                onLogDelete={(logId) => handleDeleteLog(logId, match.id)}
+                onMarkCompleted={(log) => handleMarkCompleted(log, match.id)}
+                onOpenNewLogDialog={() => openNewLogDialog(match.id)}
+              />
             );
           })
         ) : (

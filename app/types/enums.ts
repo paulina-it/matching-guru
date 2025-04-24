@@ -63,7 +63,7 @@ export type Skill =
 
 export type TimeRange = "MORNING" | "AFTERNOON" | "EVENING" | "ANYTIME";
 
-export type MatchStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type MatchStatus = "PENDING" | "APPROVED" | "REJECTED" | "ACCEPTED" | "DECLINED" | "COMPLETED";
 
 export type Availability =
   | "WEEKENDS"
