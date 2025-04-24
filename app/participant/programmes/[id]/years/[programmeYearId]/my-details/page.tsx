@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import {
   downloadServerCertificate,
   fetchProgrammeYear,
+  verifyFeedbackCode,
 } from "@/app/api/programmes";
 import { ProgrammeYearResponseDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
@@ -35,6 +36,8 @@ import {
 import FeedbackSubmissionBox from "@/components/FeedbackSubmissionBox";
 import { submitMatchDecision } from "@/app/api/matching";
 import MatchCard from "@/components/MatchCard";
+import { DialogDescription } from "@radix-ui/react-dialog";
+import { Input } from "@/components/ui/input";
 
 const ParticipantProgrammeDetails = () => {
   const params = useParams() as { id: string; programmeYearId: string };
@@ -68,6 +71,9 @@ const ParticipantProgrammeDetails = () => {
   const [surveyOpen, setSurveyOpen] = useState<Date | null>();
   const [surveyClosed, setSurveyClosed] = useState<Date | null>();
   const [canShowFeedbackBox, setCanShowFeedbackBox] = useState<boolean>(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [feedbackCodeInput, setFeedbackCodeInput] = useState("");
+  const [codeVerified, setCodeVerified] = useState(false);
 
   const weekDayOrder = {
     MONDAY: 0,
@@ -407,9 +413,8 @@ const ParticipantProgrammeDetails = () => {
                     .join(", ")
                 : "None listed"}
             </p>
-
-            <div className="mt-4">
-              {participant?.hasSubmittedFeedback ? (
+            <div className="mt-4 space-y-2 sm:space-y-0 sm:flex sm:gap-3">
+              {codeVerified || participant?.hasSubmittedFeedback ? (
                 <Button
                   variant="default"
                   onClick={() =>
@@ -428,16 +433,31 @@ const ParticipantProgrammeDetails = () => {
                 >
                   Download Certificate
                 </Button>
-              ) : matchDetails.some((m) => m.status === "APPROVED") ? (
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    window.open(programmeYear?.surveyUrl ?? "#", "_blank")
-                  }
-                >
-                  Provide Feedback
-                </Button>
               ) : null}
+
+              {!participant?.hasSubmittedFeedback &&
+                surveyOpen &&
+                surveyClosed &&
+                now >= new Date(surveyOpen) &&
+                now <= new Date(surveyClosed) && (
+                  <>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        window.open(programmeYear?.surveyUrl ?? "#", "_blank");
+                        setFeedbackModalOpen(true);
+                      }}
+                    >
+                      Provide Feedback
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setFeedbackModalOpen(true)}
+                    >
+                      Enter Confirmation Code
+                    </Button>
+                  </>
+                )}
             </div>
           </div>
         )}
