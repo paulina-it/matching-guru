@@ -15,9 +15,15 @@ import {
 import { CourseDto } from "@/app/types/programmes";
 import { ParticipantCreateDto } from "@/app/types/participant";
 import { useAuth } from "@/app/context/AuthContext";
-import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/navigation";
 import { UserResponseDto } from "@/app/types/auth";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { formatText } from "@/app/utils/text";
 
 interface MatchingCriterion {
   id: number;
@@ -154,6 +160,27 @@ const JoinProgrammeForm: React.FC<{
   const [meetingFrequency, setMeetingFrequency] = useState<string>("");
   const [availableTime, setAvailableTime] = useState<string>("");
   const [genderPreference, setGenderPreference] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState(0);
+  const slides = [
+    { key: "role-academic" },
+    {
+      key: "placement",
+      show:
+        (academicStage === "Second Year Undergraduate" &&
+          role.toUpperCase() == "MENTEE") ||
+        (academicStage === "Final Year Undergraduate" &&
+          role.toUpperCase() == "MENTOR"),
+    },
+    { key: "criteria" },
+    { key: "review" },
+  ];
+
+  const visibleSlides = slides.filter((s) => s.show !== false);
+
+  const [openWeightInfo, setOpenWeightInfo] = useState(false);
+  const handleSlideChange = (swiper: any) => {
+    setActiveStep(swiper.activeIndex);
+  };
 
   const handleGenderPreferenceChange = (
     e: React.ChangeEvent<HTMLSelectElement>
@@ -677,145 +704,128 @@ const JoinProgrammeForm: React.FC<{
           <PulseLoader color="#3498db" size={15} />
         </div>
       ) : (
-        <Swiper
-          onSwiper={setSwiperInstance}
-          allowTouchMove={false}
-          spaceBetween={50}
-          slidesPerView={1}
-          className="h-full"
-        >
-          {/* Slide 1: Role and Academic Stage */}
-          <SwiperSlide
-            aria-labelledby="step-1-heading"
-            className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
-          >
-            <h2 className="text-xl font-bold mb-4" id="step-1-heading">
-              Step 1
-            </h2>
-            <div className="mb-4">
-              <label className="block text-md font-bold">Select Role</label>
-              <p className="text-black/70 dark:text-light/70 text-sm">
-                If you wish to join as both mentor and mentee, please submit
-                another form.
-              </p>
-              <div className="flex gap-4 mt-2">
-                <Button
-                  variant={role === "MENTOR" ? "default" : "outline"}
-                  onClick={() => setRole("MENTOR")}
-                >
-                  Mentor
-                </Button>
-                <Button
-                  variant={role === "MENTEE" ? "default" : "outline"}
-                  onClick={() => setRole("MENTEE")}
-                >
-                  Mentee
-                </Button>
-              </div>
-            </div>
-            {role === "MENTOR" && (
-              <div className="mb-4">
-                <label className="block text-md font-bold">
-                  Number of Mentees
-                </label>
-                <p className="text-sm text-black/70 dark:text-light/70">
-                  Specify the maximum number of mentees you are willing to take.
-                </p>
-                <input
-                  type="number"
-                  min="1"
-                  max="3"
-                  value={menteeLimit || ""}
-                  onChange={(e) => {
-                    let value = Number(e.target.value);
-                    if (value > 3) value = 3;
-                    if (value < 1) value = 1;
-                    setMenteeLimit(value);
-                  }}
-                  className="w-full border rounded px-4 py-2 mt-1"
-                  placeholder="Enter number of mentees"
-                />
-              </div>
-            )}
-            <div className="mb-4">
-              <label className="block text-md font-bold">Academic Stage</label>
-              <select
-                value={academicStage}
-                onChange={(e) => setAcademicStage(e.target.value)}
-                className="w-full border rounded px-4 py-2 mt-1"
-              >
-                {predefinedAcademicStages.map((stage, index) => (
-                  <option key={index} value={stage}>
-                    {stage}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Button
-              onClick={goToNextSlide}
-              className="mt-4 w-full uppercase font-bold"
-            >
-              Next
-            </Button>
-          </SwiperSlide>
+        <>
+          <div className="mb-4 w-full bg-light rounded h-2 overflow-hidden">
+            <div
+              className="bg-secondary dark:bg-secondary-dark h-full transition-all duration-300"
+              style={{
+                width: `${((activeStep + 1) / visibleSlides.length) * 100}%`,
+              }}
+              aria-valuenow={(activeStep + 1) * 25}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              role="progressbar"
+            />
+          </div>
 
-          {/* Slide 2: Placement Information */}
-          {((academicStage === "Second Year Undergraduate" &&
-            role.toUpperCase() == "MENTEE") ||
-            academicStage === "Final Year Undergraduate") && (
+          <Swiper
+            onSwiper={setSwiperInstance}
+            onSlideChange={handleSlideChange}
+            allowTouchMove={false}
+            spaceBetween={50}
+            slidesPerView={1}
+            className="h-full"
+          >
+            {/* Slide 1: Role and Academic Stage */}
             <SwiperSlide
-              aria-labelledby="step-2-heading"
+              aria-labelledby="step-1-heading"
               className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
             >
-              <h2 id="step-2-heading" className="text-xl font-bold mb-4">
-                Placement Information
+              <h2 className="text-xl font-bold mb-4" id="step-1-heading">
+                Step 1
               </h2>
-              {academicStage === "Final Year Undergraduate" && (
+              <div className="mb-4">
+                <label className="block text-md font-bold">Select Role</label>
+                <p className="text-black/70 dark:text-light/70 text-sm">
+                  If you wish to join as both mentor and mentee, please submit
+                  another form.
+                </p>
+                <div className="flex gap-4 mt-2">
+                  <Button
+                    variant={role === "MENTOR" ? "default" : "outline"}
+                    onClick={() => setRole("MENTOR")}
+                  >
+                    Mentor
+                  </Button>
+                  <Button
+                    variant={role === "MENTEE" ? "default" : "outline"}
+                    onClick={() => setRole("MENTEE")}
+                  >
+                    Mentee
+                  </Button>
+                </div>
+              </div>
+              {role === "MENTOR" && (
                 <div className="mb-4">
                   <label className="block text-md font-bold">
-                    Have you completed a placement?
+                    Number of Mentees
                   </label>
-                  <div className="flex gap-4 mt-2">
-                    <button
-                      type="button"
-                      onClick={() => setHadPlacement(true)}
-                      className={`px-4 py-2 border rounded ${
-                        hadPlacement
-                          ? "bg-primary dark:bg-primary-dark text-white"
-                          : "bg-white dark:bg-dark"
-                      }`}
-                    >
-                      Yes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setHadPlacement(false)}
-                      className={`px-4 py-2 border rounded ${
-                        hadPlacement === false
-                          ? "bg-primary dark:bg-primary-dark text-white"
-                          : "bg-white dark:bg-dark"
-                      }`}
-                    >
-                      No
-                    </button>
-                  </div>
+                  <p className="text-sm text-black/70 dark:text-light/70">
+                    Specify the maximum number of mentees you are willing to
+                    take.
+                  </p>
+                  <input
+                    type="number"
+                    min="1"
+                    max="3"
+                    value={menteeLimit || ""}
+                    onChange={(e) => {
+                      let value = Number(e.target.value);
+                      if (value > 3) value = 3;
+                      if (value < 1) value = 1;
+                      setMenteeLimit(value);
+                    }}
+                    className="w-full border rounded px-4 py-2 mt-1"
+                    placeholder="Enter number of mentees"
+                  />
                 </div>
               )}
-              {academicStage === "Second Year Undergraduate" && (
-                <div>
-                  <h2 className="text-xl font-bold mb-4">Placement Interest</h2>
+              <div className="mb-4">
+                <label className="block text-md font-bold">
+                  Academic Stage
+                </label>
+                <select
+                  value={academicStage}
+                  onChange={(e) => setAcademicStage(e.target.value)}
+                  className="w-full border rounded px-4 py-2 mt-1"
+                >
+                  {predefinedAcademicStages.map((stage, index) => (
+                    <option key={index} value={stage}>
+                      {stage}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Button
+                onClick={goToNextSlide}
+                className="mt-4 w-full uppercase font-bold"
+              >
+                Next
+              </Button>
+            </SwiperSlide>
 
-                  {/* Do you want a placement? */}
+            {/* Slide 2: Placement Information */}
+            {((academicStage === "Second Year Undergraduate" &&
+              role.toUpperCase() == "MENTEE") ||
+              academicStage === "Final Year Undergraduate") && (
+              <SwiperSlide
+                aria-labelledby="step-2-heading"
+                className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
+              >
+                <h2 id="step-2-heading" className="text-xl font-bold mb-4">
+                  Placement Information
+                </h2>
+                {academicStage === "Final Year Undergraduate" && (
                   <div className="mb-4">
                     <label className="block text-md font-bold">
-                      Are you interested in a placement?
+                      Have you completed a placement?
                     </label>
                     <div className="flex gap-4 mt-2">
                       <button
                         type="button"
-                        onClick={() => setPlacementInterest(true)}
+                        onClick={() => setHadPlacement(true)}
                         className={`px-4 py-2 border rounded ${
-                          placementInterest
+                          hadPlacement
                             ? "bg-primary dark:bg-primary-dark text-white"
                             : "bg-white dark:bg-dark"
                         }`}
@@ -824,9 +834,9 @@ const JoinProgrammeForm: React.FC<{
                       </button>
                       <button
                         type="button"
-                        onClick={() => setPlacementInterest(false)}
+                        onClick={() => setHadPlacement(false)}
                         className={`px-4 py-2 border rounded ${
-                          placementInterest === false
+                          hadPlacement === false
                             ? "bg-primary dark:bg-primary-dark text-white"
                             : "bg-white dark:bg-dark"
                         }`}
@@ -835,16 +845,73 @@ const JoinProgrammeForm: React.FC<{
                       </button>
                     </div>
                   </div>
+                )}
+                {academicStage === "Second Year Undergraduate" && (
+                  <div>
+                    <h2 className="text-xl font-bold mb-4">
+                      Placement Interest
+                    </h2>
 
-                  {/* Desired Placement Description */}
-                  {placementInterest && (
+                    {/* Do you want a placement? */}
                     <div className="mb-4">
                       <label className="block text-md font-bold">
-                        What industry or type of placement are you looking for?
+                        Are you interested in a placement?
+                      </label>
+                      <div className="flex gap-4 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setPlacementInterest(true)}
+                          className={`px-4 py-2 border rounded ${
+                            placementInterest
+                              ? "bg-primary dark:bg-primary-dark text-white"
+                              : "bg-white dark:bg-dark"
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPlacementInterest(false)}
+                          className={`px-4 py-2 border rounded ${
+                            placementInterest === false
+                              ? "bg-primary dark:bg-primary-dark text-white"
+                              : "bg-white dark:bg-dark"
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Desired Placement Description */}
+                    {placementInterest && (
+                      <div className="mb-4">
+                        <label className="block text-md font-bold">
+                          What industry or type of placement are you looking
+                          for?
+                        </label>
+                        <textarea
+                          className="w-full border rounded px-4 py-2 mt-1"
+                          placeholder="Describe your desired placement (e.g., Tech industry, Software Development)"
+                          value={placementDescription}
+                          onChange={(e) =>
+                            setPlacementDescription(e.target.value)
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {academicStage === "Final Year Undergraduate" &&
+                  hadPlacement && (
+                    <div className="mb-4">
+                      <label className="block text-md font-bold">
+                        Describe your placement
                       </label>
                       <textarea
                         className="w-full border rounded px-4 py-2 mt-1"
-                        placeholder="Describe your desired placement (e.g., Tech industry, Software Development)"
+                        placeholder="Describe your placement experience"
                         value={placementDescription}
                         onChange={(e) =>
                           setPlacementDescription(e.target.value)
@@ -852,22 +919,80 @@ const JoinProgrammeForm: React.FC<{
                       />
                     </div>
                   )}
+                <div className="flex items-center justify-between gap-6">
+                  <Button
+                    onClick={goToPrevSlide}
+                    className="flex items-center space-x-2"
+                    variant="outline"
+                  >
+                    <BsArrowLeft className="text-xl text-gray-700 hover:text-black" />
+                  </Button>
+                  <Button
+                    onClick={goToNextSlide}
+                    className="mt-4 w-full uppercase font-bold"
+                  >
+                    Next
+                  </Button>
                 </div>
-              )}
+              </SwiperSlide>
+            )}
 
-              {academicStage === "Final Year Undergraduate" && hadPlacement && (
-                <div className="mb-4">
-                  <label className="block text-md font-bold">
-                    Describe your placement
-                  </label>
-                  <textarea
-                    className="w-full border rounded px-4 py-2 mt-1"
-                    placeholder="Describe your placement experience"
-                    value={placementDescription}
-                    onChange={(e) => setPlacementDescription(e.target.value)}
-                  />
-                </div>
-              )}
+            {/* Slide 3: Criteria Based */}
+            <SwiperSlide
+              aria-labelledby="step-3-heading"
+              className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
+            >
+              <h2 id="step-3-heading" className="text-xl font-bold mb-4">
+                Step 2
+              </h2>
+              <Collapsible
+                open={openWeightInfo}
+                onOpenChange={setOpenWeightInfo}
+              >
+                <CollapsibleTrigger asChild>
+                  <div className="cursor-pointer flex items-center gap-2 text-primary hover:text-primary-dark transition-colors duration-300 mt-4">
+                    {openWeightInfo ? (
+                      <ChevronUp size={18} />
+                    ) : (
+                      <ChevronDown size={18} />
+                    )}
+                    <span className="underline underline-offset-4 font-medium">
+                      What does “weight” mean?
+                    </span>
+                  </div>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="mt-2 px-4 py-3 bg-muted/30 dark:bg-muted/20 rounded-md border text-sm leading-relaxed transition-all duration-300 ease-in-out">
+                  Weight refers to the importance of this criterion in the
+                  matching algorithm. Higher weights mean this aspect will
+                  influence your match more strongly.
+                </CollapsibleContent>
+              </Collapsible>
+
+              {matchingCriteria
+                .filter((criterion) => criterion.weight > 0)
+                .map((criterion, index) => (
+                  <div key={index} className="mb-4">
+                    {renderInput(criterion)}
+                  </div>
+                ))}
+              {/* Gender Preference */}
+              <div className="mb-4">
+                <label className="block text-md font-bold">
+                  Who do you feel more comfortable working with?
+                </label>
+                <select
+                  value={genderPreference ?? ""}
+                  onChange={handleGenderPreferenceChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="Prefer not to say">No preference</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-binary">Non-binary</option>
+                </select>
+              </div>
+
               <div className="flex items-center justify-between gap-6">
                 <Button
                   onClick={goToPrevSlide}
@@ -878,147 +1003,123 @@ const JoinProgrammeForm: React.FC<{
                 </Button>
                 <Button
                   onClick={goToNextSlide}
-                  className="mt-4 w-full uppercase font-bold"
+                  className="w-full uppercase font-bold"
                 >
-                  Next
+                  Review
                 </Button>
               </div>
             </SwiperSlide>
-          )}
 
-          {/* Slide 3: Criteria Based */}
-          <SwiperSlide
-            aria-labelledby="step-3-heading"
-            className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
-          >
-            <h2 id="step-3-heading" className="text-xl font-bold mb-4">
-              Step 2
-            </h2>
-            {matchingCriteria
-              .filter((criterion) => criterion.weight > 0)
-              .map((criterion, index) => (
-                <div key={index} className="mb-4">
-                  {renderInput(criterion)}
-                </div>
-              ))}
-            {/* Gender Preference */}
-            <div className="mb-4">
-              <label className="block text-md font-bold">
-                Who do you feel more comfortable working with?
-              </label>
-              <select
-                value={genderPreference ?? ""}
-                onChange={handleGenderPreferenceChange}
-                className="w-full px-3 py-2 border rounded-md"
-              >
-                <option value="Prefer not to say">No preference</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Non-binary">Non-binary</option>
-              </select>
-            </div>
+            <SwiperSlide
+              aria-labelledby="step-4-heading"
+              className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
+            >
+              <h2 id="step-4-heading" className="text-xl font-bold mb-4">
+                Review Your Details
+              </h2>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Please confirm your information before submitting.
+              </p>
 
-            <div className="flex items-center justify-between gap-6">
-              <Button
-                onClick={goToPrevSlide}
-                className="flex items-center space-x-2"
-                variant="outline"
-              >
-                <BsArrowLeft className="text-xl text-gray-700 hover:text-black" />
-              </Button>
-              <Button
-                onClick={goToNextSlide}
-                className="w-full uppercase font-bold"
-              >
-                Review
-              </Button>
-            </div>
-          </SwiperSlide>
-
-          <SwiperSlide
-            aria-labelledby="step-4-heading"
-            className="bg-light dark:bg-dark dark:border dark:border-light/40 p-6 shadow rounded"
-          >
-            <h2 id="step-4-heading" className="text-xl font-bold mb-4">
-              Review Your Details
-            </h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Please confirm your information before submitting.
-            </p>
-
-            <ul className="space-y-2 text-sm">
-              <li>
-                <strong>Role:</strong> {role}
-              </li>
-              {role === "MENTOR" && (
+              <ul className="space-y-2 text-sm">
                 <li>
-                  <strong>Number of Mentees:</strong> {menteeLimit}
+                  <strong>Role:</strong> {role}
                 </li>
-              )}
-              <li>
-                <strong>Academic Stage:</strong> {academicStage}
-              </li>
-              <li>
-                <strong>Course:</strong> {getCourseName(courseId)}
-              </li>
-              {placementInterest !== null && (
-                <li>
-                  <strong>Interested in Placement:</strong>{" "}
-                  {placementInterest ? "Yes" : "No"}
-                </li>
-              )}
-              {placementDescription && (
-                <li>
-                  <strong>Placement Description:</strong> {placementDescription}
-                </li>
-              )}
-              <li>
-                <strong>Meeting Frequency:</strong> {meetingFrequency}
-              </li>
-              <li>
-                <strong>Available Days:</strong> {availableDays.join(", ")}
-              </li>
-              <li>
-                <strong>Available Time:</strong> {availableTime}
-              </li>
-              <li>
-                <strong>Personality Type:</strong> {personalityType}
-              </li>
-              <li>
-                <strong>Skills:</strong> {skills.join(", ")}
-              </li>
-              <li>
-                <strong>Age Group:</strong> {ageGroup}
-              </li>
-              <li>
-                <strong>Gender:</strong> {gender}
-              </li>
-              <li>
-                <strong>Living Arrangement:</strong> {livingArrangement}
-              </li>
-              <li>
-                <strong>Preferred Gender:</strong>{" "}
-                {genderPreference || "No preference"}
-              </li>
-            </ul>
 
-            <div className="flex items-center justify-between gap-6 mt-6">
-              <Button
-                onClick={goToPrevSlide}
-                className="flex items-center space-x-2"
-                variant="outline"
-              >
-                <BsArrowLeft className="text-xl text-gray-700 hover:text-black" />
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                className="w-full uppercase font-bold"
-              >
-                Confirm & Submit
-              </Button>
-            </div>
-          </SwiperSlide>
-        </Swiper>
+                {role === "MENTOR" && (
+                  <li>
+                    <strong>Number of Mentees:</strong>{" "}
+                    {menteeLimit ?? "-"}
+                  </li>
+                )}
+
+                <li>
+                  <strong>Academic Stage:</strong>{" "}
+                  {academicStage || "-"}
+                </li>
+
+                <li>
+                  <strong>Course:</strong> {getCourseName(courseId)}
+                </li>
+
+                {placementInterest !== null && (
+                  <li>
+                    <strong>Interested in Placement:</strong>{" "}
+                    {placementInterest ? "Yes" : "No"}
+                  </li>
+                )}
+
+                {placementDescription && (
+                  <li>
+                    <strong>Placement Description: </strong>{" "}
+                    {placementDescription}
+                  </li>
+                )}
+
+                <li>
+                  <strong>Meeting Frequency: </strong>{" "}
+                  {meetingFrequency || "-"}
+                </li>
+
+                <li>
+                  <strong>Available Days: </strong>
+                  {availableDays.length > 0
+                    ? availableDays.join(", ")
+                    : "No days selected"}
+                </li>
+
+                <li>
+                  <strong>Available Time: </strong>{" "}
+                  {availableTime || "-"}
+                </li>
+
+                <li>
+                  <strong>Personality Type: </strong>{" "}
+                  {formatText(personalityType) || "-"}
+                </li>
+
+                <li>
+                  <strong>Skills: </strong>{" "}
+                  {skills.length > 0 ? skills.join(", ") : "-"}
+                </li>
+
+                <li>
+                  <strong>Age Group: </strong> {formatText(ageGroup) || "-"}
+                </li>
+
+                <li>
+                  <strong>Gender: </strong> {formatText(gender) || "-"}
+                </li>
+
+                <li>
+                  <strong>Living Arrangement: </strong>{" "}
+                  {formatText(livingArrangement) || "-"}
+                </li>
+
+                <li>
+                  <strong>Preferred Gender: </strong>{" "}
+                  {formatText(genderPreference) || "-"}
+                </li>
+              </ul>
+
+              <div className="flex items-center justify-between gap-6 mt-6">
+                <Button
+                  onClick={goToPrevSlide}
+                  className="flex items-center space-x-2"
+                  variant="outline"
+                >
+                  <BsArrowLeft className="text-xl text-gray-700 hover:text-black" />
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  className="w-full uppercase font-bold"
+                >
+                  Confirm & Submit
+                </Button>
+              </div>
+            </SwiperSlide>
+          </Swiper>
+        </>
       )}
     </div>
   );
