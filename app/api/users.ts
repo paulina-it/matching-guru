@@ -128,3 +128,31 @@ export async function getUserById(id: number): Promise<UserResponseDto> {
 
   return await response.json();
 }
+
+/**
+ * Assign a user to an organisation by email.
+ * Sends a PATCH request with query parameters to update the user's organisation.
+ * @param email - The email of the user to assign.
+ * @param organisationId - The ID of the organisation.
+ */
+export async function assignUserToOrganisation(email: string, organisationId: number): Promise<void> {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("No token found");
+
+  const queryParams = new URLSearchParams({
+    userEmail: email,
+    organisationId: organisationId.toString(),
+  });
+
+  const response = await fetch(`${API_URL}/users/assign-organisation?${queryParams.toString()}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Failed to assign user to organisation");
+  }
+}
