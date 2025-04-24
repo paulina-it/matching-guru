@@ -19,6 +19,7 @@ export interface UserCreateDto {
   joinCode?: string;
   password: string;
   profileImage?: string;
+  inviteToken?: string;
 }
 
 export interface LoginResponse {
@@ -31,7 +32,7 @@ export interface UserSummaryDto {
   firstName: string;
   lastName: string;
   email: string;
-  role: UserRole; 
+  role: UserRole;
 }
 
 export interface UserResponseDto {

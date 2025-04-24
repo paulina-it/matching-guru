@@ -213,7 +213,7 @@ const UserListComponent = () => {
                     if (!res.ok) throw new Error("Invite failed");
 
                     const data = await res.json();
-                    const inviteLink = `${window.location.origin}/signup?invite=${data.token}`;
+                    const inviteLink = `${window.location.origin}/auth/signup?invite=${data.token}`;
                     await navigator.clipboard.writeText(inviteLink);
                     toast.success("Invite link copied to clipboard!");
                     setInviteEmail("");
