@@ -23,6 +23,16 @@ import { fetchUsersInOrganisation } from "@/app/api/users";
 import { useAuth } from "@/app/context/AuthContext";
 import { FaUser, FaUserShield } from "react-icons/fa";
 import { PulseLoader } from "react-spinners";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import toast from "react-hot-toast";
 
 const UserListComponent = () => {
   const { user } = useAuth();
@@ -37,6 +47,9 @@ const UserListComponent = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [pageSize, setPageSize] = useState(20);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteLoading, setInviteLoading] = useState(false);
 
   const fetchData = async () => {
     if (!user?.organisationId) return;
@@ -143,6 +156,81 @@ const UserListComponent = () => {
           <TabsTrigger value="user">Participants</TabsTrigger>
         </TabsList>
       </Tabs>
+      <div className="flex justify-end mb-6">
+        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="absolute -top-[3em] right-0">
+              ➕ Invite Coordinator
+            </Button>
+          </DialogTrigger>
+          <DialogContent aria-describedby="invite-dialog-desc">
+            <DialogHeader>
+              <DialogTitle>Send Invite</DialogTitle>
+            </DialogHeader>
+            <p
+              id="invite-dialog-desc"
+              className="text-sm text-muted-foreground"
+            >
+              Send a secure invite link to a coordinator. Link expires in 7
+              days.
+            </p>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="coordinator@example.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                disabled={inviteLoading || !inviteEmail}
+                onClick={async () => {
+                  setInviteLoading(true);
+                  try {
+                    if (!user) return;
+
+                    const query = new URLSearchParams({
+                        organisationId: user!.organisationId!.toString(),
+                        email: inviteEmail,
+                        createdByUserId: user!.id.toString(),
+                      });
+                      
+                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/invites/create?${query.toString()}`, {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                      });
+                      
+                      
+                    if (!res.ok) throw new Error("Invite failed");
+
+                    const data = await res.json();
+                    const inviteLink = `${window.location.origin}/signup?invite=${data.token}`;
+                    await navigator.clipboard.writeText(inviteLink);
+                    toast.success("Invite link copied to clipboard!");
+                    setInviteEmail("");
+                    setInviteDialogOpen(false);
+                  } catch (err) {
+                    toast.error("Failed to create invite.");
+                  } finally {
+                    setInviteLoading(false);
+                  }
+                }}
+              >
+                {inviteLoading ? "Sending..." : "Send Invite"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-10">
@@ -187,7 +275,13 @@ const UserTable = ({ data }: { data: any[] }) => {
       </TableHeader>
       <TableBody>
         {data.map((user) => (
-          <TableRow key={user.id}>
+          <TableRow
+            key={user.id}
+            className="cursor-pointer hover:bg-primary/20 transition-colors"
+            onClick={() =>
+              (window.location.href = `/coordinator/users/${user.id}`)
+            }
+          >
             <TableCell className="font-medium flex items-center gap-2">
               {user.role === "ADMIN" ? <FaUserShield /> : <FaUser />}{" "}
               {user.firstName} {user.lastName}

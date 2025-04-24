@@ -106,3 +106,25 @@ export async function fetchUsersInOrganisation(
     size: data.size,
   };
 }
+
+/**
+ * Fetch user by id.
+ * Sends a GET request to fetch user data based on provided id.
+ * @param id - The ID of the organisation to fetch users from.
+ */
+export async function getUserById(id: number): Promise<UserResponseDto> {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("No token found");
+
+  const response = await fetch(`${API_URL}/users/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch user");
+  }
+
+  return await response.json();
+}
