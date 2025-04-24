@@ -1,10 +1,12 @@
+import { MatchStatus } from "./enums";
+
 export type MatchSummaryDto = {
   matchId: number;
   mentor: boolean;
   matchWithName: string;
   matchWithEmail: string;
   compatibilityScore: number;
-  status: "PENDING" | "DECLINED" | "APPROVED" | "REJECTED" | "COMPLETED";
+  status: MatchStatus;
   programmeYearId: number;
   programmeName: string;
   academicYear: string;

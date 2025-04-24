@@ -202,11 +202,13 @@ export const deleteProgrammeYearMatches = async (programmeYearId: number) => {
 export async function submitMatchDecision({
   matchId,
   decision,
-  participantId,
+  userId,
+  rejectionReason,
 }: {
   matchId: number;
   decision: "ACCEPTED" | "REJECTED";
-  participantId: number;
+  userId: number;
+  rejectionReason?: string;
 }): Promise<string> {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Authentication token is missing.");
@@ -220,7 +222,8 @@ export async function submitMatchDecision({
     body: JSON.stringify({
       matchId,
       decision,
-      participantId,
+      userId,
+      rejectionReason,
     }),
     credentials: "include",
   });

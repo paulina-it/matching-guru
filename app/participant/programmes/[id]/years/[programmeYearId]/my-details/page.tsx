@@ -2,26 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import {
-  downloadServerCertificate,
-  fetchProgrammeYear,
-  verifyFeedbackCode,
-} from "@/app/api/programmes";
+import { fetchProgrammeYear } from "@/app/api/programmes";
 import { ProgrammeYearResponseDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
-import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { getParticipantInfoByUserIdAndProgrammeYearId } from "@/app/api/participant";
 import { useAuth } from "@/app/context/AuthContext";
-import { formatText } from "@/app/utils/text";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import {
   CommunicationStatus,
   CommunicationType,
@@ -35,9 +21,10 @@ import {
 } from "@/app/api/communicationLogs";
 import FeedbackSubmissionBox from "@/components/FeedbackSubmissionBox";
 import { submitMatchDecision } from "@/app/api/matching";
-import MatchCard from "@/components/MatchCard";
-import { DialogDescription } from "@radix-ui/react-dialog";
-import { Input } from "@/components/ui/input";
+import ParticipantProfileCard from "@/components/ParticipantProfileCard";
+import MatchList from "@/components/MatchList";
+import InteractionLogDialog from "@/components/InteractionLogDialog";
+import RejectMatchDialog from "@/components/RejectMatchDialog";
 
 const ParticipantProgrammeDetails = () => {
   const params = useParams() as { id: string; programmeYearId: string };
@@ -72,9 +59,11 @@ const ParticipantProgrammeDetails = () => {
   const [surveyClosed, setSurveyClosed] = useState<Date | null>();
   const [canShowFeedbackBox, setCanShowFeedbackBox] = useState<boolean>(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
-  const [feedbackCodeInput, setFeedbackCodeInput] = useState("");
   const [codeVerified, setCodeVerified] = useState(false);
-
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejectMatchId, setRejectMatchId] = useState<number | null>(null);
+  
   const weekDayOrder = {
     MONDAY: 0,
     TUESDAY: 1,
@@ -308,16 +297,22 @@ const ParticipantProgrammeDetails = () => {
 
   const handleMatchDecision = async (
     matchId: number,
-    participantId: number,
-    decision: "ACCEPTED" | "REJECTED"
+    decision: "ACCEPTED" | "REJECTED",
+    rejectionReason?: string
   ) => {
     try {
-      if (!participantId) {
-        toast.error("Participant ID missing.");
+      if (!user?.id) {
+        toast.error("User ID missing.");
         return;
       }
 
-      await submitMatchDecision({ matchId, decision, participantId });
+      await submitMatchDecision({
+        matchId,
+        decision,
+        userId: user.id,
+        rejectionReason: decision === "REJECTED" ? rejectionReason : undefined,
+      });
+
       toast.success(
         `You ${decision === "ACCEPTED" ? "accepted" : "rejected"} the match!`
       );
@@ -369,278 +364,62 @@ const ParticipantProgrammeDetails = () => {
         )}
 
       <section aria-labelledby="profile-heading" className="mt-8 space-y-6">
-        {/* {matchDetails.length === 1 && (
-          <p className="bg-secondary dark:bg-secondary-dark text-white rounded p-2 w-fit absolute top-6 right-6">
-            Status:{" "}
-            {matchDetails[0].status === "APPROVED"
-              ? "✅ Match Confirmed"
-              : "⏳ Match Pending"}
-          </p>
-        )} */}
-
         {participant && (
-          <div className="mt-6 border p-4 rounded bg-gray-100 dark:bg-dark dark:border dark:border-white/20 text-dark dark:text-light">
-            <h3 id="profile-heading" className="h3">
-              Your Profile
-            </h3>
-            <p>
-              <strong>Role:</strong> {formatText(participant?.role)}
-            </p>
-            <p>
-              <strong>Name:</strong> {participant?.firstName}
-            </p>
-            <p>
-              <strong>Email:</strong> {participant?.email}
-            </p>
-            <p>
-              <strong>Course:</strong> {participant?.course}
-            </p>
-            <p>
-              <strong>Academic Stage:</strong>{" "}
-              {formatText(participant?.academicStage)}
-            </p>
-            <p>
-              <strong>Skills:</strong>{" "}
-              {participant?.skills?.length
-                ? participant.skills.map(formatText).join(", ")
-                : "None listed"}
-            </p>
-            <p>
-              <strong>Available Days:</strong>{" "}
-              {participant?.availableDays?.length
-                ? sortAvailableDays(participant.availableDays)
-                    .map(formatText)
-                    .join(", ")
-                : "None listed"}
-            </p>
-            <div className="mt-4 space-y-2 sm:space-y-0 sm:flex sm:gap-3">
-              {codeVerified || participant?.hasSubmittedFeedback ? (
-                <Button
-                  variant="default"
-                  onClick={() =>
-                    downloadServerCertificate(
-                      `${participant.firstName} ${participant.lastName}`,
-                      participant.role.toLowerCase(),
-                      programmeYear?.programmeName || "",
-                      programmeYear?.academicYear || "",
-                      new Date().toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })
-                    )
-                  }
-                >
-                  Download Certificate
-                </Button>
-              ) : null}
-
-              {!participant?.hasSubmittedFeedback &&
-                surveyOpen &&
-                surveyClosed &&
-                now >= new Date(surveyOpen) &&
-                now <= new Date(surveyClosed) && (
-                  <>
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        window.open(programmeYear?.surveyUrl ?? "#", "_blank");
-                        setFeedbackModalOpen(true);
-                      }}
-                    >
-                      Provide Feedback
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setFeedbackModalOpen(true)}
-                    >
-                      Enter Confirmation Code
-                    </Button>
-                  </>
-                )}
-            </div>
-          </div>
+          <ParticipantProfileCard
+            participant={participant}
+            programmeYear={programmeYear}
+            codeVerified={codeVerified}
+            feedbackModalOpen={feedbackModalOpen}
+            setFeedbackModalOpen={setFeedbackModalOpen}
+          />
         )}
 
-        {Array.isArray(matchDetails) && matchDetails.length > 0 ? (
-          matchDetails.map((match, idx) => {
-            const logs = logsByMatchId[match.id] || [];
+        <MatchList
+          matches={matchDetails}
+          participant={participant}
+          isMentor={isMentor!}
+          user={user!}
+          logsByMatchId={logsByMatchId}
+          sortAvailableDays={sortAvailableDays}
+          getNextDateForDay={getNextDateForDay}
+          onAccept={(matchId) =>
+            handleMatchDecision(matchId, "ACCEPTED")
+          }
+          onReject={(matchId) => {
+            setRejectMatchId(matchId);
+            setShowRejectDialog(true);
+          }}
+          
+          onLogCreate={openNewLogDialog}
+          onEditLog={openEditDialog}
+          onDeleteLog={handleDeleteLog}
+          onMarkCompleted={handleMarkCompleted}
+        />
 
-            console.log(participant);
-            const sortedLogs = [...logs].sort(
-              (a, b) =>
-                new Date(b.timestamp).getTime() -
-                new Date(a.timestamp).getTime()
-            );
-
-            const lastInteraction = sortedLogs.find(
-              (log) => log.status === CommunicationStatus.COMPLETED
-            );
-
-            const msInDay = 1000 * 60 * 60 * 24;
-            let daysSinceLastInteraction: number | null = null;
-            if (lastInteraction) {
-              daysSinceLastInteraction = Math.floor(
-                (now.getTime() -
-                  new Date(lastInteraction.timestamp).getTime()) /
-                  msInDay
-              );
-            } else if (match.updatedAt) {
-              daysSinceLastInteraction = Math.floor(
-                (now.getTime() - new Date(match.updatedAt).getTime()) / msInDay
-              );
+        <InteractionLogDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          editingLogId={editingLogId}
+          type={type}
+          setType={setType}
+          status={status}
+          setStatus={setStatus}
+          timestamp={timestamp}
+          setTimestamp={setTimestamp}
+          onSubmit={editingLogId ? handleUpdateLog : handleCreateLog}
+        />
+        <RejectMatchDialog
+          open={showRejectDialog}
+          onOpenChange={setShowRejectDialog}
+          reason={rejectReason}
+          setReason={setRejectReason}
+          onConfirm={() => {
+            if (rejectMatchId !== null) {
+              handleMatchDecision(rejectMatchId, "REJECTED", rejectReason);
             }
-
-            const shared = (() => {
-              const mentor = match.mentor;
-              const mentee = match.mentee;
-
-              if (!mentor || !mentee) return null;
-
-              const mentorDays = mentor.availableDays || [];
-              const menteeDays = mentee.availableDays || [];
-              const sharedDays = mentorDays.filter((day: string) =>
-                menteeDays.includes(day)
-              );
-              if (!sharedDays.length) return null;
-
-              const formattedDay =
-                sharedDays[0].charAt(0).toUpperCase() +
-                sharedDays[0].slice(1).toLowerCase();
-
-              const mentorTime = mentor.timeRange || "ANYTIME";
-              const menteeTime = mentee.timeRange || "ANYTIME";
-
-              let timeSuggestion = "any time";
-              if (mentorTime === menteeTime)
-                timeSuggestion = mentorTime.toLowerCase();
-              else if (mentorTime === "ANYTIME")
-                timeSuggestion = menteeTime.toLowerCase();
-              else if (menteeTime === "ANYTIME")
-                timeSuggestion = mentorTime.toLowerCase();
-
-              return { day: formattedDay, time: timeSuggestion };
-            })();
-
-            const nextDate =
-              shared && getNextDateForDay
-                ? getNextDateForDay(shared.day)
-                : "(next available)";
-
-            const emailBody = `Hi ${
-              isMentor
-                ? match.mentee?.firstName || "there"
-                : match.mentor?.firstName || "there"
-            },
-
-I hope you're well! Since we’re matched for the mentoring programme, I’d love to schedule our first meeting.
-
-Would ${shared?.day.toLowerCase()} (${nextDate}) ${shared?.time} work for you?
-
-Looking forward to connecting!
-
-Best regards,  
-${user?.firstName}`;
-
-            return (
-              <MatchCard
-                key={match.id}
-                match={match}
-                index={idx}
-                isMentor={isMentor!}
-                participant={participant}
-                user={user}
-                logs={logsByMatchId[match.id] || []}
-                sortAvailableDays={sortAvailableDays}
-                getNextDateForDay={getNextDateForDay}
-                shared={shared}
-                emailBody={emailBody}
-                daysSinceLastInteraction={daysSinceLastInteraction}
-                onAccept={() =>
-                  handleMatchDecision(match.id, participant?.id, "ACCEPTED")
-                }
-                onReject={() =>
-                  handleMatchDecision(match.id, participant?.id, "REJECTED")
-                }
-                onLogCreate={() => openNewLogDialog(match.id)}
-                onLogEdit={(log) => openEditDialog(log)}
-                onLogDelete={(logId) => handleDeleteLog(logId, match.id)}
-                onMarkCompleted={(log) => handleMarkCompleted(log, match.id)}
-                onOpenNewLogDialog={() => openNewLogDialog(match.id)}
-              />
-            );
-          })
-        ) : (
-          <p className="italic mt-4 text-gray-500">No match found yet.</p>
-        )}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="log-title"
-          >
-            <DialogHeader>
-              <DialogTitle id="log-title">
-                {editingLogId ? "Edit" : "Log"} Interaction
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-4">
-              <label className="block">
-                Type:
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as CommunicationType)}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                >
-                  {Object.values(CommunicationType).map((t) => (
-                    <option key={t} value={t}>
-                      {t.replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="block">
-                Status:
-                <select
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(e.target.value as CommunicationStatus)
-                  }
-                  className="w-full border rounded px-3 py-2 mt-1"
-                >
-                  {Object.values(CommunicationStatus).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label htmlFor="timestamp" className="block">
-                Timestamp:
-                <input
-                  type="datetime-local"
-                  value={timestamp}
-                  onChange={(e) => setTimestamp(e.target.value)}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                  id="timestamp"
-                  aria-labelledby="timestamp-label"
-                  aria-required="true"
-                />
-              </label>
-            </div>
-
-            <DialogFooter>
-              <Button
-                onClick={editingLogId ? handleUpdateLog : handleCreateLog}
-              >
-                {editingLogId ? "Update Log" : "Save Log"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            setShowRejectDialog(false);
+          }}
+        />
       </section>
     </div>
   );

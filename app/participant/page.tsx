@@ -13,6 +13,7 @@ import UnconfirmedMatchNotice from "@/components/dashboards/UnconfirmedMatchNoti
 import CommunicationLogReminder from "@/components/dashboards/CommunicationLogReminder";
 import FeedbackReminder from "@/components/dashboards/FeebackReminder";
 import MatchApprovalPrompt from "@/components/dashboards/MatchApprovalPrompt";
+import { formatText } from "../utils/text";
 
 const ParticipantDashboard = () => {
   const [data, setData] = useState<ParticipantDashboardDto | null>(null);
@@ -138,12 +139,17 @@ const ParticipantDashboard = () => {
           .map((match) => (
             <MatchApprovalPrompt key={match.matchId} match={match} />
           ))}
+        {data.matches
+          .filter((m) => m.status === "ACCEPTED_BY_ONE_PARTY")
+          .map((match) => (
+            <MatchApprovalPrompt key={match.matchId} match={match} />
+          ))}
 
         {/* Communication Logs */}
         {data.matches
           .filter(
             (m) =>
-              m.status.toUpperCase() === "ACCEPTED" &&
+              m.status.toUpperCase() === "ACCEPTED_BY_BOTH" &&
               m.lastInteractionDate &&
               new Date(m.lastInteractionDate).getTime() <
                 Date.now() - 14 * 24 * 60 * 60 * 1000
@@ -180,9 +186,10 @@ const ParticipantDashboard = () => {
 
         {data.matches.filter(
           (m) =>
-            m.status.toUpperCase() === "PENDING" ||
-            m.status.toUpperCase() === "APPROVED" ||
-            (m.status.toUpperCase() === "APPROVED" &&
+            m.status === "PENDING" ||
+            m.status === "APPROVED" ||
+            m.status === "ACCEPTED_BY_ONE_PARTY" ||
+            (m.status === "ACCEPTED_BY_BOTH" &&
               m.lastInteractionDate &&
               new Date(m.lastInteractionDate).getTime() <
                 Date.now() - 14 * 24 * 60 * 60 * 1000)
@@ -219,21 +226,27 @@ const ParticipantDashboard = () => {
         ) : (
           data.matches
             .filter((m) =>
-              ["APPROVED", "ACCEPTED"].includes(m.status?.toUpperCase())
+              [
+                "APPROVED",
+                "ACCEPTED_BY_ONE_PARTY",
+                "ACCEPTED_BY_BOTH",
+              ].includes(m.status)
             )
             .map((m) => (
               <div key={m.matchId} className="mb-4 border-b pb-2">
-                <p className="font-semibold">
-                  {m.mentor ? "Mentor to" : "Mentee of"}{" "}
-                  {m.matchWithName || "Unknown"} (
-                  {m.matchWithEmail || "No email"})
-                </p>
+                {m.status === "ACCEPTED_BY_BOTH" && (
+                  <p className="font-semibold">
+                    {m.mentor ? "Mentor to" : "Mentee of"}{" "}
+                    {m.matchWithName || "Unknown"} (
+                    {m.matchWithEmail || "No email"})
+                  </p>
+                )}
                 <p className="text-sm text-muted-foreground">
                   Programme: {m.programmeName || "N/A"} (
                   {m.academicYear || "Unknown"})<br />
                   Status:{" "}
                   <span className="capitalize">
-                    {m.status?.toLowerCase() || "unknown"}
+                    {formatText(m.status) || "unknown"} 
                   </span>{" "}
                   | Compatibility: {m.compatibilityScore ?? "N/A"}%
                 </p>

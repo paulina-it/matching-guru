@@ -75,6 +75,8 @@ export type ParticipantResponseDto = {
   userDisability: string;
   userDbsCertificate: boolean;
   userAgeGroup: string;
+  firstName: string;
+  lastName: string;
 
   programmeYearId: number;
   programmeName: string;

@@ -5,7 +5,7 @@ export type Gender =
   | "PREFER_NOT_TO_SAY"
   | "NON_BINARY";
 
-  export type PersonalityType =
+export type PersonalityType =
   | "Architect INTJ"
   | "Logician INTP"
   | "Commander ENTJ"
@@ -23,7 +23,6 @@ export type Gender =
   | "Entrepreneur ESTP"
   | "Entertainer ESFP";
 
-
 export type LivingArrangement =
   | "ON_CAMPUS"
   | "PARENT_HOME"
@@ -31,11 +30,7 @@ export type LivingArrangement =
   | "STUDENT_ACCOMMODATION_OFFCAMPUS"
   | "OTHER";
 
-export type AgeGroup =
-  | "AGE_18_20"
-  | "AGE_21_24"
-  | "AGE_25_29"
-  | "AGE_30_PLUS";
+export type AgeGroup = "AGE_18_20" | "AGE_21_24" | "AGE_25_29" | "AGE_30_PLUS";
 
 export type Skill =
   | "STATISTICS"
@@ -63,7 +58,15 @@ export type Skill =
 
 export type TimeRange = "MORNING" | "AFTERNOON" | "EVENING" | "ANYTIME";
 
-export type MatchStatus = "PENDING" | "APPROVED" | "REJECTED" | "ACCEPTED" | "DECLINED" | "COMPLETED";
+export type MatchStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "ACCEPTED"
+  | "DECLINED"
+  | "COMPLETED"
+  | "ACCEPTED_BY_ONE_PARTY"
+  | "ACCEPTED_BY_BOTH";
 
 export type Availability =
   | "WEEKENDS"
