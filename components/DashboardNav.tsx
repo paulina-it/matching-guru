@@ -12,6 +12,7 @@ import { IoMdArrowDropleft, IoMdArrowDropright } from "react-icons/io";
 import { useAuth } from "@/app/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FaUsers } from "react-icons/fa";
 
 type Props = {
   type: "coordinator" | "participant";
@@ -28,6 +29,7 @@ type LinkType = {
 const coordinatorLinks = [
   { route: "/coordinator", name: "Home", icon: <AiFillHome /> },
   { route: "/coordinator/organisation", name: "Organisation", icon: <FaBuilding /> },
+  { route: "/coordinator/users", name: "Users", icon: <FaUsers /> },
   { route: "/coordinator/programmes", name: "Programmes", icon: <RiProjectorLine /> },
   { route: "/coordinator/reports", name: "Reports", icon: <AiOutlineFileText /> },
   { route: "/coordinator/account", name: "Account", icon: <FiUser /> },

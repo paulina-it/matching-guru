@@ -26,6 +26,14 @@ export interface LoginResponse {
   user: UserResponseDto;
 }
 
+export interface UserSummaryDto {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: UserRole; 
+}
+
 export interface UserResponseDto {
   id: number;
   email: string;

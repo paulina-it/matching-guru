@@ -7,12 +7,10 @@ import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AiFillHome, AiOutlineFileText } from "react-icons/ai";
 import { FiUser, FiSettings } from "react-icons/fi";
-import { FaBuilding } from "react-icons/fa";
+import { FaBuilding, FaUsers } from "react-icons/fa";
 import { RiProjectorLine } from "react-icons/ri";
 import { CiMenuFries } from "react-icons/ci";
 import { useAuth } from "@/app/context/AuthContext";
-import ThemeToggle from "./ThemeToggle";
-import { Button } from "@/components/ui/button";
 
 type Props = {
   type: "coordinator" | "participant";
@@ -28,6 +26,7 @@ type LinkType = {
 const coordinatorLinks = [
   { route: "/coordinator", name: "Home", icon: <AiFillHome /> },
   { route: "/coordinator/organisation", name: "Organisation", icon: <FaBuilding /> },
+  { route: "/coordinator/users", name: "Users", icon: <FaUsers /> },
   { route: "/coordinator/programmes", name: "Programmes", icon: <RiProjectorLine /> },
   { route: "/coordinator/reports", name: "Reports", icon: <AiOutlineFileText /> },
   { route: "/coordinator/account", name: "Account", icon: <FiUser /> },
