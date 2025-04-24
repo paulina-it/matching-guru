@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { downloadCSV } from "@/app/api/export";
+import { useAuth } from "@/app/context/AuthContext";
 
 // const ITEMS_PER_PAGE = 20;
 
@@ -19,6 +20,7 @@ const ProgrammeYearMatches = () => {
   const params = useParams<{ id: string; yearId: string }>();
   const pathname = usePathname();
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const { user } = useAuth();
 
   const programmeYearId = params.yearId ? parseInt(params.yearId, 10) : null;
 
@@ -37,6 +39,20 @@ const ProgrammeYearMatches = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [statusFilter, setStatusFilter] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState("");
+  const statusStyles: Record<string, { label: string; className: string }> = {
+    PENDING: { label: "Pending", className: "bg-yellow-100 text-yellow-800" },
+    APPROVED: { label: "Approved", className: "bg-green-100 text-green-800" },
+    DECLINED: { label: "Declined", className: "bg-red-100 text-red-800" },
+    ACCEPTED_BY_ONE_PARTY: {
+      label: "Accepted by One",
+      className: "bg-blue-100 text-blue-800",
+    },
+    ACCEPTED_BY_BOTH: {
+      label: "Accepted by Both",
+      className: "bg-green-200 text-green-900",
+    },
+    REJECTED: { label: "Rejected", className: "bg-gray-200 text-gray-600" },
+  };
 
   useEffect(() => {
     if (!programmeYearId) return;
@@ -73,7 +89,7 @@ const ProgrammeYearMatches = () => {
     sortBy,
     sortOrder,
     statusFilter,
-    itemsPerPage
+    itemsPerPage,
   ]);
 
   const handleSearchSubmit = () => {
@@ -108,12 +124,12 @@ const ProgrammeYearMatches = () => {
   };
 
   const handleUpdateMatchStatus = async (status: "APPROVED" | "DECLINED") => {
-    if (selectedMatches.size === 0) return;
+    if (selectedMatches.size === 0 || !user) return;
 
     setProcessing(true);
     try {
       setLoadingMatches(true);
-      await updateMatchStatus(Array.from(selectedMatches), status);
+      await updateMatchStatus(Array.from(selectedMatches), status, user.id);
 
       setMatches((prevMatches) =>
         prevMatches.map((match) =>
@@ -373,7 +389,17 @@ checked:before:-translate-y-1/2 checked:before:text-white checked:before:text-md
                         <td className="border p-2">
                           {match.compatibilityScore}
                         </td>
-                        <td className="border p-2">{match.status}</td>
+                        <td className="border p-2">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              statusStyles[match.status]?.className ||
+                              "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {statusStyles[match.status]?.label || match.status}
+                          </span>
+                        </td>
+
                         <td className="border p-2">
                           <Link href={`${pathname}/${match.id}`}>View</Link>
                         </td>

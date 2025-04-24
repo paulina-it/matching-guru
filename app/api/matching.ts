@@ -145,7 +145,9 @@ export async function fetchDetailedMatchByParticipantId(
  */
 export async function updateMatchStatus(
   matchIds: number[],
-  status: "APPROVED" | "DECLINED"
+  status: "APPROVED" | "DECLINED",
+  editedByUserId: number,
+  reason?: string,
 ): Promise<void> {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Authentication token is missing.");
@@ -163,6 +165,8 @@ export async function updateMatchStatus(
     body: JSON.stringify({
       matchIds,
       status,
+      rejectionReason: status === "DECLINED" ? reason : undefined,
+      editedByUserId
     }),
     credentials: "include",
   });
