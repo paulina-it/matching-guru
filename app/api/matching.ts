@@ -27,7 +27,10 @@ export async function matchParticipants(
 
     if (!response.ok) {
       const errorText = await response.text();
-      return { success: false, message: `Error: ${response.status} - ${errorText}` };
+      return {
+        success: false,
+        message: `Error: ${response.status} - ${errorText}`,
+      };
     }
 
     return { success: true, message: "Matching process started successfully!" };
@@ -36,7 +39,9 @@ export async function matchParticipants(
   }
 }
 
-
+/**
+ * Fetch matches for a given programme year.
+ */
 export async function fetchMatchesByProgrammeYearId(
   id: number,
   page: number,
@@ -81,6 +86,9 @@ export async function fetchMatchesByProgrammeYearId(
   };
 }
 
+/**
+ * Fetch detailed info about a given match. (Coordinator view)
+ */
 export async function fetchDetailedMatchById(matchId: number): Promise<any> {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Authentication token is missing.");
@@ -103,6 +111,9 @@ export async function fetchDetailedMatchById(matchId: number): Promise<any> {
   return await response.json();
 }
 
+/**
+ * Fetch detailed info about matches allocated to a given participant. (Participant view)
+ */
 export async function fetchDetailedMatchByParticipantId(
   id: number
 ): Promise<any> {
@@ -129,13 +140,16 @@ export async function fetchDetailedMatchByParticipantId(
   return await response.json();
 }
 
+/**
+ * Submit a coordinator's match decision (approve/decline).
+ */
 export async function updateMatchStatus(
   matchIds: number[],
   status: "APPROVED" | "DECLINED"
 ): Promise<void> {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Authentication token is missing.");
-  // console.log(token);
+
   console.log("Updating matches with:", JSON.stringify({ matchIds, status }));
 
   const url = `${API_URL}/api/matches/update-status`;
@@ -158,6 +172,9 @@ export async function updateMatchStatus(
   }
 }
 
+/**
+ * Reset/delete all matches for a given programme year.
+ */
 export const deleteProgrammeYearMatches = async (programmeYearId: number) => {
   const token = localStorage.getItem("token");
 
@@ -178,3 +195,40 @@ export const deleteProgrammeYearMatches = async (programmeYearId: number) => {
 
   return await response.text();
 };
+
+/**
+ * Submit a participant's match decision (accept/reject).
+ */
+export async function submitMatchDecision({
+  matchId,
+  decision,
+  participantId,
+}: {
+  matchId: number;
+  decision: "ACCEPTED" | "REJECTED";
+  participantId: number;
+}): Promise<string> {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Authentication token is missing.");
+
+  const response = await fetch(`${API_URL}/api/matches/decision`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      matchId,
+      decision,
+      participantId,
+    }),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const msg = await response.text();
+    throw new Error(`Failed to submit decision: ${msg}`);
+  }
+
+  return await response.text();
+}

@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   downloadServerCertificate,
-  fetchProgrammeById,
   fetchProgrammeYear,
 } from "@/app/api/programmes";
-import { ProgrammeDto, ProgrammeYearResponseDto } from "@/app/types/programmes";
+import { ProgrammeYearResponseDto } from "@/app/types/programmes";
 import { PulseLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
@@ -27,7 +26,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   CommunicationStatus,
   CommunicationType,
-  CommunicationLogCreateDto,
   CommunicationLogDto,
 } from "@/app/types/communicationLog";
 import {
@@ -37,6 +35,7 @@ import {
   updateCommunicationLog,
 } from "@/app/api/communicationLogs";
 import FeedbackSubmissionBox from "@/components/FeedbackSubmissionBox";
+import { submitMatchDecision } from "@/app/api/matching";
 
 const ParticipantProgrammeDetails = () => {
   const params = useParams() as { id: string; programmeYearId: string };
@@ -44,7 +43,6 @@ const ParticipantProgrammeDetails = () => {
   const programmeYearId = parseInt(params.programmeYearId, 10);
   const { user } = useAuth();
 
-  const [programme, setProgramme] = useState<ProgrammeDto | null>(null);
   const [programmeYear, setProgrammeYear] =
     useState<ProgrammeYearResponseDto | null>(null);
   const [matchDetails, setMatchDetails] = useState<any[]>([]);
@@ -75,6 +73,7 @@ const ParticipantProgrammeDetails = () => {
   const [surveyOpen, setSurveyOpen] = useState<Date | null>();
   const [surveyClosed, setSurveyClosed] = useState<Date | null>();
   const [canShowFeedbackBox, setCanShowFeedbackBox] = useState<boolean>(false);
+  const [hasDecided, setHasDecided] = useState(false);
 
   const weekDayOrder = {
     MONDAY: 0,
@@ -101,6 +100,33 @@ const ParticipantProgrammeDetails = () => {
 
       return dayA - dayB;
     });
+  };
+
+  const matchStatusInfo: Record<string, { label: string; style: string }> = {
+    PENDING: {
+      label: "⏳ Pending Coordinator Review",
+      style: "bg-yellow-100 text-yellow-800",
+    },
+    APPROVED: {
+      label: "✅ Match Approved by Coordinator",
+      style: "bg-green-100 text-green-800",
+    },
+    DECLINED: {
+      label: "❌ Declined by Coordinator",
+      style: "bg-red-100 text-red-800",
+    },
+    ACCEPTED: {
+      label: "👍 You Accepted the Match",
+      style: "bg-blue-100 text-blue-800",
+    },
+    REJECTED: {
+      label: "👎 You Rejected the Match",
+      style: "bg-gray-200 text-gray-600",
+    },
+    NOTIFIED: {
+      label: "🔔 The other participant has been notified",
+      style: "bg-blue-50 text-blue-700",
+    },    
   };
 
   useEffect(() => {
@@ -305,6 +331,27 @@ const ParticipantProgrammeDetails = () => {
   const closeDialog = () => {
     setIsDialogOpen(false);
     setEditingLogId(null);
+  };
+
+  const handleMatchDecision = async (
+    matchId: number,
+    participantId: number,
+    decision: "ACCEPTED" | "REJECTED"
+  ) => {
+    try {
+      if (!participantId) {
+        toast.error("Participant ID missing.");
+        return;
+      }      
+
+      await submitMatchDecision({ matchId, decision, participantId });
+      toast.success(
+        `You ${decision === "ACCEPTED" ? "accepted" : "rejected"} the match!`
+      );
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message || `Failed to ${decision.toLowerCase()} match`);
+    }
   };
 
   if (loading) {
@@ -518,19 +565,16 @@ ${user?.firstName}`;
                   Match #{idx + 1}
                   <span
                     className={`text-sm px-3 py-1 rounded font-medium ${
-                      match.status === "APPROVED"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
+                      matchStatusInfo[match.status]?.style ||
+                      "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {match.status === "APPROVED"
-                      ? "✅ Match Confirmed"
-                      : "⏳ Match Pending"}
+                    {matchStatusInfo[match.status]?.label || "Unknown Status"}
                   </span>
                 </h4>
 
-                {/* Suggested Email */}
-                {match.status === "APPROVED" && (
+                {(match.status === "APPROVED" ||
+                  match.status === "ACCEPTED") && (
                   <>
                     {" "}
                     {/* Matched person info */}
@@ -604,147 +648,192 @@ ${user?.firstName}`;
                       <strong>Compatibility Score:</strong>{" "}
                       {match.compatibilityScore}%
                     </p>
-                    {shared && (
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        🕒 You're both available on{" "}
-                        <strong>{shared.day}</strong> at{" "}
-                        <strong>{shared.time}</strong>
-                      </p>
-                    )}
-                    {/* Contact Match */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full sm:w-auto mt-2 sm:mt-0"
-                        >
-                          Contact Your Match
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="suggested-email"
-                      >
-                        <DialogHeader>
-                          <DialogTitle id="suggested-email">
-                            Suggested Email
-                          </DialogTitle>
-                        </DialogHeader>
-                        <Textarea
-                          value={emailBody}
-                          readOnly
-                          className="w-full min-h-[20em]"
-                        />
-                        <DialogFooter>
+                    {match.status === "APPROVED" && (
+                      <>
+                        <div className="flex justify-center gap-4 mt-4">
                           <Button
-                            onClick={() => {
-                              const recipient = isMentor
-                                ? match.mentees?.[0]?.email
-                                : match.mentor?.email;
-
-                              if (!recipient) {
-                                toast.error("Match email not found.");
-                                return;
-                              }
-
-                              const subject = encodeURIComponent(
-                                "Mentoring Programme: Let's schedule a meeting"
-                              );
-                              const bodyEncoded = encodeURIComponent(emailBody);
-                              window.location.href = `mailto:${recipient}?subject=${subject}&body=${bodyEncoded}`;
-                            }}
-                            className="w-full sm:w-auto mt-2 sm:mt-0"
+                            size="xl"
+                            onClick={() =>
+                              handleMatchDecision(
+                                match.id,
+                                participant?.id,
+                                "ACCEPTED"
+                              )
+                            }
+                            aria-label="Accept match"
                           >
-                            Send Email
+                            Accept Match
                           </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                    {/* Log Interaction */}
-                    <Button
-                      variant="default"
-                      className="w-full sm:w-auto mt-2 sm:mt-0 lg:ml-3 lg:mt-4"
-                      onClick={() => openNewLogDialog(match.id)}
-                    >
-                      Log Interaction
-                    </Button>
-                    {/* No logs message */}
-                    {logs.length === 0 && (
-                      <p className="text-sm mt-4 italic text-yellow-600">
-                        No interactions logged yet.
-                      </p>
+                          <Button
+                            variant="destructive"
+                            size="xl"
+                            onClick={() =>
+                              handleMatchDecision(
+                                match.id,
+                                participant?.id,
+                                "REJECTED"
+                              )
+                            }
+                            aria-label="Reject match"
+                          >
+                            Reject Match
+                          </Button>
+                        </div>
+                      </>
                     )}
-                    {/* Interaction History */}
-                    {daysSinceLastInteraction !== null &&
-                      daysSinceLastInteraction > 14 && (
-                        <p className="text-accent mt-2 font-medium italic text-sm">
-                          ⚠️ It's been over 2 weeks since your last logged
-                          interaction. Consider reaching out to your match!
-                        </p>
-                      )}
-                    {logs.length > 0 && (
-                      <div className="mt-4">
-                        <h3 className="font-semibold text-start mb-1 h3">
-                          Interaction History
-                        </h3>
-                        <ul className="space-y-2 overflow-x-auto">
-                          {logs
-                            .sort(
-                              (a, b) =>
-                                new Date(b.timestamp).getTime() -
-                                new Date(a.timestamp).getTime()
-                            )
-                            .map((log) => (
-                              <li
-                                key={log.id}
-                                className="text-sm border p-2 rounded flex justify-between"
+                    {match.status === "ACCEPTED" && (
+                      <>
+                        {shared && (
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            🕒 You're both available on{" "}
+                            <strong>{shared.day}</strong> at{" "}
+                            <strong>{shared.time}</strong>
+                          </p>
+                        )}
+
+                        {/* Contact Match */}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full sm:w-auto mt-2 sm:mt-0"
+                            >
+                              Contact Your Match
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="suggested-email"
+                          >
+                            <DialogHeader>
+                              <DialogTitle id="suggested-email">
+                                Suggested Email
+                              </DialogTitle>
+                            </DialogHeader>
+                            <Textarea
+                              value={emailBody}
+                              readOnly
+                              className="w-full min-h-[20em]"
+                            />
+                            <DialogFooter>
+                              <Button
+                                onClick={() => {
+                                  const recipient = isMentor
+                                    ? match.mentes?.email
+                                    : match.mentor?.email;
+
+                                  if (!recipient) {
+                                    toast.error("Match email not found.");
+                                    return;
+                                  }
+
+                                  const subject = encodeURIComponent(
+                                    "Mentoring Programme: Let's schedule a meeting"
+                                  );
+                                  const bodyEncoded =
+                                    encodeURIComponent(emailBody);
+                                  window.location.href = `mailto:${recipient}?subject=${subject}&body=${bodyEncoded}`;
+                                }}
+                                className="w-full sm:w-auto mt-2 sm:mt-0"
                               >
-                                <span>
-                                  {new Date(log.timestamp).toLocaleString(
-                                    "en-GB"
-                                  )}{" "}
-                                  –{" "}
-                                  <strong>{log.type.replace(/_/g, " ")}</strong>{" "}
-                                  – <em>{log.status}</em>
-                                </span>
-                                <div className="flex items-center gap-2 ml-4">
-                                  {log.status !==
-                                    CommunicationStatus.COMPLETED && (
-                                    <button
-                                      onClick={() =>
-                                        handleMarkCompleted(log, match.id)
-                                      }
-                                      className="text-green-600 hover:text-green-800"
-                                      title="Mark as Completed"
-                                      aria-label="Mark log as completed"
-                                    >
-                                      <CheckCircle size={16} />
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => openEditDialog(log)}
-                                    className="text-primary hover:text-primary-hover dark:text-primary-dark dark:hover:text-primary-darkHover"
-                                    title="Edit"
-                                    aria-label="Edit interaction log"
+                                Send Email
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+
+                        {/* Log Interaction */}
+                        <Button
+                          variant="default"
+                          className="w-full sm:w-auto mt-2 sm:mt-0 lg:ml-3 lg:mt-4"
+                          onClick={() => openNewLogDialog(match.id)}
+                        >
+                          Log Interaction
+                        </Button>
+
+                        {/* No logs message */}
+                        {logs.length === 0 && (
+                          <p className="text-sm mt-4 italic text-yellow-600">
+                            No interactions logged yet.
+                          </p>
+                        )}
+
+                        {/* Interaction History */}
+                        {daysSinceLastInteraction !== null &&
+                          daysSinceLastInteraction > 14 && (
+                            <p className="text-accent mt-2 font-medium italic text-sm">
+                              ⚠️ It's been over 2 weeks since your last logged
+                              interaction. Consider reaching out to your match!
+                            </p>
+                          )}
+
+                        {logs.length > 0 && (
+                          <div className="mt-4">
+                            <h3 className="font-semibold text-start mb-1 h3">
+                              Interaction History
+                            </h3>
+                            <ul className="space-y-2 overflow-x-auto">
+                              {logs
+                                .sort(
+                                  (a, b) =>
+                                    new Date(b.timestamp).getTime() -
+                                    new Date(a.timestamp).getTime()
+                                )
+                                .map((log) => (
+                                  <li
+                                    key={log.id}
+                                    className="text-sm border p-2 rounded flex justify-between"
                                   >
-                                    <Pencil size={16} />
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handleDeleteLog(log.id, match.id)
-                                    }
-                                    className="text-accent hover:text-accent-hover dark:text-accent-dark dark:hover:text-accent-darkHover"
-                                    title="Delete"
-                                    aria-label="Delete interaction log"
-                                  >
-                                    <Trash size={16} />
-                                  </button>
-                                </div>
-                              </li>
-                            ))}
-                        </ul>
-                      </div>
+                                    <span>
+                                      {new Date(log.timestamp).toLocaleString(
+                                        "en-GB"
+                                      )}{" "}
+                                      –{" "}
+                                      <strong>
+                                        {log.type.replace(/_/g, " ")}
+                                      </strong>{" "}
+                                      – <em>{log.status}</em>
+                                    </span>
+                                    <div className="flex items-center gap-2 ml-4">
+                                      {log.status !==
+                                        CommunicationStatus.COMPLETED && (
+                                        <button
+                                          onClick={() =>
+                                            handleMarkCompleted(log, match.id)
+                                          }
+                                          className="text-green-600 hover:text-green-800"
+                                          title="Mark as Completed"
+                                          aria-label="Mark log as completed"
+                                        >
+                                          <CheckCircle size={16} />
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => openEditDialog(log)}
+                                        className="text-primary hover:text-primary-hover dark:text-primary-dark dark:hover:text-primary-darkHover"
+                                        title="Edit"
+                                        aria-label="Edit interaction log"
+                                      >
+                                        <Pencil size={16} />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          handleDeleteLog(log.id, match.id)
+                                        }
+                                        className="text-accent hover:text-accent-hover dark:text-accent-dark dark:hover:text-accent-darkHover"
+                                        title="Delete"
+                                        aria-label="Delete interaction log"
+                                      >
+                                        <Trash size={16} />
+                                      </button>
+                                    </div>
+                                  </li>
+                                ))}
+                            </ul>
+                          </div>
+                        )}
+                      </>
                     )}
                   </>
                 )}
