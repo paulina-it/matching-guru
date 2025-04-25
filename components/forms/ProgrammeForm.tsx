@@ -10,10 +10,10 @@ interface ProgrammeFormProps {
   user: any;
   name: string;
   desc: string;
-  selectedCourseGroups: number[];
+  selectedCourseGroups: number[]; 
+  setSelectedCourseGroups: React.Dispatch<React.SetStateAction<number[]>>;
   setName: (name: string) => void;
   setDesc: (desc: string) => void;
-  setSelectedCourseGroups: (groups: number[]) => void;
   contactEmail: string;
   setContactEmail: (email: string) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -61,9 +61,9 @@ const ProgrammeForm: React.FC<ProgrammeFormProps> = ({
   }, [user?.organisationId]);
 
   const handleCourseGroupSelection = (groupId: number) => {
-    setSelectedCourseGroups((prev: number[]) =>
+    setSelectedCourseGroups(prev =>
       prev.includes(groupId)
-        ? prev.filter((id: number) => id !== groupId)
+        ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     );
   };
