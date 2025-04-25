@@ -71,7 +71,7 @@ const EditProgramme = () => {
     try {
       const updatedProgramme = await updateProgramme(programmeId, programmeData);
       toast.success(`Programme "${updatedProgramme.name}" updated successfully!`);
-      router.push(`/programmes/${programmeId}`);
+      router.push(`/coordinator/programmes/${programmeId}`);
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Failed to update programme.");

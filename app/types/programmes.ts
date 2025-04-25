@@ -21,6 +21,7 @@ export interface ProgrammeDto {
   courseGroupIds: number[];
   participants: number;
   contactEmail: string;
+  courseGroups: Record<number, string>;
 }
 
 export interface MatchingCriteriaDto {

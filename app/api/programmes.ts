@@ -399,3 +399,21 @@ export async function deleteProgramme(programmeId: number): Promise<void> {
     throw new Error(errorMessage || "Failed to delete programme");
   }
 }
+
+export async function fetchMyAndAvailableProgrammes(
+  userId: number
+): Promise<{ myProgrammes: ProgrammeDto[]; availableProgrammes: ProgrammeDto[] }> {
+  if (!userId || isNaN(userId)) throw new Error("Invalid user id");
+
+  const token = localStorage.getItem("token");
+  const res   = await fetch(
+    `${API_URL}/programmes/participant/${userId}/my-and-available`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+
+  if (!res.ok) throw new Error(await res.text() || "Failed to fetch programmes");
+
+  return res.json();
+}
