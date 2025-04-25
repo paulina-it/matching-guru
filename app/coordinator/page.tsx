@@ -160,11 +160,11 @@ const CoordinatorDashboard = () => {
             </Link>
 
             <Link
-              href={`/coordinator/stats/drop-off`}
+              href={`/coordinator/stats/demographics`}
               className="bg-gray-100 dark:bg-dark dark:border dark:border-white/30 rounded p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
             >
-              <span className="text-4xl">📉</span>
-              <p className="mt-2">Drop-off Rate</p>
+              <span className="text-4xl">🎓</span>
+              <p className="mt-2">Participant Demographics</p>
             </Link>
           </div>
         </>

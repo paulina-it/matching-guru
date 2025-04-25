@@ -1,4 +1,7 @@
-import { OrganisationEngagementStats } from "@/app/types/stats";
+import {
+  OrganisationDemographicStats,
+  OrganisationEngagementStats,
+} from "@/app/types/stats";
 
 export const fetchMatchRateStats = async (organisationId: number) => {
   const token = localStorage.getItem("token");
@@ -41,3 +44,24 @@ export const fetchEngagementStats = async (
 
   return res.json();
 };
+
+/**
+ * Returns demographic-breakdown statistics for the current organisation
+ * (courses, academic stages, per-programme / per-year splits).
+ */
+export async function fetchDemographicStats(
+  organisationId: number
+): Promise<OrganisationDemographicStats> {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("No auth token");
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/stats/demographics/organisation/${organisationId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+  return res.json() as Promise<OrganisationDemographicStats>;
+}

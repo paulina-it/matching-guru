@@ -92,8 +92,40 @@ const MatchRatesPage = () => {
           stats.totalMatches,
           stats.totalParticipants - stats.totalMatches,
         ],
-        backgroundColor: ["rgba(75,192,192,0.4)", "rgba(255,99,132,0.4)"],
-        borderColor: ["rgba(75,192,192,1)", "rgba(255,99,132,1)"],
+        backgroundColor: ["#9fcada", "#dc6a5b"], 
+        borderColor: ["#549ab4", "#ba5648"], 
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const matchStatusData = {
+    labels: [
+      "Accepted by Both",
+      "Accepted by One Party",
+      "Rejected",
+      "Pending",
+    ],
+    datasets: [
+      {
+        data: [
+          stats.acceptedByBoth,
+          stats.acceptedByOne,
+          stats.rejected,
+          stats.pending,
+        ],
+        backgroundColor: [
+          "#9fcada", 
+          "#62a8d7",
+          "#dc6a5b",
+          "#e8c57f",
+        ],
+        borderColor: [
+          "#549ab4", 
+          "#2c7cb1", 
+          "#ba5648", 
+          "#c29f5a", 
+        ],
         borderWidth: 1,
       },
     ],
@@ -111,24 +143,47 @@ const MatchRatesPage = () => {
       },
     ],
   };
-
   return (
-    <div className="lg:min-w-[60vw] mx-auto my-12 dark:bg-dark dark:border dark:border-white/30 rounded p-5">
+    <div className="lg:min-w-[70vw] mx-auto my-[4em] bg-light dark:bg-dark dark:border dark:border-white/30 rounded p-5">
       <h1 className="text-3xl font-bold mb-8">📊 Match Rate Statistics</h1>
 
       <Card className="mb-6 p-6 flex justify-between">
         <div>
           <h2 className="text-2xl font-semibold mb-2">{stats.organisation}</h2>
           <p>Total Participants: {stats.totalParticipants}</p>
-          <p>Total Matches: {stats.totalMatches}</p>
+          <p>Matched Participants: {stats.totalMatches}</p>
           <p className="font-medium text-3xl text-primary">
             Average Match Rate: <br /> {stats.matchRatePercent.toFixed(2)}%
+          </p>
+          <p className="font-medium text-lg mt-4">
+            Accepted: {stats.totalAccepted} (
+            <span className="text-secondary font-semibold">
+              {stats.overallAcceptRate?.toFixed(2)}%
+            </span>
+            ) <br />
+            Rejected: {stats.totalRejected} (
+            <span className="text-accent font-semibold">
+              {stats.overallRejectRate?.toFixed(2)}%
+            </span>
+            )
           </p>
         </div>
         <div style={{ maxWidth: "250px", margin: "0 auto" }}>
           <Doughnut
             data={orgMatchRateData}
             options={{ maintainAspectRatio: true }}
+          />
+        </div>
+
+        <div style={{ maxWidth: "250px", margin: "1rem auto 0" }}>
+          <Doughnut
+            data={matchStatusData}
+            options={{
+              maintainAspectRatio: true,
+              plugins: {
+                legend: { position: "bottom" },
+              },
+            }}
           />
         </div>
       </Card>
@@ -161,6 +216,20 @@ const MatchRatesPage = () => {
               <p className="text-primary">
                 Match Rate: {programme.matchRate.toFixed(2)}%
               </p>
+              <p>
+                Accepted: {programme.accepted ?? 0} (
+                <span className="text-secondary font-semibold">
+                  {(programme.acceptRate ?? 0).toFixed(2)}%
+                </span>
+                )
+              </p>
+              <p>
+                Rejected: {programme.rejected ?? 0} (
+                <span className="text-accent font-semibold">
+                  {(programme.rejectRate ?? 0).toFixed(2)}%
+                </span>
+                )
+              </p>
 
               <div className="mt-4">
                 <button
@@ -188,6 +257,22 @@ const MatchRatesPage = () => {
                           {year.rate.toFixed(2)}%
                         </span>
                         )
+                        <div className="text-sm mt-1 ml-2 space-y-1">
+                          <p>
+                            Accepted: {year.accepted ?? 0} (
+                            <span className="text-secondary font-medium">
+                              {(year.acceptRate ?? 0).toFixed(1)}%
+                            </span>
+                            )
+                          </p>
+                          <p>
+                            Rejected: {year.rejected ?? 0} (
+                            <span className="text-accent font-medium">
+                              {(year.rejectRate ?? 0).toFixed(1)}%
+                            </span>
+                            )
+                          </p>
+                        </div>
                       </li>
                     ))}
                   </ul>
