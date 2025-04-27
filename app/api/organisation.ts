@@ -2,20 +2,21 @@ import {
   OrganisationCreateDto,
   OrganisationResponseDto,
 } from "../types/organisation";
+import { authenticatedFetch } from "../utils/token";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
+/**
+ * Fetch the organisation associated with the current admin user.
+ */
 export async function fetchAdminOrganisation(): Promise<OrganisationResponseDto | null> {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/organisations/admin/organisation-status`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    credentials: "include",
-  });
+  const response = await authenticatedFetch(
+    `${API_URL}/organisations/admin/organisation-status`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -32,15 +33,12 @@ export async function fetchAdminOrganisation(): Promise<OrganisationResponseDto 
   return response.json();
 }
 
+/**
+ * Fetch organisation details by ID.
+ */
 export async function fetchOrganisation(id: number): Promise<OrganisationResponseDto | null> {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/organisations/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/organisations/${id}`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     credentials: "include",
   });
 
@@ -59,17 +57,14 @@ export async function fetchOrganisation(id: number): Promise<OrganisationRespons
   return response.json();
 }
 
+/**
+ * Create a new organisation and assign it to the current user.
+ */
 export async function createOrganisationAndAssignToUser(
   organisationData: OrganisationCreateDto
 ): Promise<OrganisationResponseDto> {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/organisations/create`, {
+  const response = await authenticatedFetch(`${API_URL}/organisations/create`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(organisationData),
   });
 
@@ -83,16 +78,16 @@ export async function createOrganisationAndAssignToUser(
   return createdOrganisation;
 }
 
+/**
+ * Join an organisation using a join code.
+ */
 export async function joinOrganisation(joinCode: string): Promise<any> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token not found");
-
-  const response = await fetch(`${API_URL}/organisations/join?joinCode=${encodeURIComponent(joinCode)}`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-    },
-  });
+  const response = await authenticatedFetch(
+    `${API_URL}/organisations/join?joinCode=${encodeURIComponent(joinCode)}`,
+    {
+      method: "POST",
+    }
+  );
 
   if (!response.ok) {
     const errorMessage = await response.text();

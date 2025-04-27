@@ -1,17 +1,16 @@
+import { authenticatedFetch } from "../utils/token";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-
+/**
+ * Download match data as a CSV file for a given programme year.
+ */
 export const downloadCSV = async (programmeYearId: number) => {
-    const token = localStorage.getItem("token");
-    if (!token) throw new Error("Authentication token is missing.");
   try {
-    const response = await fetch(
-      `${API_URL}/export/matches?programmeYearId=${programmeYearId}&page=0&size=100`, {
+    const response = await authenticatedFetch(
+      `${API_URL}/export/matches?programmeYearId=${programmeYearId}&page=0&size=100`,
+      {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         credentials: "include",
       }
     );

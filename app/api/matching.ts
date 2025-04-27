@@ -1,3 +1,5 @@
+import { authenticatedFetch } from "../utils/token";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 /**
@@ -8,20 +10,13 @@ export async function matchParticipants(
   isInitial: boolean,
   algorithm: "gale-shapley" | "brace" | "collaborative-filtering"
 ): Promise<{ success: boolean; message: string }> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token is missing.");
-
   const url = new URL(`${API_URL}/api/matching/${algorithm}/run`);
   url.searchParams.append("programmeId", id.toString());
   url.searchParams.append("isInitial", isInitial ? "true" : "false");
 
   try {
-    const response = await fetch(url.toString(), {
+    const response = await authenticatedFetch(url.toString(), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
       credentials: "include",
     });
 
@@ -51,9 +46,6 @@ export async function fetchMatchesByProgrammeYearId(
   sortOrder: string = "desc",
   status: string = ""
 ): Promise<{ matches: any[]; totalPages: number }> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token is missing.");
-
   const url = new URL(`${API_URL}/api/matches/search`);
   url.searchParams.append("programmeYearId", id.toString());
   url.searchParams.append("page", page.toString());
@@ -63,14 +55,8 @@ export async function fetchMatchesByProgrammeYearId(
   if (sortOrder) url.searchParams.append("sortOrder", sortOrder);
   if (status) url.searchParams.append("status", status);
 
-  console.log(url.searchParams);
-
-  const response = await fetch(url.toString(), {
+  const response = await authenticatedFetch(url.toString(), {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     credentials: "include",
   });
 
@@ -90,17 +76,10 @@ export async function fetchMatchesByProgrammeYearId(
  * Fetch detailed info about a given match. (Coordinator view)
  */
 export async function fetchDetailedMatchById(matchId: number): Promise<any> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token is missing.");
-
   const url = new URL(`${API_URL}/api/matches/detailed/${matchId}`);
 
-  const response = await fetch(url.toString(), {
+  const response = await authenticatedFetch(url.toString(), {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     credentials: "include",
   });
 
@@ -117,19 +96,10 @@ export async function fetchDetailedMatchById(matchId: number): Promise<any> {
 export async function fetchDetailedMatchByParticipantId(
   id: number
 ): Promise<any> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token is missing.");
+  const url = new URL(`${API_URL}/api/matches/detailed/participant/${id}`);
 
-  const url = new URL(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/matches/detailed/participant/${id}`
-  );
-
-  const response = await fetch(url.toString(), {
+  const response = await authenticatedFetch(url.toString(), {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     credentials: "include",
   });
 
@@ -147,26 +117,17 @@ export async function updateMatchStatus(
   matchIds: number[],
   status: "APPROVED" | "DECLINED",
   editedByUserId: number,
-  reason?: string,
+  reason?: string
 ): Promise<void> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token is missing.");
-
-  console.log("Updating matches with:", JSON.stringify({ matchIds, status }));
-
   const url = `${API_URL}/api/matches/update-status`;
 
-  const response = await fetch(url.toString(), {
+  const response = await authenticatedFetch(url, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({
       matchIds,
       status,
       rejectionReason: status === "DECLINED" ? reason : undefined,
-      editedByUserId
+      editedByUserId,
     }),
     credentials: "include",
   });
@@ -179,16 +140,13 @@ export async function updateMatchStatus(
 /**
  * Reset/delete all matches for a given programme year.
  */
-export const deleteProgrammeYearMatches = async (programmeYearId: number) => {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(
+export const deleteProgrammeYearMatches = async (
+  programmeYearId: number
+): Promise<string> => {
+  const response = await authenticatedFetch(
     `${API_URL}/api/matches/programmeYear/${programmeYearId}`,
     {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     }
   );
 
@@ -214,15 +172,8 @@ export async function submitMatchDecision({
   userId: number;
   rejectionReason?: string;
 }): Promise<string> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token is missing.");
-
-  const response = await fetch(`${API_URL}/api/matches/decision`, {
+  const response = await authenticatedFetch(`${API_URL}/api/matches/decision`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({
       matchId,
       decision,

@@ -1,11 +1,18 @@
+import { authenticatedFetch } from "../utils/token";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-// DTOs for Course Group and Course
+/**
+ * Data structure for creating a Course Group.
+ */
 export interface CourseGroupCreateDto {
   name: string;
   organisationId: number;
 }
 
+/**
+ * Data structure for creating a Course.
+ */
 export interface CourseCreateDto {
   name: string;
   type: string;
@@ -13,18 +20,14 @@ export interface CourseCreateDto {
   groupId: number;
 }
 
-// Create a Course Group
+/**
+ * Create a new course group.
+ */
 export async function createCourseGroup(
   courseGroupData: CourseGroupCreateDto
 ): Promise<any> {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/course-groups/create`, {
+  const response = await authenticatedFetch(`${API_URL}/course-groups/create`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(courseGroupData),
   });
 
@@ -36,18 +39,14 @@ export async function createCourseGroup(
   return response.json();
 }
 
-// Create a Course
+/**
+ * Create a new course within a group.
+ */
 export async function createCourse(
   courseData: CourseCreateDto
 ): Promise<any> {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/courses/create`, {
+  const response = await authenticatedFetch(`${API_URL}/courses/create`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(courseData),
   });
 
@@ -59,39 +58,30 @@ export async function createCourse(
   return response.json();
 }
 
-// Fetch Course Groups by Organisation ID
+/**
+ * Fetch all course groups by organisation ID.
+ */
 export async function fetchCourseGroupsByOrganisationId(
-    organisationId: number
-  ): Promise<any[]> {
-    const token = localStorage.getItem("token"); 
-  
-    console.log("Fetching")
-    const response = await fetch(
-      `${API_URL}/course-groups/organisation/${organisationId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json", 
-        },
-      }
-    );
-  
-    if (!response.ok) {
-      const errorMessage = await response.text();
-      throw new Error(errorMessage || "Failed to fetch course groups");
+  organisationId: number
+): Promise<any[]> {
+  const response = await authenticatedFetch(
+    `${API_URL}/course-groups/organisation/${organisationId}`,
+    {
+      method: "GET",
     }
-  
-    const data = await response.json();
+  );
 
-    console.table(data);
-  
-    // Map data to ensure a consistent structure
-    return data.map((courseGroup: any) => ({
-      id: courseGroup.id,
-      name: courseGroup.name,
-      organisationId: courseGroup.organisationId,
-      courses: courseGroup.courses || [], // Ensure courses is always an array
-    }));
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || "Failed to fetch course groups");
   }
-  
+
+  const data = await response.json();
+
+  return data.map((courseGroup: any) => ({
+    id: courseGroup.id,
+    name: courseGroup.name,
+    organisationId: courseGroup.organisationId,
+    courses: courseGroup.courses || [],
+  }));
+}

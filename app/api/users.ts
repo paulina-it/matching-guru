@@ -1,13 +1,11 @@
 import { UserUpdateDto, UserResponseDto, UserSummaryDto } from "../types/auth";
 import toast from "react-hot-toast";
+import { authenticatedFetch } from "../utils/token";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 /**
  * Handle errors from the API response.
- * Displays error messages using toast notifications.
- * @param response - The Response object from the API call.
- * @throws Error - Throws an error with the API response's error message.
  */
 async function handleApiError(response: Response): Promise<never> {
   const errorMessage = await response.text();
@@ -17,47 +15,19 @@ async function handleApiError(response: Response): Promise<never> {
 
 /**
  * Update user information in the backend.
- * Sends a PUT request to update user data.
- * @param formData - The data to update the user with (UserUpdateDto).
- * @returns Promise<UserResponseDto> - Returns a promise with the updated user data.
- * @throws Error - Throws an error if the API request fails.
  */
-export async function updateUser(
-  formData: UserUpdateDto
-): Promise<UserResponseDto> {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    toast.error("Authentication error: No token found. Please log in.");
-    throw new Error("No token found");
-  }
-
-  const response = await fetch(`${API_URL}/users/update`, {
+export async function updateUser(formData: UserUpdateDto): Promise<UserResponseDto> {
+  const response = await authenticatedFetch(`${API_URL}/users/update`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(formData),
   });
 
-  if (!response.ok) {
-    await handleApiError(response);
-  }
-
+  if (!response.ok) await handleApiError(response);
   return response.json();
 }
 
 /**
  * Fetch users in a given organisation with search, filter, and sorting options.
- * Sends a GET request to fetch user data based on provided filters and query parameters.
- * @param organisationId - The ID of the organisation to fetch users from.
- * @param searchQuery - The search query to filter users by name (default: empty string).
- * @param role - The role to filter users by (default: 'all').
- * @param sortBy - The field to sort users by (default: 'name').
- * @param sortOrder - The sorting order (default: 'asc').
- * @returns Promise<UserResponseDto[]> - Returns a promise with the list of users.
- * @throws Error - Throws an error if the API request fails.
  */
 export async function fetchUsersInOrganisation(
   organisationId: number,
@@ -74,9 +44,6 @@ export async function fetchUsersInOrganisation(
   number: number;
   size: number;
 }> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found");
-
   const params = new URLSearchParams({
     organisationId: organisationId.toString(),
     page: page.toString(),
@@ -87,12 +54,7 @@ export async function fetchUsersInOrganisation(
     sortOrder,
   });
 
-  const response = await fetch(`${API_URL}/users/all?${params.toString()}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authenticatedFetch(`${API_URL}/users/all?${params.toString()}`);
 
   if (!response.ok) throw new Error("Failed to fetch users");
 
@@ -108,19 +70,10 @@ export async function fetchUsersInOrganisation(
 }
 
 /**
- * Fetch user by id.
- * Sends a GET request to fetch user data based on provided id.
- * @param id - The ID of the organisation to fetch users from.
+ * Fetch user by ID.
  */
 export async function getUserById(id: number): Promise<UserResponseDto> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found");
-
-  const response = await fetch(`${API_URL}/users/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await authenticatedFetch(`${API_URL}/users/${id}`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch user");
@@ -131,24 +84,15 @@ export async function getUserById(id: number): Promise<UserResponseDto> {
 
 /**
  * Assign a user to an organisation by email.
- * Sends a PATCH request with query parameters to update the user's organisation.
- * @param email - The email of the user to assign.
- * @param organisationId - The ID of the organisation.
  */
 export async function assignUserToOrganisation(email: string, organisationId: number): Promise<void> {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found");
-
   const queryParams = new URLSearchParams({
     userEmail: email,
     organisationId: organisationId.toString(),
   });
 
-  const response = await fetch(`${API_URL}/users/assign-organisation?${queryParams.toString()}`, {
+  const response = await authenticatedFetch(`${API_URL}/users/assign-organisation?${queryParams.toString()}`, {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   if (!response.ok) {

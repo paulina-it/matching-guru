@@ -62,7 +62,6 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
   }
 };
 
-
 /**
  * Uploads an organisation logo image and returns the Cloudinary URL.
  */
@@ -122,7 +121,7 @@ export const uploadCertificateTemplate = async (file: File): Promise<string> => 
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    credentials: "include", 
+    credentials: "include",
   });
 
   const text = await response.text();

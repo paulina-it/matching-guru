@@ -1,5 +1,6 @@
 import { UserLoginDto, UserCreateDto, LoginResponse } from "../types/auth";
 import toast from "react-hot-toast";
+import { getToken, authenticatedFetch } from "../utils/token";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -9,7 +10,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
  */
 async function handleApiError(response: Response): Promise<never> {
   const errorMessage = await response.text();
-  toast.error(errorMessage); // Show the error message directly
+  toast.error(errorMessage);
   throw new Error(errorMessage);
 }
 
@@ -54,25 +55,19 @@ export async function loginUser(request: UserLoginDto): Promise<LoginResponse> {
 }
 
 /**
- * Update password.
+ * Update password for the authenticated user.
  */
 export async function updatePassword(request: {
   oldPassword: string;
   newPassword: string;
 }): Promise<string> {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
+  if (!getToken()) {
     toast.error("Authentication error: No token found. Please log in.");
     throw new Error("No token found");
   }
 
-  const response = await fetch(`${API_URL}/auth/change-password`, {
+  const response = await authenticatedFetch(`${API_URL}/auth/change-password`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(request),
   });
 

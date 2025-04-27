@@ -1,14 +1,11 @@
-export const fetchAdminDashboard = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token is missing.");
+import { authenticatedFetch } from "../utils/token";
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/dashboard/admin`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+/**
+ * Fetch admin dashboard data for the authenticated user.
+ */
+export const fetchAdminDashboard = async () => {
+  const res = await authenticatedFetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/dashboard/admin`
   );
 
   if (!res.ok) {
@@ -18,17 +15,12 @@ export const fetchAdminDashboard = async () => {
   return res.json();
 };
 
+/**
+ * Fetch participant dashboard data for the authenticated user.
+ */
 export const fetchParticipantDashboard = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Authentication token is missing.");
-
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/dashboard/participant`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+  const res = await authenticatedFetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/dashboard/participant`
   );
 
   if (!res.ok) {
