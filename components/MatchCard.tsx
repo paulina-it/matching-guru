@@ -126,7 +126,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         </div>
 
         <CollapsibleContent className="mt-2 border rounded bg-white dark:bg-light/10 p-4 space-y-4">
-          {["ACCEPTED_BY_ONE_PARTY", "ACCEPTED_BY_BOTH"].includes(
+          {["ACCEPTED_BY_ONE_PARTY", "ACCEPTED_BY_BOTH", "APPROVED"].includes(
             match.status
           ) && (
             <>

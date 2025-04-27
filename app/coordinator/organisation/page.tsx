@@ -143,7 +143,7 @@ const OrganisationPage = () => {
           </div>
           <div className="mt-10 relative">
             <h2 className="h2 text-4xl flex text-start">
-              Courses <span className="lg:block hidden"> at {organisation?.name}</span>
+              Courses
             </h2>
             <div className="absolute lg:top-2 top-0 right-0 flex gap-2">
               <Button variant="outline" onClick={handleRedirect}>Add Courses</Button>
