@@ -28,7 +28,7 @@ const coordinatorLinks = [
   { route: "/coordinator/organisation", name: "Organisation", icon: <FaBuilding /> },
   { route: "/coordinator/users", name: "Users", icon: <FaUsers /> },
   { route: "/coordinator/programmes", name: "Programmes", icon: <RiProjectorLine /> },
-  { route: "/coordinator/reports", name: "Reports", icon: <AiOutlineFileText /> },
+  // { route: "/coordinator/reports", name: "Reports", icon: <AiOutlineFileText /> },
   { route: "/coordinator/account", name: "Account", icon: <FiUser /> },
   { route: "/coordinator/settings", name: "Settings", icon: <FiSettings /> },
 ];
